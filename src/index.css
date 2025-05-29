@@ -37,7 +37,7 @@ body {
 }
 
 #icon-bar {
-  flex: 0 0 50px;
+  flex: 0 0 80px;
   /* ★高さを固定 (例: 50px) し、伸縮しないようにする */
   width: 100%;
   background-color: rgba(230, 230, 230, 0.8);

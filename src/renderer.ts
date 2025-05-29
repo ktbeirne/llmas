@@ -10,7 +10,7 @@ import './index.css';
 const canvasElement = document.getElementById('vrm-canvas') as HTMLCanvasElement;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(30, canvasElement.clientWidth / canvasElement.clientHeight, 0.1, 20);
-camera.position.set(0.0, 1.2, 4.4);
+camera.position.set(0.0, 1.2, 5.0);
 const speechBubbleContainer = document.getElementById('speech-bubble-container') as HTMLDivElement;
 const speechBubble = document.getElementById('speech-bubble') as HTMLDivElement;
 const speechBubbleText = document.getElementById('speech-bubble-text') as HTMLParagraphElement;
@@ -125,7 +125,7 @@ function onAllAssetsReady() {
             const hipsWorldPosition = new THREE.Vector3();
             hipsNode.getWorldPosition(hipsWorldPosition);
             const targetFocusPosition = hipsWorldPosition.clone()
-            targetFocusPosition.y -= 0.1;
+            targetFocusPosition.y -= 0;
             controls.target.copy(targetFocusPosition);
             controls.update();
             loadedVRMInstance.lookAt.target = lookAtTarget;

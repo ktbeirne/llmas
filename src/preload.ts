@@ -7,9 +7,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
         return response;
     },
 
-    onDisplaySpeechBubble: (callback: (text: string) => void) => {
-        ipcRenderer.on('display-speech-bubble', (_event, text) => callback(text));
+
+    // ★★★ 新しい吹き出しウィンドウ用のAPIを追加 ★★★
+    onSetSpeechBubbleText: (callback: (text: string) => void) => {
+        ipcRenderer.on('set-speech-bubble-text', (_event, text) => callback(text));
+    },
+
+    hideSpeechBubble: () => {
+        ipcRenderer.send('hide-speech-bubble-window');
     }
-
 });
-
