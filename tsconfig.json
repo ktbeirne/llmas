@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "commonjs",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "outDir": "dist",
+    "moduleResolution": "node",
+    "resolveJsonModule": true
+  },
+  "include": [
+    "src/**/*.ts", // srcフォルダとそのサブフォルダ内の全ての.tsファイル
+    "src/**/*.d.ts", // srcフォルダとそのサブフォルダ内の全ての.d.tsファイル (src/preload.d.ts を含む)
+    "*.d.ts" // ★プロジェクトルート直下にある全ての.d.tsファイルも見るように追加
+    // (もし vite-env.d.ts などがルートにあれば、これで認識されるはずです)
+  ]
+}

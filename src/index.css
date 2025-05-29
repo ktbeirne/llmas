@@ -1,0 +1,90 @@
+html,
+body {
+  height: 100vh;
+  /* ビューポートの高さ100% */
+  margin: 0;
+  overflow: hidden;
+  /* body自体のスクロールは不要に */
+  display: flex;
+  flex-direction: column;
+  background-color: transparent;
+  -webkit-app-region: drag;
+  /* 子要素を縦に並べる */
+}
+
+#canvas-area {
+  flex: 1 1 auto;
+  /* 残りの高さを全て取る */
+  width: 100%;
+  position: relative;
+  /* ★子要素を絶対配置するための基準点になります */
+  overflow: hidden;
+  /* はみ出した部分を隠す */
+}
+
+
+#vrm-canvas {
+  position: absolute;
+  /* #canvas-area いっぱいに広がるように */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-app-region: no-drag;
+  /* キャンバス自体はドラッグ不可 (OrbitControlsなどのため) */
+  z-index: 1;
+  /* ドラッグエリアより下に配置 */
+}
+
+#icon-bar {
+  flex: 0 0 50px;
+  /* ★高さを固定 (例: 50px) し、伸縮しないようにする */
+  width: 100%;
+  background-color: rgba(230, 230, 230, 0.8);
+  /* 仮の背景色 */
+  border-top: 1px solid rgba(200, 200, 200, 0.5);
+  /* 上に境界線 */
+  display: flex;
+  /* 中のアイコンを横に並べたり、中央揃えしたりするため */
+  align-items: center;
+  justify-content: space-around;
+  /* アイコンを均等配置する例 */
+  padding: 0 10px;
+  box-sizing: border-box;
+  -webkit-app-region: drag;
+  /* アイコンバー自体はドラッグ不可 */
+}
+
+#drag-icon {
+  position: absolute;
+  top: 50px;
+  /* #canvas-areaの上から10px */
+  right: 10px;
+  /* #canvas-areaの右から10px */
+  width: 80px;
+  /* アイコンの幅 (お好みで調整) */
+  height: 70px;
+  /* アイコンの高さ (お好みで調整) */
+  /* 半透明のグレー (お好みで) */
+  /* 円形にする場合 (お好みで) */
+  cursor: grab;
+  /* マウスカーソルを掴む形に */
+  -webkit-app-region: drag;
+  /* ★ このアイコンはドラッグ可能！ ★ */
+  z-index: 10;
+  color: rgba(185, 185, 185, 0.295);
+  /* キャンバスや他の要素より手前に表示 */
+}
+
+#drag-icon svg {
+  /* #drag-icon の中のSVG要素に対するスタイル */
+  width: 100%;
+  /* アイコンのコンテナに対する相対的なサイズ (例: 80%) */
+  height: 100%;
+  fill: rgba(122, 114, 114, 0.432);
+  /* SVGの色 (半透明の黒などお好みで) */
+  /* IconifyのSVGは currentColor を使うことが多いので、
+     #drag-icon に color プロパティを指定しても色が変えられます。
+     例: #drag-icon { color: rgba(0,0,0,0.6); }
+  */
+}
