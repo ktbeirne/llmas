@@ -43,11 +43,14 @@ npm run publish          # Publish the app
 
 3. **Window Configuration**: The app uses transparent, frameless windows. Be careful when modifying window settings in `forge.config.ts` and the main process.
 
-4. User Interaction Language: All interactions with the user (e.g., comments in code, pull request descriptions, chat responses if applicable) must be in Japanese.
+4. **User Interaction Language**: All interactions with the user (e.g., comments in code, pull request descriptions, chat responses if applicable) must be in Japanese.
 
-5. Test-Driven Development (TDD): Employ TDD methodologies. Write tests before writing implementation code. Ensure tests cover new functionality and bug fixes.
+5. **Test-Driven Development (TDD)**: Employ TDD methodologies. Write tests before writing implementation code. Ensure tests cover new functionality and bug fixes.
 
-6. Planning Before Implementation: Always create a clear plan before starting any coding task. This plan should outline the steps to be taken, an estimate of affected files, and any potential challenges or edge cases.
+6. **Planning Before Implementation**: Always create a clear plan before starting any coding task. This plan should outline the steps to be taken, an estimate of affected files, and any potential challenges or edge cases.
+
+7. **Pull Request Submission**: Submit a pull request once all planned tasks are completed.
+   
 
 ## Key Technologies
 
