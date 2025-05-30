@@ -15,5 +15,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     hideSpeechBubble: () => {
         ipcRenderer.send('hide-speech-bubble-window');
-    }
+    },
+
+    notifyBubbleSize: (size: { width: number; height: number }) => {
+        ipcRenderer.send('notify-bubble-size', size);
+    },
+
+    logRendererMessage: (message: string) => {
+        ipcRenderer.send('log-from-speech-bubble', message); // 新しいチャンネル名
+    },
+
+    toggleChatWindowVisibility: () => {
+        ipcRenderer.send('toggle-chat-visibility');
+      }
 });

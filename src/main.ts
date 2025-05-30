@@ -5,6 +5,14 @@ import dotenv from 'dotenv';
 dotenv.config();
 import { generateTextFromGemini, initializeGemini } from './geminiService';
 
+// Electron Forge Viteプラグインによって自動的に定義される環境変数
+declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
+declare const MAIN_WINDOW_VITE_NAME: string;
+declare const SPEECH_BUBBLE_VITE_DEV_SERVER_URL: string | undefined;
+declare const SPEECH_BUBBLE_VITE_NAME: string;
+
+const SPEECH_BUBBLE_Y_OFFSET = 150;
+
 let characterWindow: BrowserWindow | null = null;
 let chatWindow: BrowserWindow | null = null;
 let speechBubbleWindow: BrowserWindow | null = null; // ★ 新しい吹き出しウィンドウ用の変数を追加
@@ -54,40 +62,97 @@ function createChatWindow() {
 
 // ★★★ ここから新しい吹き出しウィンドウ用の関数 ★★★
 function createSpeechBubbleWindow() {
-  speechBubbleWindow = new BrowserWindow({
-    width: 520, // HTMLのmax-widthに合わせて調整
-    height: 150, // HTMLのmax-heightに合わせて調整
-    frame: false,
-    transparent: true,
-    alwaysOnTop: true,
-    skipTaskbar: true, // タスクバーに表示しない
-    resizable: false,  // サイズ変更不可
-    show: false,       // 最初は隠しておく
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'), // 既存のpreload.jsを使う
-      // nodeIntegration: false, // セキュリティのためデフォルトfalse
-      // contextIsolation: true, // セキュリティのためデフォルトtrue
-    },
-  });
+  console.log('[Debug] Attempting to create SpeechBubbleWindow...'); // ★ログ1
 
-  // ★ ご主人様が作成した speechBubble.html を読み込みます
-  //    このファイルはプロジェクトのルート直下に置く想定です。
-  //    もし場所が違う場合は、パスを調整してくださいね。
-  speechBubbleWindow.loadFile('speechBubble.html');
+  try {
+    speechBubbleWindow = new BrowserWindow({
+      width: 50,
+      height: 50,
+      frame: false,
+      transparent: true,
+      alwaysOnTop: true,
+      skipTaskbar: true,
+      resizable: false,
+      show: false,
+      webPreferences: {
+        preload: path.join(__dirname, 'preload.js'),
+      },
+    });
 
-  // 準備ができたら表示 (チラつき防止)
-  speechBubbleWindow.once('ready-to-show', () => {
-    console.log('SpeechBubbleWindow is ready (but not being shown yet).');
-    // ここでの setPosition や show の呼び出しは不要です
-  });
+    console.log('[Debug] SpeechBubbleWindow object created:', speechBubbleWindow ? 'Exists' : 'null'); // ★ログ2
 
-  speechBubbleWindow.on('closed', () => {
+    // Vite関連のURLと名前が正しく定義されているか確認
+    console.log('[Debug] SPEECH_BUBBLE_VITE_DEV_SERVER_URL:', SPEECH_BUBBLE_VITE_DEV_SERVER_URL); // ★ログ3
+    console.log('[Debug] SPEECH_BUBBLE_VITE_NAME:', SPEECH_BUBBLE_VITE_NAME); // ★ログ4
+
+    if (SPEECH_BUBBLE_VITE_DEV_SERVER_URL) {
+      // ★ 開発環境では、speech_bubbleのパスを含める必要がある
+      const speechBubbleURL = `${SPEECH_BUBBLE_VITE_DEV_SERVER_URL}/renderer/speech_bubble/index.html`;
+      console.log(`[Debug] Attempting to load URL: ${speechBubbleURL}`); // ★ログ5
+      speechBubbleWindow.loadURL(speechBubbleURL)
+        .then(() => {
+          console.log('[Debug] SpeechBubbleWindow URL loaded successfully.'); // ★ログ6
+          // ★ 追加: webContentsの準備完了を確認
+          speechBubbleWindow.webContents.once('did-finish-load', () => {
+            console.log('[Debug] SpeechBubbleWindow webContents did-finish-load event fired.');
+          });
+        })
+        .catch((err) => {
+          console.error('[Debug] Failed to load SpeechBubbleWindow URL:', err); // ★ログ7
+          // ★ エラー時にウィンドウを破棄
+          if (speechBubbleWindow && !speechBubbleWindow.isDestroyed()) {
+            speechBubbleWindow.destroy();
+            speechBubbleWindow = null;
+          }
+        });
+    } else if (SPEECH_BUBBLE_VITE_NAME) { // VITE_NAMEがある場合のみloadFileを試みる
+      const filePath = path.join(__dirname, `../renderer/${SPEECH_BUBBLE_VITE_NAME}/index.html`);
+      console.log(`[Debug] Attempting to load File: ${filePath}`); // ★ログ8
+      speechBubbleWindow.loadFile(filePath)
+        .then(() => {
+          console.log('[Debug] SpeechBubbleWindow File loaded successfully.'); // ★ログ9
+          // ★ 追加: webContentsの準備完了を確認
+          speechBubbleWindow.webContents.once('did-finish-load', () => {
+            console.log('[Debug] SpeechBubbleWindow webContents did-finish-load event fired.');
+          });
+        })
+        .catch((err) => {
+          console.error('[Debug] Failed to load SpeechBubbleWindow File:', err); // ★ログ10
+          // ★ エラー時にウィンドウを破棄
+          if (speechBubbleWindow && !speechBubbleWindow.isDestroyed()) {
+            speechBubbleWindow.destroy();
+            speechBubbleWindow = null;
+          }
+        });
+    } else {
+      console.error('[Debug] Vite URL and Name for SpeechBubbleWindow are both undefined. Cannot load content.'); // ★ログ11
+      // ★ ウィンドウを破棄
+      if (speechBubbleWindow && !speechBubbleWindow.isDestroyed()) {
+        speechBubbleWindow.destroy();
+        speechBubbleWindow = null;
+      }
+      return; // 早期リターン
+    }
+
+    if (speechBubbleWindow) { // nullチェック
+      console.log('[Debug] Attempting to open DevTools for SpeechBubbleWindow...'); // ★ログ12
+      //speechBubbleWindow.webContents.openDevTools({ mode: 'detach' });
+      console.log('[Debug] openDevTools called for SpeechBubbleWindow.'); // ★ログ13
+    }
+
+    speechBubbleWindow.once('ready-to-show', () => {
+      console.log('[Debug] SpeechBubbleWindow ready-to-show event fired (but not shown). Waiting for content and size.'); // ★ログ14 (元のログにDebugプレフィックス追加)
+    });
+
+    speechBubbleWindow.on('closed', () => {
+      console.log('[Debug] SpeechBubbleWindow "closed" event fired.'); // ★ログ15
+      speechBubbleWindow = null;
+    });
+  } catch (error) {
+    console.error('[Debug] Error creating SpeechBubbleWindow:', error);
     speechBubbleWindow = null;
-  });
-
-  // speechBubbleWindow.webContents.openDevTools(); // デバッグ用に開いてもOK
+  }
 }
-// ★★★ 新しい吹き出しウィンドウ用の関数ここまで ★★★
 
 
 const apiKeyFromEnv = process.env.GEMINI_API_KEY;
@@ -104,63 +169,38 @@ if (!apiKeyFromEnv) {
 
 ipcMain.handle('send-prompt-to-gemini', async (_event: IpcMainInvokeEvent, prompt: string) => {
   console.log(`メインプロセスがプロンプト "${prompt}" を受け取りました。Geminiに問い合わせます...`);
+  
+  // ★ デバッグ: speechBubbleWindowの状態を確認
+  console.log('[Debug] speechBubbleWindow status check:');
+  console.log(`  - speechBubbleWindow exists: ${speechBubbleWindow !== null}`);
+  if (speechBubbleWindow) {
+    console.log(`  - isDestroyed: ${speechBubbleWindow.isDestroyed()}`);
+    console.log(`  - isVisible: ${speechBubbleWindow.isVisible()}`);
+    console.log(`  - webContents exists: ${speechBubbleWindow.webContents !== null}`);
+  }
+  
   if (!prompt) {
     return "エラー: プロンプトが空です。";
   }
   try {
     const geminiResponse = await generateTextFromGemini(prompt);
 
-
-    // ★★★ 新しい吹き出しウィンドウにGeminiの応答を送信 ★★★
     if (speechBubbleWindow && !speechBubbleWindow.isDestroyed()) {
-      if (geminiResponse && geminiResponse.trim() !== "") {
-        speechBubbleWindow.webContents.send('set-speech-bubble-text', geminiResponse);
-        if (!speechBubbleWindow.isVisible()) { // ★ もし非表示なら表示する
-          // ★ 表示する前に必ず位置を調整！
-          if (characterWindow) {
-            const charBounds = characterWindow.getBounds();
-            const bubbleWidth = speechBubbleWindow.getBounds().width; // speechBubbleWindowの現在の幅
-            const bubbleHeight = speechBubbleWindow.getBounds().height; // speechBubbleWindowの現在の高さ
-
-            // X座標の計算 (次の項目で調整)
-            const x = charBounds.x + Math.round((charBounds.width - bubbleWidth) / 2);
-            // Y座標の計算 (次の項目で調整)
-            // const y = charBounds.y - bubbleHeight; // ← 前回の案
-            const SPEECH_BUBBLE_Y_OFFSET = -20; // 仮のオフセット値 (次の項目で調整)
-            const y = charBounds.y + SPEECH_BUBBLE_Y_OFFSET;
-
-
-            speechBubbleWindow.setPosition(x, y);
-          }
-          speechBubbleWindow.show();
-          console.log('SpeechBubbleWindow shown with text:', geminiResponse);
-        }
-      } else {
-        // speechBubbleWindow.webContents.send('set-speech-bubble-text', '');
-        // if (speechBubbleWindow.isVisible()) {
-        //   speechBubbleWindow.hide();
-        //   console.log('SpeechBubbleWindow hidden due to empty text.');
-        // }
-      }
-  }
-    // ★★★ ここまで ★★★
-
-    return geminiResponse; // チャットウィンドウへの返信
+      // ★ テキストを送信するだけ。表示やサイズ調整は 'notify-bubble-size' イベントハンドラに任せる
+      console.log('[Debug] Sending message to speechBubbleWindow...');
+      speechBubbleWindow.webContents.send('set-speech-bubble-text', geminiResponse);
+      console.log('Sent to SpeechBubbleWindow, waiting for size notification:', geminiResponse);
+    } else {
+      console.error('[Debug] Cannot send to speechBubbleWindow: window is null or destroyed');
+    }
+    return geminiResponse;
   } catch (error) {
     console.error("Gemini処理中にメインプロセスでエラー:", error);
     const errorMessage = `エラー: ${(error as Error).message || "Geminiからの応答取得に失敗しました。"}`;
 
     if (speechBubbleWindow && !speechBubbleWindow.isDestroyed()) {
       const errorText = `エラー: ${(error as Error).message || "Geminiからの応答取得に失敗しました。"}`;
-      speechBubbleWindow.webContents.send('set-speech-bubble-text', errorText);
-      if (!speechBubbleWindow.isVisible() && characterWindow) { // エラーでも表示するなら
-        const charBounds = characterWindow.getBounds();
-        const bubbleWidth = speechBubbleWindow.getBounds().width;
-        const x = charBounds.x + Math.round((charBounds.width - bubbleWidth) / 2);
-        const y = charBounds.y + 20;
-        speechBubbleWindow.setPosition(x, y);
-        speechBubbleWindow.show();
-      }
+      speechBubbleWindow.webContents.send('set-speech-bubble-text', errorText); // エラー時もテキストを送る
     }
     return errorMessage;
   }
@@ -170,6 +210,83 @@ ipcMain.on('hide-speech-bubble-window', () => {
   if (speechBubbleWindow && speechBubbleWindow.isVisible()) {
     speechBubbleWindow.hide();
     console.log('SpeechBubbleWindow hidden by IPC request.');
+  }
+});
+
+ipcMain.on('notify-bubble-size', (_event, size: { width: number; height: number }) => {
+  if (speechBubbleWindow && !speechBubbleWindow.isDestroyed() && characterWindow) {
+    console.log('[Positioning] Received bubble size from renderer:', size);
+
+    const windowWidth = Math.max(size.width, 80);
+    const windowHeight = Math.max(size.height, 50);
+    console.log(`[Positioning] Effective bubble window size: width=${windowWidth}, height=${windowHeight}`);
+
+    const charBounds = characterWindow.getBounds();
+    console.log(`[Positioning] CharacterWindow bounds: x=${charBounds.x}, y=${charBounds.y}, width=${charBounds.width}, height=${charBounds.height}`);
+
+    const x = charBounds.x + Math.round((charBounds.width - windowWidth) / 2);
+    // ご主人様の現在のY座標計算ロジック（オフセット120を想定）
+    // 吹き出しの下端Y = charBounds.y + SPEECH_BUBBLE_Y_OFFSET
+    // 吹き出しの上端Y = (charBounds.y + SPEECH_BUBBLE_Y_OFFSET) - windowHeight
+    const y = (charBounds.y + SPEECH_BUBBLE_Y_OFFSET) - windowHeight;
+
+    console.log(`[Positioning_Intent] Intending to set: x=${x}, y=${y}, width=${windowWidth}, height=${windowHeight}. (SPEECH_BUBBLE_Y_OFFSET is ${SPEECH_BUBBLE_Y_OFFSET})`);
+
+    // ★★★ setSize と setPosition の代わりに setBounds を使用 ★★★
+    const newBounds = {
+      x: Math.round(x), // Electronは整数値を期待します
+      y: Math.round(y),
+      width: Math.round(windowWidth),
+      height: Math.round(windowHeight)
+    };
+    speechBubbleWindow.setBounds(newBounds);
+    console.log(`[Positioning] Called setBounds with x:${newBounds.x}, y:${newBounds.y}, width:${newBounds.width}, height:${newBounds.height}`);
+    // ★★★ ここまで変更 ★★★
+
+    const actualBoundsAfterSet = speechBubbleWindow.getBounds();
+    console.log(`[Positioning_Actual] Actual bounds after setBounds: x=${actualBoundsAfterSet.x}, y=${actualBoundsAfterSet.y}, width=${actualBoundsAfterSet.width}, height=${actualBoundsAfterSet.height}`);
+
+    if (!speechBubbleWindow.isVisible()) {
+      speechBubbleWindow.show();
+      const actualBoundsAfterShow = speechBubbleWindow.getBounds();
+      console.log(`[Positioning_Show] SpeechBubbleWindow shown. Current bounds: x=${actualBoundsAfterShow.x}, y=${actualBoundsAfterShow.y}, width=${actualBoundsAfterShow.width}, height=${actualBoundsAfterShow.height}`);
+    } else {
+      const currentBounds = speechBubbleWindow.getBounds();
+      console.log(`[Positioning_Update] SpeechBubbleWindow already visible. Current bounds: x=${currentBounds.x}, y=${currentBounds.y}, width=${currentBounds.width}, height=${currentBounds.height}`);
+    }
+  } else {
+    if (!speechBubbleWindow || speechBubbleWindow.isDestroyed()) {
+      console.log('[Positioning_Error] SpeechBubbleWindow does not exist or is destroyed. Cannot set size/position.');
+    }
+    if (!characterWindow) {
+      console.log('[Positioning_Error] CharacterWindow does not exist. Cannot calculate position.');
+    }
+  }
+});
+
+ipcMain.on('log-from-speech-bubble', (_event, message: string) => {
+  console.log(`[SpeechBubbleHTML]: ${message}`); // ターミナルに表示
+});
+
+ipcMain.on('toggle-chat-visibility', () => {
+  if (chatWindow && !chatWindow.isDestroyed()) {
+    if (chatWindow.isVisible()) {
+      chatWindow.hide();
+      console.log('Chat window hidden.');
+    } else {
+      chatWindow.show();
+      // 必要であれば、表示する際に chatWindow.focus() を呼んでフォーカスを当てることもできます
+      console.log('Chat window shown.');
+    }
+  } else {
+    // チャットウィンドウが存在しない (一度も開かれていないか、閉じられた後) 場合の処理
+    console.log('Chat window does not exist or is destroyed. Attempting to create it.');
+    createChatWindow(); // 新しくチャットウィンドウを作成して表示する
+    // createChatWindow() の中で show() されるか、別途 chatWindow.show() が必要か確認してください。
+    // 現在の createChatWindow では loadFile の後に show する処理はなさそうなので、
+    // 表示するには一手間必要かもしれません。
+    // もし createChatWindow が show を含まないなら:
+    // if (chatWindow && !chatWindow.isDestroyed()) chatWindow.show();
   }
 });
 

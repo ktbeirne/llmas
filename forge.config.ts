@@ -35,6 +35,10 @@ const config: ForgeConfig = {
           name: 'main_window',
           config: 'vite.renderer.config.ts',
         },
+        { // ★★★ これを吹き出しウィンドウ用に追加 ★★★
+          name: 'speech_bubble', // 手順1で作成したフォルダ名 (例: 'speech_bubble')
+          config: 'vite.renderer.config.ts', // 通常は同じレンダラ設定でOK
+        },
       ],
     }),
     // Fuses are used to enable/disable various Electron functionality

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Speech Bubble</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            /* chat.css と合わせても良いですね */
+            background-color: transparent;
+            /* ウィンドウ背景は透明 */
+            overflow: hidden;
+            /* はみ出しは表示しない */
+            display: flex;
+            /* 中身を中央寄せにするため (任意) */
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            /* ウィンドウの高さ一杯に */
+        }
+
+        #bubble-content {
+            background-color: #FFF6E3; /* 少しグレーがかった背景色 */
+            /* あるいは、ごく薄い水色なども可愛らしいです: background-color: #f0f8ff; */
+            padding: 12px 18px;
+            border-radius: 8px; /* 少し角ばった感じもモダンです */
+            max-width: 500px; /* ご主人様が調整された値 */
+            min-width: 250px; /* ご主人様が調整された値 */
+            border: 1px solid #e0e0e0; /* ★境界線をなくす */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* ★ごくごく薄い影、または無くてもOK */
+            /* ... 他の max-width, min-width などはそのまま ... */
+            color: #34495e; 
+            font-size: 14px;
+            line-height: 1.6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        }
+    </style>
+</head>
+
+<body>
+    <div id="bubble-content">
+    </div>
+    <script>
+        // 診断用のインラインスクリプト
+        console.log('[Inline] Speech bubble HTML loaded');
+        console.log('[Inline] window.electronAPI exists:', !!window.electronAPI);
+        
+        // エラーをキャッチ
+        window.addEventListener('error', (e) => {
+            console.error('[Inline] Error caught:', e.message, e.filename, e.lineno);
+        });
+        
+        // モジュールの読み込みエラーをキャッチ
+        window.addEventListener('unhandledrejection', (e) => {
+            console.error('[Inline] Unhandled rejection:', e.reason);
+        });
+    </script>
+    <script type="module">
+        // renderer.tsを直接インポート
+        import './renderer.ts';
+        console.log('[Inline] Module import attempted');
+    </script>
+</body>
+
+</html>
