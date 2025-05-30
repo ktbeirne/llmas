@@ -35,5 +35,30 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     quitApp: () => {
         ipcRenderer.send('quit-app');
+    },
+
+    // 設定関連のAPI
+    openSettings: () => {
+        ipcRenderer.send('open-settings');
+    },
+
+    closeSettings: () => {
+        ipcRenderer.send('close-settings');
+    },
+
+    getSettings: async (): Promise<any> => {
+        return await ipcRenderer.invoke('get-settings');
+    },
+
+    saveSettings: async (settings: any): Promise<void> => {
+        return await ipcRenderer.invoke('save-settings', settings);
+    },
+
+    resetSettings: async (): Promise<void> => {
+        return await ipcRenderer.invoke('reset-settings');
+    },
+
+    selectVrmFile: async (): Promise<string | null> => {
+        return await ipcRenderer.invoke('select-vrm-file');
     }
 });

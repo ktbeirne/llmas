@@ -10,6 +10,7 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         speech_bubble: resolve(__dirname, 'renderer/speech_bubble/index.html'),
         chat: resolve(__dirname, 'chat.html'),
+        settings: resolve(__dirname, 'settings.html'),
       },
     },
   },

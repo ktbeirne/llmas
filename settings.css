@@ -1,0 +1,195 @@
+body {
+    font-family: 'Segoe UI', Meiryo, 'メイリオ', 'Hiragino Kaku Gothic ProN', 'ヒラギノ角ゴ ProN W3', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #FFF6E3;
+    color: #333;
+    line-height: 1.6;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#settings-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 15px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+
+main {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+section {
+    background: white;
+    margin-bottom: 15px;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e1e8ed;
+}
+
+section h2 {
+    margin: 0 0 15px 0;
+    color: #34495e;
+    font-size: 1.2rem;
+    font-weight: 500;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #BFECFF;
+}
+
+.setting-group {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.setting-group:last-child {
+    margin-bottom: 0;
+}
+
+label {
+    min-width: 120px;
+    font-weight: 500;
+    color: #555;
+}
+
+select, input[type="number"], input[type="text"] {
+    padding: 8px 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+    min-width: 120px;
+}
+
+select:focus, input:focus {
+    outline: none;
+    border-color: #BFECFF;
+    box-shadow: 0 0 0 3px rgba(191, 236, 255, 0.1);
+}
+
+select {
+    background-color: white;
+    cursor: pointer;
+}
+
+input[readonly] {
+    background-color: #f8f9fa;
+    color: #666;
+    cursor: not-allowed;
+    flex: 1;
+}
+
+#custom-size-inputs {
+    opacity: 0.5;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+#custom-size-inputs.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+#custom-size-inputs .setting-group:last-child {
+    margin-bottom: 0;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 100px;
+}
+
+button.primary {
+    background-color: #BFECFF;
+    color: #2c3e50;
+}
+
+button.primary:hover {
+    background-color: #a8e0f5;
+    transform: translateY(-1px);
+}
+
+button.secondary {
+    background-color: #CDC1FF;
+    color: #2c3e50;
+}
+
+button.secondary:hover {
+    background-color: #b8acf0;
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+#select-vrm-model {
+    background-color: #FFCCEA;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+#select-vrm-model:hover {
+    background-color: #f5b8d8;
+}
+
+footer {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 2px solid #BFECFF;
+    flex-shrink: 0;
+}
+
+.button-group {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+span {
+    color: #666;
+    font-size: 14px;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 480px) {
+    #settings-container {
+        padding: 15px;
+    }
+    
+    .setting-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    label {
+        min-width: auto;
+        margin-bottom: 5px;
+    }
+    
+    .button-group {
+        flex-direction: column;
+    }
+    
+    button {
+        width: 100%;
+    }
+}

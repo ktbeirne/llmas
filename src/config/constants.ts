@@ -21,6 +21,18 @@ export const WINDOW_CONFIG = {
     MIN_DISPLAY_TIME: 3000, // 最小表示時間（ミリ秒）
     CHARS_PER_SECOND: 10, // 1秒あたりの文字数
   },
+  SETTINGS: {
+    WIDTH: 550,
+    HEIGHT: 550,
+    MIN_WIDTH: 500,
+    MIN_HEIGHT: 500,
+  },
+} as const;
+
+export const WINDOW_PRESETS = {
+  small: { width: 300, height: 600 },
+  medium: { width: 400, height: 800 },
+  large: { width: 500, height: 1000 }
 } as const;
 
 export const ANIMATION = {

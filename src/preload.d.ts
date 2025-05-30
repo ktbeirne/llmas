@@ -9,6 +9,13 @@ declare global {
             toggleChatWindowVisibility: () => void;
             onChatWindowStateChanged: (callback: (isVisible: boolean) => void) => void;
             quitApp: () => void;
+            // 設定関連のAPI
+            openSettings: () => void;
+            closeSettings: () => void;
+            getSettings: () => Promise<any>;
+            saveSettings: (settings: any) => Promise<void>;
+            resetSettings: () => Promise<void>;
+            selectVrmFile: () => Promise<string | null>;
         };
     }
 }

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, IpcMainInvokeEvent } from 'electron';
+import { app, BrowserWindow, ipcMain, IpcMainInvokeEvent, dialog } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import dotenv from 'dotenv';
@@ -8,6 +8,8 @@ import { WindowManager } from './utils/WindowManager';
 import { ErrorHandler } from './utils/errorHandler';
 import { IPC_CHANNELS } from './config/ipcChannels';
 import { WINDOW_CONFIG, PATHS, APP_CONFIG } from './config/constants';
+import { SettingsStore } from './utils/settingsStore';
+import { SpeechBubbleManager } from './utils/speechBubbleManager';
 
 // Electron Forge Viteプラグインによって自動的に定義される環境変数
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
@@ -21,12 +23,20 @@ if (started) {
 // ウィンドウマネージャーのインスタンス
 const windowManager = new WindowManager();
 
+// 設定ストアのインスタンス
+const settingsStore = new SettingsStore();
+
 /**
  * メインウィンドウを作成
  */
 function createMainWindow(): void {
   try {
-    const config = WindowManager.getMainWindowConfig();
+    // 設定からウィンドウサイズを取得
+    const windowSize = settingsStore.getWindowSize();
+    const config = WindowManager.getMainWindowConfig({
+      width: windowSize.width,
+      height: windowSize.height
+    });
     const window = windowManager.createWindow(config, 'index.html');
     
     // 開発環境では開発者ツールを開く（必要に応じて）
@@ -80,12 +90,41 @@ function createSpeechBubbleWindow(): void {
       console.log('[SpeechBubble] ウィンドウの準備が完了しました');
     });
     
+    // webContentsのロード完了をログ出力
+    window.webContents.on('did-finish-load', () => {
+      console.log('[SpeechBubble] HTMLのロードが完了しました');
+    });
+    
+    window.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+      console.error('[SpeechBubble] ロードエラー:', errorCode, errorDescription);
+    });
+    
     // 開発環境では開発者ツールを開く（必要に応じて）
     // if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     //   window.webContents.openDevTools({ mode: 'detach' });
     // }
   } catch (error) {
     ErrorHandler.handle(error, true);
+  }
+}
+
+/**
+ * 設定ウィンドウを作成
+ */
+function createSettingsWindow(): BrowserWindow | null {
+  try {
+    const config = WindowManager.getSettingsWindowConfig();
+    const window = windowManager.createWindow(config, 'settings.html');
+    
+    // ウィンドウの読み込み完了を待つ
+    window.webContents.on('did-finish-load', () => {
+      console.log('[SettingsWindow] HTMLの読み込みが完了しました');
+    });
+    
+    return window;
+  } catch (error) {
+    ErrorHandler.handle(error, true);
+    return null;
   }
 }
 
@@ -121,9 +160,18 @@ function setupIPCHandlers(): void {
       const response = await generateTextFromGemini(prompt);
       const speechBubbleWindow = windowManager.getWindow('speechBubble');
       
+      console.log('[Gemini Handler] Response received:', response.substring(0, 50) + '...');
+      console.log('[Gemini Handler] SpeechBubble window found:', !!speechBubbleWindow);
       if (speechBubbleWindow) {
-        speechBubbleWindow.webContents.send('set-speech-bubble-text', response);
+        console.log('[Gemini Handler] SpeechBubble window details:', {
+          isDestroyed: speechBubbleWindow.isDestroyed(),
+          isVisible: speechBubbleWindow.isVisible(),
+          title: speechBubbleWindow.getTitle()
+        });
       }
+      
+      // SpeechBubbleManagerを使用して確実に表示
+      SpeechBubbleManager.showWithText(speechBubbleWindow, response);
       
       return response;
     } catch (error) {
@@ -131,9 +179,10 @@ function setupIPCHandlers(): void {
       const errorMessage = `エラー: ${error instanceof Error ? error.message : "不明なエラー"}`;
       
       const speechBubbleWindow = windowManager.getWindow('speechBubble');
-      if (speechBubbleWindow) {
-        speechBubbleWindow.webContents.send('set-speech-bubble-text', errorMessage);
-      }
+      console.log('[Gemini Handler] Error occurred, SpeechBubble window found:', !!speechBubbleWindow);
+      
+      // SpeechBubbleManagerを使用して確実に表示
+      SpeechBubbleManager.showWithText(speechBubbleWindow, errorMessage);
       
       return errorMessage;
     }
@@ -142,9 +191,7 @@ function setupIPCHandlers(): void {
   // スピーチバブルの非表示
   ipcMain.on('hide-speech-bubble-window', () => {
     const speechBubbleWindow = windowManager.getWindow('speechBubble');
-    if (speechBubbleWindow?.isVisible()) {
-      speechBubbleWindow.hide();
-    }
+    SpeechBubbleManager.hide(speechBubbleWindow);
   });
 
   // スピーチバブルのサイズ通知とポジション更新
@@ -219,6 +266,79 @@ function setupIPCHandlers(): void {
     BrowserWindow.getAllWindows().forEach(window => window.close());
     // アプリケーションを終了
     app.quit();
+  });
+
+  // 設定ウィンドウを開く
+  ipcMain.on('open-settings', () => {
+    const settingsWindow = windowManager.getWindow('settings');
+    
+    if (settingsWindow) {
+      settingsWindow.show();
+      settingsWindow.focus();
+    } else {
+      createSettingsWindow();
+    }
+  });
+
+  // 設定ウィンドウを閉じる
+  ipcMain.on('close-settings', () => {
+    const settingsWindow = windowManager.getWindow('settings');
+    if (settingsWindow) {
+      settingsWindow.close();
+    }
+  });
+
+  // 設定の取得
+  ipcMain.handle('get-settings', async () => {
+    return settingsStore.getAllSettings();
+  });
+
+  // 設定の保存
+  ipcMain.handle('save-settings', async (_event: IpcMainInvokeEvent, settings: any) => {
+    try {
+      settingsStore.saveAllSettings(settings);
+      
+      // メインウィンドウのサイズを更新
+      const mainWindow = windowManager.getWindow('main');
+      if (mainWindow && settings.windowSize) {
+        mainWindow.setSize(settings.windowSize.width, settings.windowSize.height);
+      }
+      
+      // VRMモデルの更新（実装が必要）
+      if (settings.vrmModelPath) {
+        // TODO: VRMモデルの読み込み処理を実装
+        console.log('VRMモデルパスが更新されました:', settings.vrmModelPath);
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('設定の保存エラー:', error);
+      throw error;
+    }
+  });
+
+  // 設定のリセット
+  ipcMain.handle('reset-settings', async () => {
+    settingsStore.resetToDefaults();
+    return settingsStore.getAllSettings();
+  });
+
+  // VRMファイル選択ダイアログ
+  ipcMain.handle('select-vrm-file', async () => {
+    const result = await dialog.showOpenDialog({
+      title: 'VRMファイルを選択',
+      filters: [
+        { name: 'VRM Files', extensions: ['vrm'] },
+        { name: 'All Files', extensions: ['*'] }
+      ],
+      properties: ['openFile']
+    });
+    
+    if (!result.canceled && result.filePaths.length > 0) {
+      return result.filePaths[0];
+    }
+    
+    return null;
   });
 }
 

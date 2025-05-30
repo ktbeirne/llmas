@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>設定</title>
+    <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+    <div id="settings-container">
+        <main>
+            <section id="window-size-section">
+                <h2>ウィンドウサイズ</h2>
+                
+                <div class="setting-group">
+                    <label for="window-size-preset">プリセット:</label>
+                    <select id="window-size-preset">
+                        <option value="small">小 (300×600)</option>
+                        <option value="medium" selected>中 (400×800)</option>
+                        <option value="large">大 (500×1000)</option>
+                        <option value="custom">カスタム</option>
+                    </select>
+                </div>
+                
+                <div id="custom-size-inputs">
+                    <div class="setting-group">
+                        <label for="custom-width">幅:</label>
+                        <input type="number" id="custom-width" min="200" max="1000" value="400">
+                        <span>px</span>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label for="custom-height">高さ:</label>
+                        <input type="number" id="custom-height" min="300" max="1200" value="800">
+                        <span>px</span>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="vrm-model-section">
+                <h2>VRMモデル</h2>
+                
+                <div class="setting-group">
+                    <label for="current-vrm-path">現在のモデル:</label>
+                    <input type="text" id="current-vrm-path" readonly value="/avatar.vrm">
+                </div>
+                
+                <div class="setting-group">
+                    <button id="select-vrm-model" type="button">モデルファイルを選択</button>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <div class="button-group">
+                <button id="apply-settings" type="button" class="primary">適用</button>
+                <button id="reset-settings" type="button" class="secondary">リセット</button>
+                <button id="close-settings" type="button" class="secondary">閉じる</button>
+            </div>
+        </footer>
+    </div>
+    
+    <script type="module" src="/src/settings-renderer.ts"></script>
+</body>
+</html>

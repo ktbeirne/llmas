@@ -68,8 +68,8 @@ npm run publish          # Publish the app
 ## Testing Guidelines
 ### General Principles
 * Strictly follow Test-Driven Development (TDD) methodologies as outlined in "Development Requirements."
-* Utilize a combination of unit, integration, and end-to-end (E2E) tests to ensure comprehensive application coverage.
 * All new features, enhancements, and bug fixes must be accompanied by relevant tests.
+* **Confirm Green Tests**: Immediately after writing implementation code to make the tests pass (the "Green" step of TDD), explicitly run and confirm that all relevant unit and integration tests are passing. This verification must occur before any refactoring is performed and before a pull request is created.
 * Write tests that are clear, concise, maintainable, and run reliably, especially in CI/CD environments.
 * Test descriptions (e.g., it('should do X when Y')) and any significant comments within test files should be written in English for consistency and broader understanding.
 
@@ -80,15 +80,6 @@ npm run publish          # Publish the app
   - Integration Tests: Test the interaction between different modules or components (e.g., IPC communication lógica, service integrations).
 * Mocking: Use Vitest's mocking capabilities (vi.mock, vi.spyOn, etc.) to isolate units under test by mocking external dependencies, Electron-specific modules (ipcRenderer, BrowserWindow), or other application parts not directly being tested.
 * Coverage: While not strictly enforced with a percentage, aim for good test coverage of critical business logic and complex functions. Use vitest run --coverage to generate and review coverage reports periodically.
-
-### End-to-End Tests (Playwright)
-* File Location: Store all Playwright E2E test files (e.g., *.spec.ts) in the tests-e2e/ directory at the project root.
-* Focus: Test critical user flows, major application features, and UI interactions from an end-user's perspective, simulating real user behavior. This includes:
-  - Application startup and window visibility.
-  - Core functionalities like mascot interactions, chat features, and responses.
-  - UI element states and transitions.
-* Test Design: Write robust and reliable E2E tests. Avoid overly brittle tests температура (tests that break easily with minor UI changes). Consider using the Page Object Model (POM) design pattern for better organization and maintainability if the E2E test suite grows.
-* Target Browser: The primary target browser for E2E testing is Chromium. Please configure Playwright (in playwright.config.ts) to run tests primarily, or exclusively, on Chromium to ensure compatibility and focus testing efforts. While Playwright supports other browsers, Chromium is the current priority for this project.
 
 ## Key Technologies
 

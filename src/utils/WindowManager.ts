@@ -14,6 +14,7 @@ export interface WindowConfig {
   minHeight?: number;
   transparent?: boolean;
   frame?: boolean;
+  fullscreen?: boolean;
   alwaysOnTop?: boolean;
   skipTaskbar?: boolean;
   resizable?: boolean;
@@ -46,6 +47,7 @@ export class WindowManager {
       minHeight: config.minHeight,
       transparent: config.transparent ?? false,
       frame: config.frame ?? true,
+      fullscreen: config.fullscreen ?? false,
       alwaysOnTop: config.alwaysOnTop ?? false,
       skipTaskbar: config.skipTaskbar ?? false,
       resizable: config.resizable ?? true,
@@ -73,6 +75,8 @@ export class WindowManager {
 
     // ウィンドウをMapに保存
     this.windows.set(config.name, window);
+    console.log(`[WindowManager] Window created and stored: ${config.name}`);
+    console.log(`[WindowManager] Current windows:`, Array.from(this.windows.keys()));
 
     // HTMLファイルをロード
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
@@ -83,19 +87,31 @@ export class WindowManager {
       } else if (htmlPath === 'chat.html') {
         // chat.htmlはルートレベルにある
         url = MAIN_WINDOW_VITE_DEV_SERVER_URL.replace(/\/$/, '') + '/chat.html';
+      } else if (htmlPath === 'speech_bubble/index.html') {
+        // SpeechBubbleは特別なパス
+        url = MAIN_WINDOW_VITE_DEV_SERVER_URL.replace(/\/$/, '') + '/renderer/speech_bubble/';
+      } else if (htmlPath === 'settings.html') {
+        // Settingsはルートレベルにある
+        url = MAIN_WINDOW_VITE_DEV_SERVER_URL.replace(/\/$/, '') + '/settings.html';
       } else {
         // その他のHTMLファイル
         url = MAIN_WINDOW_VITE_DEV_SERVER_URL.replace(/\/$/, '') + '/' + htmlPath;
       }
+      console.log(`[WindowManager] Loading URL for ${config.name}: ${url}`);
       window.loadURL(url);
     } else {
-      // chat.htmlはルートレベルにあるため、特別な処理を行う
+      // プロダクション環境でのファイルパス処理
       let filePath: string;
       if (htmlPath === 'chat.html') {
         filePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/../chat.html`);
+      } else if (htmlPath === 'speech_bubble/index.html') {
+        filePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/../renderer/speech_bubble/index.html`);
+      } else if (htmlPath === 'settings.html') {
+        filePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/../settings.html`);
       } else {
         filePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/${htmlPath}`);
       }
+      console.log(`[WindowManager] Loading file for ${config.name}: ${filePath}`);
       window.loadFile(filePath);
     }
 
@@ -134,11 +150,14 @@ export class WindowManager {
   /**
    * メインウィンドウの設定を生成
    */
-  static getMainWindowConfig(): WindowConfig {
+  static getMainWindowConfig(customSize?: { width: number; height: number }): WindowConfig {
+    const width = customSize?.width || WINDOW_CONFIG.MAIN.WIDTH;
+    const height = customSize?.height || WINDOW_CONFIG.MAIN.HEIGHT;
+    
     return {
       name: 'main',
-      width: WINDOW_CONFIG.MAIN.WIDTH,
-      height: WINDOW_CONFIG.MAIN.HEIGHT,
+      width,
+      height,
       minWidth: WINDOW_CONFIG.MAIN.MIN_WIDTH,
       minHeight: WINDOW_CONFIG.MAIN.MIN_HEIGHT,
       transparent: true,
@@ -193,6 +212,29 @@ export class WindowManager {
         preload: path.join(__dirname, 'preload.js'),
         contextIsolation: true,
         nodeIntegration: false,
+      },
+    };
+  }
+
+  /**
+   * 設定ウィンドウの設定を生成
+   */
+  static getSettingsWindowConfig(): WindowConfig {
+    return {
+      name: 'settings',
+      width: WINDOW_CONFIG.SETTINGS.WIDTH,
+      height: WINDOW_CONFIG.SETTINGS.HEIGHT,
+      minWidth: WINDOW_CONFIG.SETTINGS.MIN_WIDTH,
+      minHeight: WINDOW_CONFIG.SETTINGS.MIN_HEIGHT,
+      frame: false,
+      transparent: false,
+      show: true,
+      resizable: true,
+      webPreferences: {
+        preload: path.join(__dirname, 'preload.js'),
+        contextIsolation: true,
+        nodeIntegration: false,
+        devTools: true,
       },
     };
   }

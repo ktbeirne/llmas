@@ -12,7 +12,11 @@
       "Bash(npx:*)",
       "Bash(rg:*)",
       "Bash(grep:*)",
-      "Bash(npm run start:*)"
+      "Bash(npm run start:*)",
+      "Bash(npm install)",
+      "Bash(pkill:*)",
+      "Bash(npm test:*)",
+      "Bash(timeout 10s npm start)"
     ],
     "deny": []
   }

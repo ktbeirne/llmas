@@ -9,7 +9,9 @@ import './index.css';
 
 const canvasElement = document.getElementById('vrm-canvas') as HTMLCanvasElement;
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(30, canvasElement.clientWidth / canvasElement.clientHeight, 0.1, 20);
+const canvasAreaInit = document.getElementById('canvas-area');
+const initialAspect = canvasAreaInit ? canvasAreaInit.clientWidth / canvasAreaInit.clientHeight : window.innerWidth / window.innerHeight;
+const camera = new THREE.PerspectiveCamera(30, initialAspect, 0.1, 20);
 camera.position.set(0.0, 1.2, 5.0);
 const speechBubbleContainer = document.getElementById('speech-bubble-container') as HTMLDivElement;
 const speechBubble = document.getElementById('speech-bubble') as HTMLDivElement;
@@ -28,7 +30,12 @@ const renderer = new THREE.WebGLRenderer({
     alpha: true,
     antialias: true,
 });
-renderer.setSize(window.innerWidth, window.innerHeight);
+const canvasArea = document.getElementById('canvas-area');
+if (canvasArea) {
+    renderer.setSize(canvasArea.clientWidth, canvasArea.clientHeight);
+} else {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
 renderer.setPixelRatio(window.devicePixelRatio);
 // renderer.setClearColor(0x7fbfff, 1.0); // お手本コードにあった背景色設定。お好みで。
 
@@ -172,8 +179,11 @@ loadVRM('/avatar.vrm', scene, (vrm) => { // vrmモデルオブジェクトを受
 function updateSizesAndLog() {
     if (!canvasElement || !camera || !renderer) return;
 
-    const width = canvasElement.clientWidth;
-    const height = canvasElement.clientHeight;
+    const canvasArea = document.getElementById('canvas-area');
+    if (!canvasArea) return;
+    
+    const width = canvasArea.clientWidth;
+    const height = canvasArea.clientHeight;
 
     // 幅か高さが0の場合は、まだレイアウトが確定していない可能性があるので何もしない
     if (width === 0 || height === 0) {
@@ -187,6 +197,7 @@ function updateSizesAndLog() {
     camera.aspect = aspect;
     camera.updateProjectionMatrix();
     renderer.setSize(width, height);
+    renderer.setPixelRatio(window.devicePixelRatio);
   }
 
 
@@ -290,11 +301,14 @@ function animate() {
     controls.update();
     updateVRMFeatures(delta); // vrmControllerの更新処理を呼び出す
 
-    if (!initialSizeHasBeenSet && canvasElement.clientWidth > 0 && canvasElement.clientHeight > 0) {
-        console.log("Initial size detected, updating renderer and camera...");
-        updateSizesAndLog();
-        initialSizeHasBeenSet = true; // フラグを立てて、以降はリサイズイベント任せにする
-      }
+    if (!initialSizeHasBeenSet) {
+        const canvasArea = document.getElementById('canvas-area');
+        if (canvasArea && canvasArea.clientWidth > 0 && canvasArea.clientHeight > 0) {
+            console.log("Initial size detected, updating renderer and camera...");
+            updateSizesAndLog();
+            initialSizeHasBeenSet = true; // フラグを立てて、以降はリサイズイベント任せにする
+        }
+    }
 
 
     renderer.render(scene, camera);
@@ -303,10 +317,24 @@ animate();
 
 // もしウィンドウサイズが変わったら、カメラとレンダラーも追従させます
 window.addEventListener('resize', () => {
-    camera.aspect = canvasElement.clientWidth / canvasElement.clientHeight;
+    // キャンバスエリアの実際のサイズを取得
+    const canvasArea = document.getElementById('canvas-area');
+    if (!canvasArea) return;
+    
+    const width = canvasArea.clientWidth;
+    const height = canvasArea.clientHeight;
+    
+    if (width === 0 || height === 0) {
+        console.warn('Canvas area dimensions are zero, skipping resize.');
+        return;
+    }
+    
+    camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    renderer.setSize(canvasElement.clientWidth, canvasElement.clientHeight);
-    //updateSpeechBubblePosition();
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    
+    console.log(`Window resized: ${width}w x ${height}h`);
 }, false);
 
 const toggleChatButton = document.getElementById('toggle-chat-icon');
@@ -332,6 +360,20 @@ if (toggleChatButton) {
     }
 } else {
     console.warn('#toggle-chat-icon element not found.');
+}
+
+const settingsButton = document.getElementById('settings-icon');
+
+if (settingsButton) {
+    settingsButton.addEventListener('click', () => {
+        if (window.electronAPI && window.electronAPI.openSettings) {
+            window.electronAPI.openSettings();
+        } else {
+            console.error('electronAPI.openSettings is not available.');
+        }
+    });
+} else {
+    console.warn('#settings-icon element not found.');
 }
 
 const quitAppButton = document.getElementById('quit-app-icon');
