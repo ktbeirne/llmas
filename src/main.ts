@@ -41,7 +41,7 @@ function createMainWindow(): void {
 /**
  * チャットウィンドウを作成
  */
-function createChatWindow(): void {
+function createChatWindow(): BrowserWindow | null {
   try {
     const config = WindowManager.getChatWindowConfig();
     const window = windowManager.createWindow(config, PATHS.CHAT_HTML);
@@ -57,8 +57,11 @@ function createChatWindow(): void {
     
     // 開発環境では開発者ツールを開く
     window.webContents.openDevTools();
+    
+    return window;
   } catch (error) {
     ErrorHandler.handle(error, true);
+    return null;
   }
 }
 
@@ -193,9 +196,8 @@ function setupIPCHandlers(): void {
         }
       }
     } else {
-      createChatWindow();
+      const newChatWindow = createChatWindow();
       // 新しく作成した場合は、ウィンドウを表示する
-      const newChatWindow = windowManager.getWindow('chat');
       if (newChatWindow) {
         newChatWindow.show();
         // メインウィンドウにチャットウィンドウの状態を通知
