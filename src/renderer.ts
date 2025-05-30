@@ -320,6 +320,17 @@ if (toggleChatButton) {
             console.error('electronAPI.toggleChatWindowVisibility is not available.');
         }
     });
+    
+    // チャットウィンドウの状態変更を監視
+    if (window.electronAPI && window.electronAPI.onChatWindowStateChanged) {
+        window.electronAPI.onChatWindowStateChanged((isVisible: boolean) => {
+            if (isVisible) {
+                toggleChatButton.classList.add('active');
+            } else {
+                toggleChatButton.classList.remove('active');
+            }
+        });
+    }
 } else {
     console.warn('#toggle-chat-icon element not found.');
 }

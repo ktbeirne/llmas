@@ -106,3 +106,18 @@ body {
   stroke-width: 1px;
   /* CSSの場合は単位を付けることが多いです */
 }
+
+/* チャットウィンドウが表示されているときのアクティブ状態 */
+#toggle-chat-icon.active {
+  background-color: #BFECFF;
+  border-color: #8dccff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+#toggle-chat-icon.active svg {
+  fill: #FFF6E3;
+}
+
+#toggle-chat-icon.active svg path {
+  stroke: #6da8e0;
+}
