@@ -9,7 +9,10 @@
       "Bash(npm run package:*)",
       "Bash(cat:*)",
       "Bash(electron-forge start:*)",
-      "Bash(npx:*)"
+      "Bash(npx:*)",
+      "Bash(rg:*)",
+      "Bash(grep:*)",
+      "Bash(npm run start:*)"
     ],
     "deny": []
   }

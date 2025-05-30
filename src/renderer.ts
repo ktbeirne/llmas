@@ -314,7 +314,6 @@ const toggleChatButton = document.getElementById('toggle-chat-icon');
 if (toggleChatButton) {
     toggleChatButton.addEventListener('click', () => {
         if (window.electronAPI && window.electronAPI.toggleChatWindowVisibility) {
-            console.log('Toggle chat icon clicked, sending IPC message.');
             window.electronAPI.toggleChatWindowVisibility();
         } else {
             console.error('electronAPI.toggleChatWindowVisibility is not available.');

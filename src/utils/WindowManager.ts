@@ -52,7 +52,7 @@ export class WindowManager {
       hasShadow: config.hasShadow ?? true,
       show: config.show ?? true,
       webPreferences: config.webPreferences || {
-        preload: path.join(__dirname, '../preload.js'),
+        preload: path.join(__dirname, 'preload.js'),
         contextIsolation: true,
         nodeIntegration: false,
       },
@@ -90,11 +90,13 @@ export class WindowManager {
       window.loadURL(url);
     } else {
       // chat.htmlはルートレベルにあるため、特別な処理を行う
+      let filePath: string;
       if (htmlPath === 'chat.html') {
-        window.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/../chat.html`));
+        filePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/../chat.html`);
       } else {
-        window.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/${htmlPath}`));
+        filePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/${htmlPath}`);
       }
+      window.loadFile(filePath);
     }
 
     return window;
@@ -142,7 +144,7 @@ export class WindowManager {
       transparent: true,
       frame: false,
       webPreferences: {
-        preload: path.join(__dirname, '../preload.js'),
+        preload: path.join(__dirname, 'preload.js'),
         contextIsolation: true,
         nodeIntegration: false,
       },
@@ -161,9 +163,9 @@ export class WindowManager {
       minHeight: WINDOW_CONFIG.CHAT.MIN_HEIGHT,
       frame: false,
       transparent: true,
-      show: false,
+      show: true,
       webPreferences: {
-        preload: path.join(__dirname, '../preload.js'),
+        preload: path.join(__dirname, 'preload.js'),
         contextIsolation: true,
         nodeIntegration: false,
         devTools: true, // 開発ツールを有効化
@@ -188,7 +190,7 @@ export class WindowManager {
       show: false,
       position,
       webPreferences: {
-        preload: path.join(__dirname, '../preload.js'),
+        preload: path.join(__dirname, 'preload.js'),
         contextIsolation: true,
         nodeIntegration: false,
       },

@@ -55,8 +55,10 @@ function createChatWindow(): BrowserWindow | null {
       console.error('[ChatWindow] 読み込みエラー:', errorCode, errorDescription);
     });
     
-    // 開発環境では開発者ツールを開く
-    window.webContents.openDevTools();
+    // 開発環境では開発者ツールを開く（必要に応じて）
+    // if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    //   window.webContents.openDevTools();
+    // }
     
     return window;
   } catch (error) {
@@ -190,6 +192,7 @@ function setupIPCHandlers(): void {
         }
       } else {
         chatWindow.show();
+        chatWindow.focus();
         // メインウィンドウにチャットウィンドウの状態を通知
         if (mainWindow) {
           mainWindow.webContents.send('chat-window-state-changed', true);
@@ -200,6 +203,7 @@ function setupIPCHandlers(): void {
       // 新しく作成した場合は、ウィンドウを表示する
       if (newChatWindow) {
         newChatWindow.show();
+        newChatWindow.focus();
         // メインウィンドウにチャットウィンドウの状態を通知
         if (mainWindow) {
           mainWindow.webContents.send('chat-window-state-changed', true);
@@ -229,13 +233,11 @@ app.whenReady().then(async () => {
   setupIPCHandlers();
   
   createMainWindow();
-  createChatWindow();
   createSpeechBubbleWindow();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createMainWindow();
-      createChatWindow();
       createSpeechBubbleWindow();
     }
   });
