@@ -128,7 +128,9 @@ function onAllAssetsReady() {
             targetFocusPosition.y -= 0;
             controls.target.copy(targetFocusPosition);
             controls.update();
-            loadedVRMInstance.lookAt.target = lookAtTarget;
+            if (loadedVRMInstance.lookAt) {
+                loadedVRMInstance.lookAt.target = lookAtTarget;
+            }
             console.log('OrbitControlsのターゲットをVRMの腰に設定しました。');
         }
         // --- ↓ lookAtTargetのY座標調整をここに追加！ ---

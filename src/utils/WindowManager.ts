@@ -76,14 +76,22 @@ export class WindowManager {
 
     // HTMLファイルをロード
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-      const url = config.name === 'main' 
-        ? MAIN_WINDOW_VITE_DEV_SERVER_URL
-        : `${MAIN_WINDOW_VITE_DEV_SERVER_URL}${htmlPath}`;
+      // 開発環境では適切なパスを構築
+      let url: string;
+      if (config.name === 'main') {
+        url = MAIN_WINDOW_VITE_DEV_SERVER_URL;
+      } else if (htmlPath === 'chat.html') {
+        // chat.htmlはルートレベルにある
+        url = MAIN_WINDOW_VITE_DEV_SERVER_URL.replace(/\/$/, '') + '/chat.html';
+      } else {
+        // その他のHTMLファイル
+        url = MAIN_WINDOW_VITE_DEV_SERVER_URL.replace(/\/$/, '') + '/' + htmlPath;
+      }
       window.loadURL(url);
     } else {
       // chat.htmlはルートレベルにあるため、特別な処理を行う
       if (htmlPath === 'chat.html') {
-        window.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/chat.html`));
+        window.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/../chat.html`));
       } else {
         window.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/${htmlPath}`));
       }
@@ -151,6 +159,8 @@ export class WindowManager {
       height: WINDOW_CONFIG.CHAT.HEIGHT,
       minWidth: WINDOW_CONFIG.CHAT.MIN_WIDTH,
       minHeight: WINDOW_CONFIG.CHAT.MIN_HEIGHT,
+      frame: false,
+      transparent: true,
       show: true,
       webPreferences: {
         preload: path.join(__dirname, '../preload.js'),

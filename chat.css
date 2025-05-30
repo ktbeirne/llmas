@@ -10,6 +10,8 @@ body {
     padding: 15px;
     box-sizing: border-box;
     -webkit-app-region: drag;
+    border-radius: 12px;
+    overflow: hidden;
 }
 
 #response-area {
@@ -23,7 +25,7 @@ body {
     padding: 15px;
     margin-bottom: 15px;
     line-height: 1.6;
-
+    -webkit-app-region: no-drag;
 }
 
 #response-area p {

@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(rm:*)",
+      "Bash(npm run lint)",
+      "Bash(npm start)",
+      "Bash(find:*)",
+      "Bash(npm run package:*)",
+      "Bash(cat:*)",
+      "Bash(electron-forge start:*)",
+      "Bash(npx:*)"
+    ],
+    "deny": []
+  }
+}
