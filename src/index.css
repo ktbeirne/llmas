@@ -121,3 +121,33 @@ body {
 #toggle-chat-icon.active svg path {
   stroke: #6da8e0;
 }
+
+#quit-app-icon {
+  cursor: pointer;
+  padding: 5px;
+  border: 1px solid #bbb;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #eaeaea;
+  transition: box-shadow 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  -webkit-app-region: no-drag;
+}
+
+#quit-app-icon:hover {
+  background-color: #FFCCEA;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+#quit-app-icon svg {
+  width: 36px;
+  height: 36px;
+  fill: #FF6B6B;
+}
+
+#quit-app-icon svg path {
+  stroke: rgb(162, 162, 162);
+  stroke-width: 1px;
+}

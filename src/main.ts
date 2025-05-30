@@ -211,6 +211,15 @@ function setupIPCHandlers(): void {
       }
     }
   });
+
+  // アプリケーション終了
+  ipcMain.on('quit-app', () => {
+    console.log('アプリケーション終了リクエストを受信しました');
+    // すべてのウィンドウを閉じる
+    BrowserWindow.getAllWindows().forEach(window => window.close());
+    // アプリケーションを終了
+    app.quit();
+  });
 }
 
 /**

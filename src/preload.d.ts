@@ -8,6 +8,7 @@ declare global {
             logRendererMessage: (message: string) => void;
             toggleChatWindowVisibility: () => void;
             onChatWindowStateChanged: (callback: (isVisible: boolean) => void) => void;
+            quitApp: () => void;
         };
     }
 }

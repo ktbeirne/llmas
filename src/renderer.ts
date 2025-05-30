@@ -334,4 +334,22 @@ if (toggleChatButton) {
     console.warn('#toggle-chat-icon element not found.');
 }
 
+const quitAppButton = document.getElementById('quit-app-icon');
+
+if (quitAppButton) {
+    quitAppButton.addEventListener('click', () => {
+        if (window.electronAPI && window.electronAPI.quitApp) {
+            // 確認ダイアログを表示
+            const confirmQuit = window.confirm('本当にアプリケーションを終了しますか？');
+            if (confirmQuit) {
+                window.electronAPI.quitApp();
+            }
+        } else {
+            console.error('electronAPI.quitApp is not available.');
+        }
+    });
+} else {
+    console.warn('#quit-app-icon element not found.');
+}
+
 
