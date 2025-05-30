@@ -7,6 +7,7 @@ declare global {
             notifyBubbleSize: (size: { width: number; height: number }) => void;
             logRendererMessage: (message: string) => void;
             toggleChatWindowVisibility: () => void;
+            onChatWindowStateChanged: (callback: (isVisible: boolean) => void) => void;
         };
     }
 }

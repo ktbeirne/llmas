@@ -176,15 +176,33 @@ function setupIPCHandlers(): void {
   // チャットウィンドウの表示切り替え
   ipcMain.on('toggle-chat-visibility', () => {
     const chatWindow = windowManager.getWindow('chat');
+    const mainWindow = windowManager.getWindow('main');
     
     if (chatWindow) {
       if (chatWindow.isVisible()) {
         chatWindow.hide();
+        // メインウィンドウにチャットウィンドウの状態を通知
+        if (mainWindow) {
+          mainWindow.webContents.send('chat-window-state-changed', false);
+        }
       } else {
         chatWindow.show();
+        // メインウィンドウにチャットウィンドウの状態を通知
+        if (mainWindow) {
+          mainWindow.webContents.send('chat-window-state-changed', true);
+        }
       }
     } else {
       createChatWindow();
+      // 新しく作成した場合は、ウィンドウを表示する
+      const newChatWindow = windowManager.getWindow('chat');
+      if (newChatWindow) {
+        newChatWindow.show();
+        // メインウィンドウにチャットウィンドウの状態を通知
+        if (mainWindow) {
+          mainWindow.webContents.send('chat-window-state-changed', true);
+        }
+      }
     }
   });
 }

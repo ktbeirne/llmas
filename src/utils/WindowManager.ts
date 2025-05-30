@@ -161,7 +161,7 @@ export class WindowManager {
       minHeight: WINDOW_CONFIG.CHAT.MIN_HEIGHT,
       frame: false,
       transparent: true,
-      show: true,
+      show: false,
       webPreferences: {
         preload: path.join(__dirname, '../preload.js'),
         contextIsolation: true,

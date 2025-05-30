@@ -27,5 +27,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     toggleChatWindowVisibility: () => {
         ipcRenderer.send('toggle-chat-visibility');
-      }
+    },
+
+    onChatWindowStateChanged: (callback: (isVisible: boolean) => void) => {
+        ipcRenderer.on('chat-window-state-changed', (_event, isVisible) => callback(isVisible));
+    }
 });
