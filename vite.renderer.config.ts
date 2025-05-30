@@ -9,6 +9,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         speech_bubble: resolve(__dirname, 'renderer/speech_bubble/index.html'),
+        chat: resolve(__dirname, 'chat.html'),
       },
     },
   },

@@ -46,6 +46,15 @@ function createChatWindow(): void {
     const config = WindowManager.getChatWindowConfig();
     const window = windowManager.createWindow(config, PATHS.CHAT_HTML);
     
+    // ウィンドウの読み込み完了を待つ
+    window.webContents.on('did-finish-load', () => {
+      console.log('[ChatWindow] HTMLの読み込みが完了しました');
+    });
+    
+    window.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+      console.error('[ChatWindow] 読み込みエラー:', errorCode, errorDescription);
+    });
+    
     // 開発環境では開発者ツールを開く（必要に応じて）
     // if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     //   window.webContents.openDevTools();

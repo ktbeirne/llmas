@@ -81,7 +81,12 @@ export class WindowManager {
         : `${MAIN_WINDOW_VITE_DEV_SERVER_URL}${htmlPath}`;
       window.loadURL(url);
     } else {
-      window.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/${htmlPath}`));
+      // chat.htmlはルートレベルにあるため、特別な処理を行う
+      if (htmlPath === 'chat.html') {
+        window.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/chat.html`));
+      } else {
+        window.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/${htmlPath}`));
+      }
     }
 
     return window;
@@ -151,6 +156,7 @@ export class WindowManager {
         preload: path.join(__dirname, '../preload.js'),
         contextIsolation: true,
         nodeIntegration: false,
+        devTools: true, // 開発ツールを有効化
       },
     };
   }
