@@ -31,6 +31,7 @@ export interface SettingsData {
     userName?: string;
     mascotName?: string;
     systemPromptCore?: string;
+    theme?: string;
 }
 
 export const WINDOW_PRESETS = {
@@ -61,7 +62,8 @@ export class SettingsStore {
                 chatWindowVisible: false,
                 userName: 'User',
                 mascotName: 'Mascot',
-                systemPromptCore: 'あなたは親しみやすいデスクトップマスコットです。ユーザーとの会話を楽しみ、役立つ情報を提供してください。'
+                systemPromptCore: 'あなたは親しみやすいデスクトップマスコットです。ユーザーとの会話を楽しみ、役立つ情報を提供してください。',
+                theme: 'default'
             }
         });
         this.chatHistoryStore = new ChatHistoryStore();
@@ -285,5 +287,14 @@ export class SettingsStore {
         const prefixInstruction = `Your role is a desktop mascot named ${mascotName}. You operate on the desktop of a user whose name is ${userName}. In all following interactions, you must use the names ${mascotName} (for yourself) and ${userName} (for the user) correctly and appropriately.`;
 
         return `${prefixInstruction} ${corePrompt}`;
+    }
+
+    // テーマ関連のメソッド
+    getTheme(): string {
+        return this.store.get('theme', 'default') as string;
+    }
+
+    setTheme(theme: string): void {
+        this.store.set('theme', theme);
     }
 }

@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <title></title>
-
+    <link rel="stylesheet" href="src/styles/design-system.css">
+    <link rel="stylesheet" href="src/styles/components.css">
+    <link rel="stylesheet" href="src/index.css">
   </head>
   <body>
     <div id="canvas-area">
@@ -27,11 +29,28 @@
       <div id="quit-app-icon" style="cursor: pointer;">
         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#FFCCEA">
           <path 
-            d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z" />
+            d="M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 0 1 2 2v2h-2V4H4v16h10v-2h2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10z" />
         </svg>
       </div>
     </div>
     
     <script type="module" src="/src/renderer.ts"></script>
+    <script type="module">
+        import { ThemeManager } from '/src/utils/themeManager.ts';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeManager = new ThemeManager();
+            
+            // グローバルに設定
+            window.themeManager = themeManager;
+            
+            // テーマ変更通知を受信
+            if (window.electronAPI && window.electronAPI.onThemeChanged) {
+                window.electronAPI.onThemeChanged((theme) => {
+                    themeManager.setTheme(theme);
+                });
+            }
+        });
+    </script>
   </body>
 </html>

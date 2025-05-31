@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>設定</title>
+    <link rel="stylesheet" href="src/styles/design-system.css">
+    <link rel="stylesheet" href="src/styles/components.css">
     <link rel="stylesheet" href="settings.css">
 </head>
 <body>
@@ -15,6 +17,135 @@
             
             <main class="tab-content">
                 <div class="tab-pane active" id="display-tab">
+                    <section id="theme-section">
+                        <div class="collapsible-header" id="theme-header">
+                            <h2>🎨 デザインテーマ</h2>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="collapsible-content" id="theme-content">
+                            <p class="section-description">アプリケーション全体の見た目と雰囲気を選択してください</p>
+                            
+                            <div class="theme-grid" id="theme-grid">
+                            <!-- テーマ選択カードがJavaScriptで動的に生成されます -->
+                            
+                            <!-- 静的テーマカード（フォールバック） -->
+                            <div class="theme-card" data-theme-id="default">
+                                <div class="theme-header">
+                                    <h3 class="theme-title">ソフト＆ドリーミー</h3>
+                                </div>
+                                <p class="theme-description">明るく親しみやすい、やわらかな印象のテーマ</p>
+                                <div class="theme-preview">
+                                    <div class="theme-color" style="background-color: #5082C4;"></div>
+                                    <div class="theme-color" style="background-color: #8E7CC3;"></div>
+                                    <div class="theme-color" style="background-color: #E91E63;"></div>
+                                    <div class="theme-color" style="background-color: #FDFBF7;"></div>
+                                </div>
+                                <div class="theme-labels">
+                                    <span class="theme-label">メイン</span>
+                                    <span class="theme-label">サブ</span>
+                                    <span class="theme-label">アクセント</span>
+                                    <span class="theme-label">背景</span>
+                                </div>
+                            </div>
+                            
+                            <div class="theme-card" data-theme-id="dark">
+                                <div class="theme-header">
+                                    <h3 class="theme-title">ダークモード</h3>
+                                </div>
+                                <p class="theme-description">目に優しく洗練された暗めのテーマ</p>
+                                <div class="theme-preview">
+                                    <div class="theme-color" style="background-color: #60A5FA;"></div>
+                                    <div class="theme-color" style="background-color: #A78BFA;"></div>
+                                    <div class="theme-color" style="background-color: #FCD34D;"></div>
+                                    <div class="theme-color" style="background-color: #0F172A;"></div>
+                                </div>
+                                <div class="theme-labels">
+                                    <span class="theme-label">メイン</span>
+                                    <span class="theme-label">サブ</span>
+                                    <span class="theme-label">アクセント</span>
+                                    <span class="theme-label">背景</span>
+                                </div>
+                            </div>
+                            
+                            <div class="theme-card" data-theme-id="sakura">
+                                <div class="theme-header">
+                                    <h3 class="theme-title">桜</h3>
+                                </div>
+                                <p class="theme-description">日本の春をイメージした温かみのあるテーマ</p>
+                                <div class="theme-preview">
+                                    <div class="theme-color" style="background-color: #D1477A;"></div>
+                                    <div class="theme-color" style="background-color: #C485C7;"></div>
+                                    <div class="theme-color" style="background-color: #FF5722;"></div>
+                                    <div class="theme-color" style="background-color: #FDF2F8;"></div>
+                                </div>
+                                <div class="theme-labels">
+                                    <span class="theme-label">メイン</span>
+                                    <span class="theme-label">サブ</span>
+                                    <span class="theme-label">アクセント</span>
+                                    <span class="theme-label">背景</span>
+                                </div>
+                            </div>
+                            
+                            <div class="theme-card" data-theme-id="ocean">
+                                <div class="theme-header">
+                                    <h3 class="theme-title">オーシャン</h3>
+                                </div>
+                                <p class="theme-description">海の静けさをイメージした爽やかなテーマ</p>
+                                <div class="theme-preview">
+                                    <div class="theme-color" style="background-color: #0D7377;"></div>
+                                    <div class="theme-color" style="background-color: #1E40AF;"></div>
+                                    <div class="theme-color" style="background-color: #DC7633;"></div>
+                                    <div class="theme-color" style="background-color: #F0FDFA;"></div>
+                                </div>
+                                <div class="theme-labels">
+                                    <span class="theme-label">メイン</span>
+                                    <span class="theme-label">サブ</span>
+                                    <span class="theme-label">アクセント</span>
+                                    <span class="theme-label">背景</span>
+                                </div>
+                            </div>
+                            
+                            <div class="theme-card" data-theme-id="forest">
+                                <div class="theme-header">
+                                    <h3 class="theme-title">フォレスト</h3>
+                                </div>
+                                <p class="theme-description">森の静寂をイメージした、落ち着いた自然派テーマ</p>
+                                <div class="theme-preview">
+                                    <div class="theme-color" style="background-color: #6B7280;"></div>
+                                    <div class="theme-color" style="background-color: #8B7355;"></div>
+                                    <div class="theme-color" style="background-color: #2D8659;"></div>
+                                    <div class="theme-color" style="background-color: #F9FAFB;"></div>
+                                </div>
+                                <div class="theme-labels">
+                                    <span class="theme-label">メイン</span>
+                                    <span class="theme-label">サブ</span>
+                                    <span class="theme-label">アクセント</span>
+                                    <span class="theme-label">背景</span>
+                                </div>
+                            </div>
+                            
+                            <div class="theme-card" data-theme-id="wonderland">
+                                <div class="theme-header">
+                                    <h3 class="theme-title">ワンダーランド</h3>
+                                </div>
+                                <p class="theme-description">不思議の国のアリスの幻想世界をイメージした魔法的なテーマ</p>
+                                <div class="theme-preview">
+                                    <div class="theme-color" style="background-color: #7C3AED;"></div>
+                                    <div class="theme-color" style="background-color: #EC4899;"></div>
+                                    <div class="theme-color" style="background-color: #10B981;"></div>
+                                    <div class="theme-color" style="background-color: #FAF5FF;"></div>
+                                </div>
+                                <div class="theme-labels">
+                                    <span class="theme-label">メイン</span>
+                                    <span class="theme-label">サブ</span>
+                                    <span class="theme-label">アクセント</span>
+                                    <span class="theme-label">背景</span>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </section>
+                    
                     <section id="window-size-section">
                         <h2>ウィンドウサイズ</h2>
                         
@@ -120,5 +251,24 @@
     </div>
     
     <script type="module" src="/src/settings-renderer.ts"></script>
+    <script type="module">
+        import { ThemeManager } from '/src/utils/themeManager.ts';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeManager = new ThemeManager();
+            
+            // グローバルに公開してSettingsRendererから使用できるようにする
+            window.themeManager = themeManager;
+            console.log('ThemeManagerをグローバルに設定しました');
+            
+            // テーマ変更通知を受信
+            if (window.electronAPI && window.electronAPI.onThemeChanged) {
+                window.electronAPI.onThemeChanged((theme) => {
+                    console.log('設定画面: テーマ変更通知を受信:', theme);
+                    themeManager.setTheme(theme);
+                });
+            }
+        });
+    </script>
 </body>
 </html>

@@ -1,0 +1,230 @@
+/**
+ * 🎨 LLM Desktop Mascot - Design System
+ * アクセシビリティ考慮のモダンデザインシステム
+ */
+
+/* ========================================
+   🌈 DEFAULT THEME & BASE VARIABLES
+======================================== */
+
+:root {
+  /* 🎯 Default Theme: Soft & Dreamy - アクセシビリティ重視パレット */
+  --theme-primary: #5082C4;          /* プライマリ：濃い青（コントラスト比4.5:1以上） */
+  --theme-primary-light: #6B9BD2;    /* プライマリライト：中間青 */
+  --theme-primary-dark: #3D6BA3;     /* プライマリダーク：深い青 */
+  
+  --theme-secondary: #8E7CC3;        /* セカンダリ：濃い紫（改善されたコントラスト） */
+  --theme-secondary-light: #A594F9;  /* セカンダリライト：中間紫 */
+  --theme-secondary-dark: #7A6BB0;   /* セカンダリダーク：深い紫 */
+  
+  --theme-accent: #E91E63;           /* アクセント：濃いピンク（高コントラスト） */
+  --theme-accent-light: #FF9FB2;     /* アクセントライト：中間ピンク */
+  --theme-accent-dark: #C2185B;      /* アクセントダーク：深いピンク */
+  
+  /* ✨ Common UI Variables */
+  --color-primary: var(--theme-primary);
+  --color-primary-hover: var(--theme-primary-dark);
+  --color-secondary: var(--theme-secondary);
+  --color-secondary-hover: var(--theme-secondary-dark);
+  --color-accent: var(--theme-accent);
+  --color-accent-hover: var(--theme-accent-dark);
+  
+  --color-background: #FDFBF7;
+  --color-surface: #FFFFFF;
+  --color-surface-secondary: #F8F9FA;
+  --color-border: #E1E8ED;
+  
+  /* テキストカラー：2色システム（アクセシビリティ重視） */
+  --color-text-primary: #2C3E50;     /* プライマリテキスト（コントラスト比7:1） */
+  --color-text-secondary: #5A6C7D;   /* セカンダリテキスト（コントラスト比4.5:1） */
+  --color-text-inverse: #FFFFFF;
+  
+  /* ✨ Typography & Layout */
+  --font-family-base: "Inter", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W3", "YuGothic", "Yu Gothic Medium", "Yu Gothic", "Meiryo", "メイリオ", sans-serif;
+  --line-height-base: 1.6;
+  
+  /* ✨ Spacing */
+  --spacing-sm: 0.5rem;    /* 8px */
+  --spacing-md: 1rem;      /* 16px */
+  --spacing-lg: 1.5rem;    /* 24px */
+  --spacing-xl: 2rem;      /* 32px */
+  
+  /* ✨ Border Radius */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-round: 20px;
+  
+  /* ✨ Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  
+  /* ✨ Transitions */
+  --transition-duration: 0.3s;
+  --transition-timing: ease;
+}
+
+/* ========================================
+   🎨 THEME VARIATIONS
+======================================== */
+
+/* 🌙 Dark Theme - 改良されたアクセシビリティ重視パレット */
+[data-theme="dark"] {
+  --theme-primary: #60A5FA;          /* ブルー（高コントラスト最適化） */
+  --theme-primary-light: #93C5FD;    /* ライトブルー */
+  --theme-primary-dark: #3B82F6;     /* ダークブルー */
+  
+  --theme-secondary: #A78BFA;        /* パープル（高コントラスト最適化） */
+  --theme-secondary-light: #C4B5FD;  /* ライトパープル */
+  --theme-secondary-dark: #8B5CF6;   /* ダークパープル */
+  
+  --theme-accent: #FCD34D;           /* アンバー（暗背景で最高の視認性） */
+  --theme-accent-light: #FDE68A;     /* ライトアンバー */
+  --theme-accent-dark: #F59E0B;      /* ダークアンバー */
+  
+  --color-primary: var(--theme-primary);
+  --color-primary-hover: var(--theme-primary-light);
+  --color-secondary: var(--theme-secondary);
+  --color-secondary-hover: var(--theme-secondary-light);
+  --color-accent: var(--theme-accent);
+  --color-accent-hover: var(--theme-accent-light);
+  
+  --color-background: #0F172A;       /* より深い背景色（コントラスト強化） */
+  --color-surface: #1E293B;          /* カード背景（コントラスト強化） */
+  --color-surface-secondary: #334155; /* セカンダリ背景（コントラスト強化） */
+  --color-border: #475569;           /* 境界線（より明るく） */
+  
+  /* テキストカラー：超高コントラスト2色システム */
+  --color-text-primary: #FFFFFF;     /* プライマリテキスト（純白で最高コントラスト） */
+  --color-text-secondary: #E2E8F0;   /* セカンダリテキスト（高コントラスト） */
+  --color-text-inverse: #0F172A;     /* 逆色テキスト */
+}
+
+/* 🌸 Sakura Theme - アクセシビリティ考慮拡張パレット */
+[data-theme="sakura"] {
+  --theme-primary: #D1477A;          /* 柔らかいピンク（目に優しい） */
+  --theme-primary-light: #E688A3;    /* ライトピンク */
+  --theme-primary-dark: #B8386A;     /* ダークピンク */
+  
+  --theme-secondary: #C485C7;        /* 柔らかい紫（調和的） */
+  --theme-secondary-light: #D8A8DB;  /* ライト紫 */
+  --theme-secondary-dark: #B066B3;   /* ダーク紫 */
+  
+  --theme-accent: #FF5722;           /* オレンジアクセント（コントラスト強化） */
+  --theme-accent-light: #FFAB91;     /* 明るいオレンジ */
+  --theme-accent-dark: #E64A19;      /* 深いオレンジ */
+  
+  --color-primary: var(--theme-primary);
+  --color-primary-hover: var(--theme-primary-dark);
+  --color-secondary: var(--theme-secondary);
+  --color-secondary-hover: var(--theme-secondary-dark);
+  --color-accent: var(--theme-accent);
+  --color-accent-hover: var(--theme-accent-dark);
+  
+  --color-background: #FDF2F8;       /* 桜の背景 */
+  --color-surface: #FEFCFD;          /* カード背景 */
+  --color-surface-secondary: #FCE7F3;/* セカンダリ背景 */
+  --color-border: #F3E8FF;           /* 境界線 */
+  
+  /* テキストカラー：2色システム（桜背景用高コントラスト） */
+  --color-text-primary: #4A1B47;     /* プライマリテキスト（コントラスト比8:1） */
+  --color-text-secondary: #7C3A78;   /* セカンダリテキスト（コントラスト比5:1） */
+  --color-text-inverse: #FFFFFF;
+}
+
+/* 🌊 Ocean Theme - アクセシビリティ考慮拡張パレット */
+[data-theme="ocean"] {
+  --theme-primary: #0D7377;          /* 深いティール（高コントラスト） */
+  --theme-primary-light: #14A085;    /* 中間ティール */
+  --theme-primary-dark: #0F5C5F;     /* より深いティール */
+  
+  --theme-secondary: #1E40AF;        /* 深いブルー（高コントラスト） */
+  --theme-secondary-light: #3B82F6;  /* 中間ブルー */
+  --theme-secondary-dark: #1E3A8A;   /* より深いブルー */
+  
+  --theme-accent: #DC7633;           /* オレンジアクセント（ティールと対照的） */
+  --theme-accent-light: #EB984E;     /* ライトオレンジ */
+  --theme-accent-dark: #CA6F1E;      /* ダークオレンジ */
+  
+  --color-primary: var(--theme-primary);
+  --color-primary-hover: var(--theme-primary-dark);
+  --color-secondary: var(--theme-secondary);
+  --color-secondary-hover: var(--theme-secondary-dark);
+  --color-accent: var(--theme-accent);
+  --color-accent-hover: var(--theme-accent-dark);
+  
+  --color-background: #F0FDFA;       /* 海の背景 */
+  --color-surface: #FFFFFF;          /* カード背景 */
+  --color-surface-secondary: #ECFEFF;/* セカンダリ背景 */
+  --color-border: #A7F3D0;           /* 境界線 */
+  
+  /* テキストカラー：2色システム（海背景用高コントラスト） */
+  --color-text-primary: #0F2A44;     /* プライマリテキスト（コントラスト比9:1） */
+  --color-text-secondary: #1E3A55;   /* セカンダリテキスト（コントラスト比6:1） */
+  --color-text-inverse: #FFFFFF;
+}
+
+/* 🌲 Forest Theme - 落ち着いた自然派アクセシビリティパレット */
+[data-theme="forest"] {
+  --theme-primary: #6B7280;          /* ウォームグレー（上品で控えめ） */
+  --theme-primary-light: #9CA3AF;    /* ライトグレー */
+  --theme-primary-dark: #4B5563;     /* ダークグレー */
+  
+  --theme-secondary: #8B7355;        /* ウォームブラウン（自然な温かみ） */
+  --theme-secondary-light: #A89781;  /* ライトブラウン */
+  --theme-secondary-dark: #6D5B47;   /* ダークブラウン */
+  
+  --theme-accent: #2D8659;           /* フォレストグリーン（自然で鮮やか） */
+  --theme-accent-light: #52A373;     /* ライトグリーン */
+  --theme-accent-dark: #236B47;      /* ダークグリーン */
+  
+  --color-primary: var(--theme-primary);
+  --color-primary-hover: var(--theme-primary-dark);
+  --color-secondary: var(--theme-secondary);
+  --color-secondary-hover: var(--theme-secondary-dark);
+  --color-accent: var(--theme-accent);
+  --color-accent-hover: var(--theme-accent-dark);
+  
+  --color-background: #F9FAFB;       /* 非常に薄いグレー背景 */
+  --color-surface: #FFFFFF;          /* 純白のカード背景 */
+  --color-surface-secondary: #F3F4F6; /* セカンダリ背景 */
+  --color-border: #E5E7EB;           /* 控えめな境界線 */
+  
+  /* テキストカラー：2色システム（フォレスト背景用高コントラスト） */
+  --color-text-primary: #1F2937;     /* プライマリテキスト（コントラスト比10:1） */
+  --color-text-secondary: #4B5563;   /* セカンダリテキスト（コントラスト比7:1） */
+  --color-text-inverse: #FFFFFF;
+}
+
+/* 🎩 Wonderland Theme - 不思議の国のアリス幻想パレット */
+[data-theme="wonderland"] {
+  --theme-primary: #7C3AED;          /* 魔法の紫（アリスのドレス） */
+  --theme-primary-light: #A78BFA;    /* ライト紫 */
+  --theme-primary-dark: #5B21B6;     /* ダーク紫 */
+  
+  --theme-secondary: #EC4899;        /* チェシャ猫のピンク（鮮やかで神秘的） */
+  --theme-secondary-light: #F472B6;  /* ライトピンク */
+  --theme-secondary-dark: #DB2777;   /* ダークピンク */
+  
+  --theme-accent: #10B981;           /* エメラルドグリーン（マッドハッターの帽子） */
+  --theme-accent-light: #34D399;     /* ライトエメラルド */
+  --theme-accent-dark: #059669;      /* ダークエメラルド */
+  
+  --color-primary: var(--theme-primary);
+  --color-primary-hover: var(--theme-primary-light);
+  --color-secondary: var(--theme-secondary);
+  --color-secondary-hover: var(--theme-secondary-light);
+  --color-accent: var(--theme-accent);
+  --color-accent-hover: var(--theme-accent-light);
+  
+  --color-background: #FAF5FF;       /* 薄紫の夢幻背景 */
+  --color-surface: #FFFFFF;          /* 純白のカード背景 */
+  --color-surface-secondary: #F3E8FF; /* 薄紫のセカンダリ背景 */
+  --color-border: #DDD6FE;           /* 紫がかった境界線 */
+  
+  /* テキストカラー：2色システム（ワンダーランド背景用高コントラスト） */
+  --color-text-primary: #1F2937;     /* プライマリテキスト（コントラスト比8:1） */
+  --color-text-secondary: #4B5563;   /* セカンダリテキスト（コントラスト比6:1） */
+  --color-text-inverse: #FFFFFF;
+}

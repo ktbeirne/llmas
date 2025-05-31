@@ -23,7 +23,12 @@
       "Bash(gh issue view:*)",
       "mcp__sequential-thinking__sequentialthinking",
       "Bash(npm run test:unit:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(/home/user/.nvm/versions/node/v22.16.0/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/x64-linux/rg -l \"24|design|theme|refactor|UI\" /mnt/d/AI/Mascot/LLMDesktopMascot --type md)",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_install",
+      "Bash(gh api:*)",
+      "mcp__playwright__browser_navigate"
     ],
     "deny": []
   }

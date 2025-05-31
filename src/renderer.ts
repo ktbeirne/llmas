@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { VRMUtils, VRMLoaderPlugin, VRM, VRMHumanBoneName } from '@pixiv/three-vrm'; 
 import { getHeadScreenPosition } from './vrmController';
 import './index.css';
+import { themeManager } from './utils/themeManager';
 
 const canvasElement = document.getElementById('vrm-canvas') as HTMLCanvasElement;
 const scene = new THREE.Scene();
@@ -29,6 +30,7 @@ const renderer = new THREE.WebGLRenderer({
     canvas: document.getElementById('vrm-canvas') as HTMLCanvasElement,
     alpha: true,
     antialias: true,
+    premultipliedAlpha: false,
 });
 const canvasArea = document.getElementById('canvas-area');
 if (canvasArea) {
@@ -37,7 +39,9 @@ if (canvasArea) {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 renderer.setPixelRatio(window.devicePixelRatio);
-// renderer.setClearColor(0x7fbfff, 1.0); // お手本コードにあった背景色設定。お好みで。
+// VRMキャンバスの背景を強制的に透明に設定
+renderer.setClearColor(0x000000, 0.0);
+renderer.shadowMap.enabled = false;
 
 const light = new THREE.DirectionalLight(0xffffff, Math.PI);
 light.position.set(1.0, 1.0, 1.0).normalize(); // normalize()も良いかも
@@ -446,12 +450,23 @@ const settingsButton = document.getElementById('settings-icon');
 
 if (settingsButton) {
     settingsButton.addEventListener('click', () => {
-        if (window.electronAPI && window.electronAPI.openSettings) {
-            window.electronAPI.openSettings();
+        if (window.electronAPI && window.electronAPI.toggleSettingsWindow) {
+            window.electronAPI.toggleSettingsWindow();
         } else {
-            console.error('electronAPI.openSettings is not available.');
+            console.error('electronAPI.toggleSettingsWindow is not available.');
         }
     });
+    
+    // 設定ウィンドウの状態変更を監視
+    if (window.electronAPI && window.electronAPI.onSettingsWindowStateChanged) {
+        window.electronAPI.onSettingsWindowStateChanged((isOpen: boolean) => {
+            if (isOpen) {
+                settingsButton.classList.add('active');
+            } else {
+                settingsButton.classList.remove('active');
+            }
+        });
+    }
 } else {
     console.warn('#settings-icon element not found.');
 }
@@ -473,5 +488,136 @@ if (quitAppButton) {
 } else {
     console.warn('#quit-app-icon element not found.');
 }
+
+// ✨ MainWindow タイトルバー監視・強制非表示システム
+class TitleBarMonitor {
+    private isRunning: boolean = false;
+    private monitorInterval: number | null = null;
+    private frameCount: number = 0;
+    
+    start() {
+        if (this.isRunning) return;
+        
+        this.isRunning = true;
+        console.log('[TitleBarMonitor] Starting titlebar monitoring...');
+        
+        // 高頻度でタイトルバーをチェック（約60fps）
+        this.monitorInterval = window.setInterval(() => {
+            this.checkAndHideTitleBar();
+        }, 16); // 16ms ≈ 60fps
+        
+        // フォーカス・ブラーイベントでも強制実行
+        window.addEventListener('focus', () => this.forceTitleBarHiding());
+        window.addEventListener('blur', () => this.forceTitleBarHiding());
+        
+        // ウィンドウサイズ変更時も強制実行
+        window.addEventListener('resize', () => this.forceTitleBarHiding());
+    }
+    
+    private checkAndHideTitleBar() {
+        this.frameCount++;
+        
+        // DOMとウィンドウタイトルの確認・修正
+        this.hideTitleElements();
+        
+        // 定期的にログ出力（デバッグ用）
+        if (this.frameCount % 3600 === 0) { // 60秒に1回
+            console.log(`[TitleBarMonitor] Active for ${this.frameCount} frames (${Math.round(this.frameCount / 60)} seconds)`);
+        }
+    }
+    
+    private hideTitleElements() {
+        // document.title を空に
+        if (document.title !== '') {
+            document.title = '';
+        }
+        
+        // 可能性のあるタイトルバー要素を非表示
+        const titleElements = [
+            'title',
+            '[role="banner"]',
+            '.titlebar',
+            '.title-bar',
+            '.window-title',
+            'header'
+        ];
+        
+        titleElements.forEach(selector => {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(element => {
+                const htmlElement = element as HTMLElement;
+                if (htmlElement.style.display !== 'none') {
+                    htmlElement.style.display = 'none';
+                }
+            });
+        });
+        
+        // body やhtml の余計なマージン・パディングを削除
+        document.body.style.margin = '0';
+        document.body.style.padding = '0';
+        document.documentElement.style.margin = '0';
+        document.documentElement.style.padding = '0';
+        
+        // -webkit-app-region を no-drag に強制設定
+        document.body.style.webkitAppRegion = 'no-drag';
+        document.documentElement.style.webkitAppRegion = 'no-drag';
+    }
+    
+    private forceTitleBarHiding() {
+        console.log('[TitleBarMonitor] Force hiding titlebar...');
+        
+        // より強力な非表示処理
+        this.hideTitleElements();
+        
+        // Electron API経由でもタイトルを強制リセット
+        if (window.electronAPI && window.electronAPI.logRendererMessage) {
+            window.electronAPI.logRendererMessage('Force titlebar hiding requested from renderer');
+        }
+        
+        // CSS強制適用
+        const style = document.createElement('style');
+        style.textContent = `
+            * { -webkit-app-region: no-drag !important; }
+            title, [role="banner"], .titlebar, .title-bar, .window-title { display: none !important; }
+            body, html { margin: 0 !important; padding: 0 !important; }
+        `;
+        style.id = 'titlebar-killer';
+        
+        // 既存のスタイルがあれば削除してから追加
+        const existingStyle = document.getElementById('titlebar-killer');
+        if (existingStyle) {
+            existingStyle.remove();
+        }
+        document.head.appendChild(style);
+    }
+    
+    stop() {
+        if (!this.isRunning) return;
+        
+        this.isRunning = false;
+        if (this.monitorInterval) {
+            clearInterval(this.monitorInterval);
+            this.monitorInterval = null;
+        }
+        console.log('[TitleBarMonitor] Titlebar monitoring stopped.');
+    }
+}
+
+// タイトルバー監視を開始
+const titleBarMonitor = new TitleBarMonitor();
+
+// DOMContentLoaded後に監視開始
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        titleBarMonitor.start();
+    });
+} else {
+    titleBarMonitor.start();
+}
+
+// ページアンロード時に監視停止
+window.addEventListener('beforeunload', () => {
+    titleBarMonitor.stop();
+});
 
 

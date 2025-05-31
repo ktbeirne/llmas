@@ -29,6 +29,9 @@ class SettingsRenderer {
     private performanceWarning: HTMLElement;
     private resetSystemPromptButton: HTMLButtonElement;
     private clearChatHistoryButton: HTMLButtonElement;
+    private themeGrid: HTMLElement;
+    private selectedTheme = 'default';
+    private availableThemes: any[] = [];
 
     constructor() {
         this.initializeElements();
@@ -58,9 +61,13 @@ class SettingsRenderer {
         this.performanceWarning = document.getElementById('performance-warning') as HTMLElement;
         this.resetSystemPromptButton = document.getElementById('reset-system-prompt') as HTMLButtonElement;
         this.clearChatHistoryButton = document.getElementById('clear-chat-history') as HTMLButtonElement;
+        this.themeGrid = document.getElementById('theme-grid') as HTMLElement;
     }
 
     private setupEventListeners(): void {
+        // 折りたたみ機能の設定
+        this.setupCollapsibleTheme();
+        
         // プリセット選択の変更
         this.presetSelect.addEventListener('change', () => {
             this.handlePresetChange();
@@ -116,6 +123,15 @@ class SettingsRenderer {
         this.clearChatHistoryButton.addEventListener('click', () => {
             this.clearChatHistory();
         });
+
+        // テーマ関連の初期化
+        console.log('テーマ初期化をスケジュールします');
+        
+        // DOM読み込み後に確実に実行
+        setTimeout(() => {
+            this.initializeThemes();
+            this.setupStaticThemeCards();
+        }, 100);
     }
 
     private handlePresetChange(): void {
@@ -171,6 +187,9 @@ class SettingsRenderer {
                 
                 // ユーザー名・マスコット名・システムプロンプトを読み込み
                 await this.loadChatSettings();
+                
+                // テーマ設定を読み込み
+                await this.loadThemeSettings();
             } catch (error) {
                 console.error('設定の読み込みに失敗しました:', error);
             }
@@ -207,6 +226,9 @@ class SettingsRenderer {
                     windowSize: windowSizeSettings,
                     vrmModelPath
                 });
+                
+                // テーマ設定を最初に保存（最も重要）
+                await this.saveThemeSettings();
                 
                 // チャット設定も保存
                 await this.saveChatSettings();
@@ -372,6 +394,243 @@ class SettingsRenderer {
                 console.error('会話履歴のクリアに失敗しました:', error);
                 alert('会話履歴のクリアに失敗しました。');
             }
+        }
+    }
+
+    // テーマ関連のメソッド
+    private async initializeThemes(): Promise<void> {
+        try {
+            console.log('テーマ初期化を開始します...');
+            console.log('electronAPI:', window.electronAPI);
+            console.log('getAvailableThemes:', window.electronAPI?.getAvailableThemes);
+            
+            if (window.electronAPI && window.electronAPI.getAvailableThemes) {
+                this.availableThemes = await window.electronAPI.getAvailableThemes();
+                console.log('取得したテーマ:', this.availableThemes);
+                this.renderThemeCards();
+            } else {
+                console.error('electronAPI または getAvailableThemes が利用できません');
+                // フォールバック：基本テーマを直接定義
+                this.availableThemes = [
+                    {
+                        id: 'default',
+                        name: 'ソフト＆ドリーミー',
+                        description: '明るく親しみやすい、やわらかな印象のテーマ',
+                        preview: ['#6B9BD2', '#A594F9', '#FF9FB2', '#FDFBF7']
+                    },
+                    {
+                        id: 'dark',
+                        name: 'ダークモード',
+                        description: '目に優しく洗練された暗めのテーマ',
+                        preview: ['#4A90E2', '#8E7CC3', '#FF6B9D', '#1A1D23']
+                    },
+                    {
+                        id: 'sakura',
+                        name: '桜',
+                        description: '日本の春をイメージした温かみのあるテーマ',
+                        preview: ['#FF69B4', '#DDA0DD', '#FFB6C1', '#FFF0F5']
+                    },
+                    {
+                        id: 'ocean',
+                        name: 'オーシャン',
+                        description: '海の静けさをイメージした爽やかなテーマ',
+                        preview: ['#20B2AA', '#87CEEB', '#40E0D0', '#F0F8FF']
+                    }
+                ];
+                console.log('フォールバックテーマを使用:', this.availableThemes);
+                this.renderThemeCards();
+            }
+        } catch (error) {
+            console.error('テーマの初期化に失敗しました:', error);
+        }
+    }
+
+    private async loadThemeSettings(): Promise<void> {
+        try {
+            if (window.electronAPI && window.electronAPI.getTheme) {
+                this.selectedTheme = await window.electronAPI.getTheme() || 'default';
+                this.updateThemeSelection();
+            }
+        } catch (error) {
+            console.error('テーマ設定の読み込みに失敗しました:', error);
+        }
+    }
+
+    private renderThemeCards(): void {
+        console.log('renderThemeCards を開始します');
+        console.log('themeGrid:', this.themeGrid);
+        console.log('availableThemes:', this.availableThemes);
+        
+        if (!this.themeGrid) {
+            console.error('themeGrid 要素が見つかりません');
+            return;
+        }
+
+        this.themeGrid.innerHTML = '';
+
+        this.availableThemes.forEach((theme, themeIndex) => {
+            console.log(`テーマ ${themeIndex} を処理中:`, theme);
+            
+            const themeCard = document.createElement('div');
+            themeCard.className = 'theme-card';
+            themeCard.dataset.themeId = theme.id;
+
+            const themeHeader = document.createElement('div');
+            themeHeader.className = 'theme-header';
+
+            const themeTitle = document.createElement('h3');
+            themeTitle.className = 'theme-title';
+            themeTitle.textContent = theme.name;
+
+            const themeDescription = document.createElement('p');
+            themeDescription.className = 'theme-description';
+            themeDescription.textContent = theme.description;
+
+            const themePreview = document.createElement('div');
+            themePreview.className = 'theme-preview';
+
+            // preview が配列であることを確認
+            const previewColors = Array.isArray(theme.preview) ? theme.preview : Object.values(theme.preview);
+            previewColors.forEach((color: string, index: number) => {
+                const colorDiv = document.createElement('div');
+                colorDiv.className = 'theme-color';
+                colorDiv.style.backgroundColor = color;
+                themePreview.appendChild(colorDiv);
+            });
+
+            const themeLabels = document.createElement('div');
+            themeLabels.className = 'theme-labels';
+            
+            const labels = ['メイン', 'サブ', 'アクセント', '背景'];
+            labels.forEach((label, labelIndex) => {
+                if (previewColors[labelIndex]) {
+                    const labelSpan = document.createElement('span');
+                    labelSpan.className = 'theme-label';
+                    labelSpan.textContent = label;
+                    themeLabels.appendChild(labelSpan);
+                }
+            });
+
+            themeHeader.appendChild(themeTitle);
+            themeCard.appendChild(themeHeader);
+            themeCard.appendChild(themeDescription);
+            themeCard.appendChild(themePreview);
+            themeCard.appendChild(themeLabels);
+
+            // テーマ選択イベント
+            themeCard.addEventListener('click', () => {
+                console.log('テーマが選択されました:', theme.id);
+                this.selectTheme(theme.id);
+            });
+
+            this.themeGrid.appendChild(themeCard);
+            console.log(`テーマカード ${themeIndex} を追加しました`);
+        });
+        
+        console.log('すべてのテーマカードを追加完了。Grid の内容:', this.themeGrid.innerHTML);
+
+        this.updateThemeSelection();
+    }
+
+    private selectTheme(themeId: string): void {
+        this.selectedTheme = themeId;
+        this.updateThemeSelection();
+        
+        // ThemeManagerを直接呼び出してテーマを即座にプレビュー
+        if ((window as any).themeManager) {
+            (window as any).themeManager.setTheme(themeId);
+        }
+    }
+
+    private updateThemeSelection(): void {
+        console.log('テーマ選択状態を更新します. 選択されたテーマ:', this.selectedTheme);
+        
+        // すべてのテーマカードから selected クラスを削除
+        const themeCards = document.querySelectorAll('.theme-card');
+        themeCards.forEach(card => {
+            const cardElement = card as HTMLElement;
+            cardElement.classList.remove('selected');
+        });
+        
+        // 選択されたテーマに selected クラスを追加
+        const selectedCard = document.querySelector(`[data-theme-id="${this.selectedTheme}"]`);
+        if (selectedCard) {
+            selectedCard.classList.add('selected');
+            console.log(`テーマ ${this.selectedTheme} を選択状態にしました`);
+        } else {
+            console.log(`テーマ ${this.selectedTheme} のカードが見つかりません`);
+        }
+    }
+
+    private async saveThemeSettings(): Promise<void> {
+        try {
+            // まず現在の設定画面のテーマを即座に変更
+            if (window.themeManager) {
+                window.themeManager.setTheme(this.selectedTheme);
+            }
+            
+            if (window.electronAPI && window.electronAPI.setTheme) {
+                const result = await window.electronAPI.setTheme(this.selectedTheme);
+                
+                if (result && result.success) {
+                    console.log('テーマが正常に保存されました');
+                } else {
+                    console.error('テーマの保存に失敗しました:', result);
+                }
+            } else {
+                console.error('electronAPI または setTheme が利用できません');
+            }
+        } catch (error) {
+            console.error('テーマ設定の保存でエラーが発生しました:', error);
+            throw error;
+        }
+    }
+
+    // 静的テーマカードの設定
+    private setupStaticThemeCards(): void {
+        console.log('静的テーマカードのイベントリスナーを設定します');
+        
+        const themeCards = document.querySelectorAll('.theme-card');
+        console.log('見つかったテーマカード:', themeCards.length);
+        
+        themeCards.forEach(card => {
+            const themeId = (card as HTMLElement).dataset.themeId;
+            if (themeId) {
+                card.addEventListener('click', () => {
+                    console.log('テーマが選択されました:', themeId);
+                    this.selectTheme(themeId);
+                });
+                console.log(`テーマカード ${themeId} にイベントリスナーを追加しました`);
+            }
+        });
+        
+        // 現在のテーマを読み込んで選択状態を更新
+        this.loadThemeSettings();
+    }
+
+    // 折りたたみ機能の設定
+    private setupCollapsibleTheme(): void {
+        const themeHeader = document.getElementById('theme-header');
+        const themeContent = document.getElementById('theme-content');
+        
+        if (themeHeader && themeContent) {
+            themeHeader.addEventListener('click', () => {
+                this.toggleCollapse(themeHeader, themeContent);
+            });
+        }
+    }
+
+    private toggleCollapse(header: HTMLElement, content: HTMLElement): void {
+        const isExpanded = content.classList.contains('expanded');
+        
+        if (isExpanded) {
+            // 折りたたむ
+            content.classList.remove('expanded');
+            header.classList.remove('expanded');
+        } else {
+            // 展開する
+            content.classList.add('expanded');
+            header.classList.add('expanded');
         }
     }
 }

@@ -47,6 +47,33 @@ function createMainWindow(): void {
     console.log('[Main] メインウィンドウ設定:', config);
     const window = windowManager.createWindow(config, 'index.html');
     
+    // ウィンドウの準備完了後に表示（タイトルバー問題回避）
+    window.once('ready-to-show', () => {
+      console.log('[Main] メインウィンドウの準備が完了しました');
+      window.show();
+      
+      // Windows環境での追加処理 + 継続的タイトルバー監視
+      if (process.platform === 'win32') {
+        // 表示後にもう一度タイトルをクリア
+        setTimeout(() => {
+          if (!window.isDestroyed()) {
+            window.setTitle('');
+            console.log('[Main] Windows用タイトルクリア処理完了');
+            
+            // 継続的なタイトルバー監視を開始
+            startTitleBarMonitoring(window);
+          }
+        }, 100);
+      } else {
+        // macOS/Linuxでも監視開始
+        setTimeout(() => {
+          if (!window.isDestroyed()) {
+            startTitleBarMonitoring(window);
+          }
+        }, 100);
+      }
+    });
+    
     // ウィンドウ位置変更時の自動保存
     let moveTimeout: NodeJS.Timeout | null = null;
     window.on('moved', () => {
@@ -228,6 +255,14 @@ function createSettingsWindow(): BrowserWindow | null {
       console.log('[SettingsWindow] HTMLの読み込みが完了しました');
     });
     
+    // ウィンドウが閉じられた時の状態変更通知
+    window.on('closed', () => {
+      const mainWindow = windowManager.getWindow('main');
+      if (mainWindow) {
+        mainWindow.webContents.send('settings-window-state-changed', false);
+      }
+    });
+    
     return window;
   } catch (error) {
     ErrorHandler.handle(error, true);
@@ -249,6 +284,60 @@ function initializeAPI(): void {
     return;
   }
   initializeGemini(apiKey);
+}
+
+/**
+ * MainWindow用タイトルバー継続監視
+ */
+function startTitleBarMonitoring(window: BrowserWindow): void {
+  console.log('[Main] Starting titlebar monitoring for main window...');
+  
+  // 高頻度でタイトルをリセット（約30fps）
+  const monitorInterval = setInterval(() => {
+    if (window.isDestroyed()) {
+      clearInterval(monitorInterval);
+      return;
+    }
+    
+    // タイトルが設定されていれば強制的に空にする
+    if (window.getTitle() !== '') {
+      window.setTitle('');
+    }
+  }, 33); // 33ms ≈ 30fps
+  
+  // フォーカス・ブラーイベントでも強制リセット
+  window.on('focus', () => {
+    if (!window.isDestroyed()) {
+      window.setTitle('');
+      console.log('[Main] Title reset on focus');
+    }
+  });
+  
+  window.on('blur', () => {
+    if (!window.isDestroyed()) {
+      window.setTitle('');
+      console.log('[Main] Title reset on blur');
+    }
+  });
+  
+  // ウィンドウ移動・リサイズ時も強制リセット
+  window.on('moved', () => {
+    if (!window.isDestroyed()) {
+      window.setTitle('');
+    }
+  });
+  
+  window.on('resized', () => {
+    if (!window.isDestroyed()) {
+      window.setTitle('');
+    }
+  });
+  
+  // ウィンドウが閉じられる時に監視停止
+  window.on('closed', () => {
+    clearInterval(monitorInterval);
+    console.log('[Main] Titlebar monitoring stopped for closed window');
+  });
 }
 
 /**
@@ -356,7 +445,12 @@ function setupIPCHandlers(): void {
     const speechBubbleWindow = windowManager.getWindow('speechBubble');
     const mainWindow = windowManager.getWindow('main');
     
-    if (!speechBubbleWindow || !mainWindow) return;
+    console.log('[Main] notify-bubble-size received:', size);
+    
+    if (!speechBubbleWindow || !mainWindow) {
+      console.log('[Main] Missing windows:', { speechBubble: !!speechBubbleWindow, main: !!mainWindow });
+      return;
+    }
     
     const windowWidth = Math.max(size.width, 80);
     const windowHeight = Math.max(size.height, 50);
@@ -365,15 +459,41 @@ function setupIPCHandlers(): void {
     const x = mainBounds.x + Math.round((mainBounds.width - windowWidth) / 2);
     const y = (mainBounds.y + WINDOW_CONFIG.SPEECH_BUBBLE.MIN_DISPLAY_TIME / 20) - windowHeight;
     
-    speechBubbleWindow.setBounds({
+    const newBounds = {
       x: Math.round(x),
       y: Math.round(y),
       width: Math.round(windowWidth),
       height: Math.round(windowHeight)
-    });
+    };
+    
+    console.log('[Main] Setting speechBubble bounds:', newBounds);
+    
+    speechBubbleWindow.setBounds(newBounds);
+    
+    // 設定後の実際のBoundsを確認
+    setTimeout(() => {
+      const actualBounds = speechBubbleWindow.getBounds();
+      console.log('[Main] Actual speechBubble bounds after setting:', actualBounds);
+      console.log('[Main] Expected vs Actual - Width:', {expected: newBounds.width, actual: actualBounds.width, diff: actualBounds.width - newBounds.width});
+      console.log('[Main] Expected vs Actual - Height:', {expected: newBounds.height, actual: actualBounds.height, diff: actualBounds.height - newBounds.height});
+      console.log('[Main] Window visible:', speechBubbleWindow.isVisible());
+      console.log('[Main] Window destroyed:', speechBubbleWindow.isDestroyed());
+      
+      // 内部コンテンツサイズも確認（可能なら）
+      speechBubbleWindow.webContents.executeJavaScript(`
+        const bubble = document.getElementById('bubble-content');
+        if (bubble) {
+          const rect = bubble.getBoundingClientRect();
+          console.log('Content actual size:', {width: rect.width, height: rect.height, offsetW: bubble.offsetWidth, offsetH: bubble.offsetHeight});
+        }
+      `).catch(() => {});
+    }, 100);
     
     if (!speechBubbleWindow.isVisible()) {
+      console.log('[Main] Showing speechBubble window');
       speechBubbleWindow.show();
+    } else {
+      console.log('[Main] speechBubble window already visible');
     }
   });
 
@@ -425,23 +545,63 @@ function setupIPCHandlers(): void {
     app.quit();
   });
 
+  // 設定ウィンドウのトグル
+  ipcMain.on('toggle-settings-window', () => {
+    const settingsWindow = windowManager.getWindow('settings');
+    const mainWindow = windowManager.getWindow('main');
+    
+    if (settingsWindow && settingsWindow.isVisible()) {
+      // 設定ウィンドウが開いている場合は閉じる
+      settingsWindow.close();
+      if (mainWindow) {
+        mainWindow.webContents.send('settings-window-state-changed', false);
+      }
+    } else if (settingsWindow && !settingsWindow.isDestroyed()) {
+      // 設定ウィンドウが存在するが非表示の場合は表示
+      settingsWindow.show();
+      settingsWindow.focus();
+      if (mainWindow) {
+        mainWindow.webContents.send('settings-window-state-changed', true);
+      }
+    } else {
+      // 設定ウィンドウが存在しない場合は新規作成
+      const newWindow = createSettingsWindow();
+      if (newWindow && mainWindow) {
+        mainWindow.webContents.send('settings-window-state-changed', true);
+      }
+    }
+  });
+
   // 設定ウィンドウを開く
   ipcMain.on('open-settings', () => {
     const settingsWindow = windowManager.getWindow('settings');
+    const mainWindow = windowManager.getWindow('main');
     
     if (settingsWindow) {
       settingsWindow.show();
       settingsWindow.focus();
     } else {
-      createSettingsWindow();
+      const newWindow = createSettingsWindow();
+      if (newWindow) {
+        // 設定ウィンドウの状態変更通知
+        if (mainWindow) {
+          mainWindow.webContents.send('settings-window-state-changed', true);
+        }
+      }
     }
   });
 
   // 設定ウィンドウを閉じる
   ipcMain.on('close-settings', () => {
     const settingsWindow = windowManager.getWindow('settings');
+    const mainWindow = windowManager.getWindow('main');
+    
     if (settingsWindow) {
       settingsWindow.close();
+      // 設定ウィンドウの状態変更通知（将来の実装用）
+      if (mainWindow) {
+        mainWindow.webContents.send('settings-window-state-changed', false);
+      }
     }
   });
 
@@ -719,6 +879,111 @@ function setupIPCHandlers(): void {
       return { success: true };
     } catch (error) {
       console.error('システムプロンプトコアのリセットエラー:', error);
+      throw error;
+    }
+  });
+
+  // テーマ関連のIPCハンドラー
+  ipcMain.handle(IPC_CHANNELS.THEME.GET_THEME, async () => {
+    try {
+      return settingsStore.getTheme();
+    } catch (error) {
+      console.error('テーマの取得エラー:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.THEME.SET_THEME, async (_event: IpcMainInvokeEvent, theme: string) => {
+    try {
+      settingsStore.setTheme(theme);
+      
+      // すべてのウィンドウにテーマ変更を通知
+      const windows = BrowserWindow.getAllWindows();
+      windows.forEach(window => {
+        window.webContents.send('theme-changed', theme);
+      });
+      
+      console.log(`テーマを ${theme} に変更し、${windows.length} 個のウィンドウに通知しました`);
+      return { success: true };
+    } catch (error) {
+      console.error('テーマの設定エラー:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.THEME.GET_AVAILABLE_THEMES, async () => {
+    try {
+      // 利用可能なテーマ一覧を返す
+      return [
+        {
+          id: 'default',
+          name: 'ソフト＆ドリーミー',
+          description: '明るく親しみやすい、やわらかな印象のテーマ',
+          preview: {
+            primary: '#5082C4',
+            secondary: '#8E7CC3',
+            accent: '#E91E63',
+            background: '#FDFBF7'
+          }
+        },
+        {
+          id: 'dark',
+          name: 'ダークモード',
+          description: '目に優しく洗練された、落ち着いた印象のテーマ',
+          preview: {
+            primary: '#60A5FA',
+            secondary: '#A78BFA',
+            accent: '#FCD34D',
+            background: '#0F172A'
+          }
+        },
+        {
+          id: 'sakura',
+          name: 'サクラ',
+          description: '桜の季節を思わせる、華やかで可愛らしいテーマ',
+          preview: {
+            primary: '#D1477A',
+            secondary: '#C485C7',
+            accent: '#FF5722',
+            background: '#FDF2F8'
+          }
+        },
+        {
+          id: 'ocean',
+          name: 'オーシャン',
+          description: '海の爽やかさを表現した、清々しいテーマ',
+          preview: {
+            primary: '#0D7377',
+            secondary: '#1E40AF',
+            accent: '#DC7633',
+            background: '#F0FDFA'
+          }
+        },
+        {
+          id: 'forest',
+          name: 'フォレスト',
+          description: '森の静寂をイメージした、落ち着いた自然派テーマ',
+          preview: {
+            primary: '#6B7280',
+            secondary: '#8B7355',
+            accent: '#2D8659',
+            background: '#F9FAFB'
+          }
+        },
+        {
+          id: 'wonderland',
+          name: 'ワンダーランド',
+          description: '不思議の国のアリスの幻想世界をイメージした魔法的なテーマ',
+          preview: {
+            primary: '#7C3AED',
+            secondary: '#EC4899',
+            accent: '#10B981',
+            background: '#FAF5FF'
+          }
+        }
+      ];
+    } catch (error) {
+      console.error('利用可能テーマの取得エラー:', error);
       throw error;
     }
   });

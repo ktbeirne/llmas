@@ -62,6 +62,13 @@ export const IPC_CHANNELS = {
     QUIT: 'quit-app',
     BEFORE_QUIT: 'before-quit',
   },
+  
+  // テーマ関連
+  THEME: {
+    GET_THEME: 'get-theme',
+    SET_THEME: 'set-theme',
+    GET_AVAILABLE_THEMES: 'get-available-themes',
+  },
 } as const;
 
 // 型安全性のためのヘルパー型

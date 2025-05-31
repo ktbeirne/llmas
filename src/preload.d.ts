@@ -12,6 +12,7 @@ declare global {
             // 設定関連のAPI
             openSettings: () => void;
             closeSettings: () => void;
+            toggleSettingsWindow: () => void;
             getSettings: () => Promise<any>;
             saveSettings: (settings: any) => Promise<void>;
             resetSettings: () => Promise<void>;
@@ -47,6 +48,13 @@ declare global {
             getSystemPromptCore: () => Promise<string>;
             setSystemPromptCore: (prompt: string) => Promise<{ success: boolean }>;
             resetSystemPromptCore: () => Promise<{ success: boolean }>;
+            // テーマ関連のAPI
+            getTheme: () => Promise<string>;
+            setTheme: (theme: string) => Promise<{ success: boolean }>;
+            getAvailableThemes: () => Promise<any[]>;
+            onThemeChanged: (callback: (theme: string) => void) => void;
+            // 設定ウィンドウ状態変更通知
+            onSettingsWindowStateChanged: (callback: (isOpen: boolean) => void) => void;
         };
     }
 }

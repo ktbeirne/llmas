@@ -16,8 +16,8 @@ export const WINDOW_CONFIG = {
     MIN_HEIGHT: 300,
   },
   SPEECH_BUBBLE: {
-    WIDTH: 300,
-    HEIGHT: 150,
+    WIDTH: 568,  // 更新：tailとshadowを含む幅
+    HEIGHT: 280, // 更新：tailとshadowを含む高さ
     MIN_DISPLAY_TIME: 3000, // 最小表示時間（ミリ秒）
     CHARS_PER_SECOND: 10, // 1秒あたりの文字数
   },

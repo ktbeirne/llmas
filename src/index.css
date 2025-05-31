@@ -1,183 +1,203 @@
 html,
 body {
   height: 100vh;
-  /* ビューポートの高さ100% */
   margin: 0;
   overflow: hidden;
-  /* body自体のスクロールは不要に */
   display: flex;
   flex-direction: column;
-  background-color: transparent;
+  background: transparent;
   -webkit-app-region: drag;
-  /* 子要素を縦に並べる */
+  font-family: var(--font-family-base);
+  color: var(--color-text-primary);
+  transition: all var(--transition-duration) var(--transition-timing);
+}
+
+/* タイトルバー領域を完全に隠す */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 32px; /* Windows標準タイトルバー高さ */
+  background: transparent;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* フレームレスウィンドウでのタイトルバー非表示を強制 */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* ウィンドウ境界線も透明化 */
+html {
+  border: none !important;
+  outline: none !important;
 }
 
 #canvas-area {
   flex: 1 1 auto;
-  /* 残りの高さを全て取る */
   width: 100%;
   position: relative;
-  /* ★子要素を絶対配置するための基準点になります */
   overflow: hidden;
-  /* はみ出した部分を隠す */
+  background: transparent !important;
 }
 
 
 #vrm-canvas {
   position: absolute;
-  /* #canvas-area いっぱいに広がるように */
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   -webkit-app-region: no-drag;
-  /* キャンバス自体はドラッグ不可 (OrbitControlsなどのため) */
   z-index: 1;
-  /* ドラッグエリアより下に配置 */
+  background: transparent !important;
+  background-color: transparent !important;
+  opacity: 1;
 }
 
 #icon-bar {
   flex: 0 0 60px;
-  /* ★高さを固定 (例: 50px) し、伸縮しないようにする */
   width: 100%;
-  background-color: #CDC1FF;
-  /* 仮の背景色 */
-  border-top: 1px solid rgba(114, 114, 114, 0.5);
-  /* 上に境界線 */
+  background-color: var(--color-surface);
   display: flex;
-  /* 中のアイコンを横に並べたり、中央揃えしたりするため */
   align-items: center;
   justify-content: space-around;
-  /* アイコンを均等配置する例 */
-  padding: 0 10px;
+  padding: 0 var(--spacing-md);
   box-sizing: border-box;
   -webkit-app-region: drag;
-  z-index : 1;
-  /* アイコンバー自体はドラッグ不可 */
+  z-index: 1;
+  transition: background-color var(--transition-duration) var(--transition-timing);
+  border-top: 1px solid var(--color-border);
 }
 
 #toggle-chat-icon {
   cursor: pointer;
-  /* クリックできることを示すカーソル (既にあればそのまま) */
-  padding: 5px;
-  /* SVGの周りに少し余白を設ける */
-  border: 1px solid #bbb;
-  /* 枠線 (色や太さはお好みで) */
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
   border-radius: 50%;
-  /* 円形にする場合 (四角や角丸四角なら 4px など) */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-  /* ドロップシャドウ (ぼかし具合や色はお好みで) */
-
-  /* SVGを中央に配置しやすくするための設定 (任意) */
+  box-shadow: var(--shadow-sm);
   display: inline-flex;
-  /* または flex */
   align-items: center;
   justify-content: center;
-
-  /* もし円形にするなら、幅と高さを同じにすると綺麗です */
-  /* width: 40px; */
-  /* height: 40px; */
-
-  background-color: #eaeaea;
-  /* アイコンの背景色 (任意) */
-  transition: box-shadow 0.2s ease-in-out, background-color 0.2s ease-in-out;
-  /* ホバーエフェクト用 (任意) */
+  background-color: var(--color-background);
+  transition: all var(--transition-duration) var(--transition-timing);
   -webkit-app-region: no-drag;
 }
 
 /* マウスホバー時のスタイル (任意) */
 #toggle-chat-icon:hover {
-  background-color: #FFCCEA;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+  background-color: var(--color-accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 /* SVG自体のサイズや色を調整する場合 */
 #toggle-chat-icon svg {
   width: 36px;
-  /* SVGの表示サイズ */
   height: 36px;
-  /* SVGの表示サイズ */
-  fill: #FFCCEA;
-  /* SVGのアイコンの色 (SVG側で指定されていなければここで変えられます) */
+  fill: var(--color-primary);
+  transition: fill var(--transition-duration) var(--transition-timing);
+}
+
+#toggle-chat-icon:hover svg {
+  fill: var(--color-text-inverse);
 }
 
 #toggle-chat-icon svg path {
-  stroke: rgb(162, 162, 162);
+  stroke: var(--color-border);
   stroke-width: 1px;
-  /* CSSの場合は単位を付けることが多いです */
+  transition: stroke var(--transition-duration) var(--transition-timing);
 }
 
 /* チャットウィンドウが表示されているときのアクティブ状態 */
 #toggle-chat-icon.active {
-  background-color: #FFCCEA;
-  border-color: #f5b8d8;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  background-color: var(--color-primary);
+  border-color: var(--color-primary-hover);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 #toggle-chat-icon.active svg {
-  fill: #FFF6E3;
+  fill: var(--color-text-inverse);
 }
 
 #toggle-chat-icon.active svg path {
-  stroke: #6da8e0;
+  stroke: var(--color-primary-hover);
 }
 
 #quit-app-icon {
   cursor: pointer;
-  padding: 5px;
-  border: 1px solid #bbb;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
   border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: #eaeaea;
-  transition: box-shadow 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  background-color: var(--color-background);
+  transition: all var(--transition-duration) var(--transition-timing);
   -webkit-app-region: no-drag;
 }
 
 #quit-app-icon:hover {
-  background-color: #FFCCEA;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+  background-color: var(--color-accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 #quit-app-icon svg {
   width: 36px;
   height: 36px;
-  fill: #FF6B6B;
+  fill: var(--color-accent);
+  transition: fill var(--transition-duration) var(--transition-timing);
 }
 
 #quit-app-icon svg path {
-  stroke: rgb(162, 162, 162);
+  stroke: var(--color-border);
   stroke-width: 1px;
+  transition: stroke var(--transition-duration) var(--transition-timing);
+}
+
+#quit-app-icon:hover svg {
+  fill: var(--color-text-inverse);
 }
 
 #settings-icon {
   cursor: pointer;
-  padding: 5px;
-  border: 1px solid #bbb;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
   border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: #eaeaea;
-  transition: box-shadow 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  background-color: var(--color-background);
+  transition: all var(--transition-duration) var(--transition-timing);
   -webkit-app-region: no-drag;
 }
 
 #settings-icon:hover {
-  background-color: #FFCCEA;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+  background-color: var(--color-accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 #settings-icon svg {
   width: 36px;
   height: 36px;
-  fill: #CDC1FF;
+  fill: var(--color-secondary);
+  transition: fill var(--transition-duration) var(--transition-timing);
 }
 
 #settings-icon svg path {
-  stroke: rgb(162, 162, 162);
+  stroke: var(--color-border);
   stroke-width: 1px;
+  transition: stroke var(--transition-duration) var(--transition-timing);
+}
+
+#settings-icon:hover svg {
+  fill: var(--color-text-inverse);
 }

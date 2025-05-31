@@ -46,6 +46,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.send('close-settings');
     },
 
+    toggleSettingsWindow: () => {
+        ipcRenderer.send('toggle-settings-window');
+    },
+
     getSettings: async (): Promise<any> => {
         return await ipcRenderer.invoke('get-settings');
     },
@@ -163,5 +167,28 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     resetSystemPromptCore: async (): Promise<{ success: boolean }> => {
         return await ipcRenderer.invoke('reset-system-prompt-core');
+    },
+
+    // テーマ関連のAPI
+    getTheme: async (): Promise<string> => {
+        return await ipcRenderer.invoke('get-theme');
+    },
+
+    setTheme: async (theme: string): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('set-theme', theme);
+    },
+
+    getAvailableThemes: async (): Promise<any[]> => {
+        return await ipcRenderer.invoke('get-available-themes');
+    },
+
+    // テーマ変更通知のリスナー
+    onThemeChanged: (callback: (theme: string) => void) => {
+        ipcRenderer.on('theme-changed', (_event, theme) => callback(theme));
+    },
+
+    // 設定ウィンドウ状態変更通知のリスナー
+    onSettingsWindowStateChanged: (callback: (isOpen: boolean) => void) => {
+        ipcRenderer.on('settings-window-state-changed', (_event, isOpen) => callback(isOpen));
     }
 });

@@ -14,6 +14,9 @@ export interface WindowConfig {
   minHeight?: number;
   transparent?: boolean;
   frame?: boolean;
+  titleBarStyle?: 'default' | 'hidden' | 'hiddenInset' | 'customButtonsOnHover';
+  titleBarOverlay?: boolean;
+  thickFrame?: boolean;
   fullscreen?: boolean;
   alwaysOnTop?: boolean;
   skipTaskbar?: boolean;
@@ -47,6 +50,10 @@ export class WindowManager {
       minHeight: config.minHeight,
       transparent: config.transparent ?? false,
       frame: config.frame ?? true,
+      titleBarStyle: config.titleBarStyle,
+      titleBarOverlay: config.titleBarOverlay,
+      thickFrame: config.thickFrame,
+      title: '', // 空のタイトルでタイトルバー表示を抑制
       fullscreen: config.fullscreen ?? false,
       alwaysOnTop: config.alwaysOnTop ?? false,
       skipTaskbar: config.skipTaskbar ?? false,
@@ -67,6 +74,83 @@ export class WindowManager {
     }
 
     const window = new BrowserWindow(windowOptions);
+
+    // MainWindowまたはSpeechBubbleの場合、追加の透明化設定
+    if (config.name === 'main' || config.name === 'speechBubble') {
+      // 非アクティブ時のタイトルバー表示を防ぐ
+      window.setMenuBarVisibility(false);
+      
+      // Windows環境での特別な処理
+      if (process.platform === 'win32') {
+        // ウィンドウスタイルを直接操作（低レベルAPI）
+        
+        // 完全透明の背景
+        window.setBackgroundColor('#00000000');
+        
+        // ウィンドウの準備完了後に追加処理
+        window.once('ready-to-show', () => {
+          // タイトルバーを強制的に隠す
+          window.setTitle('');
+          
+          // ウィンドウのリージョンを調整（タイトルバー部分を除外）
+          try {
+            const bounds = window.getBounds();
+            // ウィンドウの描画領域からタイトルバー部分を除外
+            window.setShape([{
+              x: 0,
+              y: 0, // タイトルバー分を除外しない（完全透明なので）
+              width: bounds.width,
+              height: bounds.height
+            }]);
+          } catch (error) {
+            console.warn('Window shape setting failed:', error);
+          }
+        });
+        
+        // フォーカスイベントでの処理
+        window.on('focus', () => {
+          window.setTitle('');
+          // フォーカス時にウィンドウスタイルを再適用
+          setTimeout(() => {
+            try {
+              if (!window.isDestroyed()) {
+                window.setBackgroundColor('#00000000');
+              }
+            } catch (error) {
+              console.warn('Focus style reapplication failed:', error);
+            }
+          }, 10);
+        });
+        
+        window.on('blur', () => {
+          window.setTitle('');
+          // ブラー時にもスタイルを維持
+          setTimeout(() => {
+            try {
+              if (!window.isDestroyed()) {
+                window.setBackgroundColor('#00000000');
+              }
+            } catch (error) {
+              console.warn('Blur style maintenance failed:', error);
+            }
+          }, 10);
+        });
+        
+        // ウィンドウ移動/リサイズ時の処理
+        window.on('moved', () => {
+          if (!window.isDestroyed()) {
+            window.setTitle('');
+          }
+        });
+        
+        window.on('resized', () => {
+          if (!window.isDestroyed()) {
+            window.setTitle('');
+            window.setBackgroundColor('#00000000');
+          }
+        });
+      }
+    }
 
     // ウィンドウが閉じられた時にMapから削除
     window.on('closed', () => {
@@ -162,6 +246,12 @@ export class WindowManager {
       minHeight: WINDOW_CONFIG.MAIN.MIN_HEIGHT,
       transparent: true,
       frame: false,
+      titleBarStyle: process.platform === 'win32' ? 'hidden' : 'hiddenInset', // Windows専用設定
+      titleBarOverlay: false, // タイトルバーオーバーレイを無効
+      thickFrame: false, // 太いフレームを無効（Windows）
+      hasShadow: false, // 影も無効にして完全透明化
+      show: false, // 初期状態では非表示にして準備完了後に表示
+      alwaysOnTop: true, // メイン画面を常に最前面に表示
       webPreferences: {
         preload: path.join(__dirname, 'preload.js'),
         contextIsolation: true,
@@ -209,6 +299,9 @@ export class WindowManager {
       height: WINDOW_CONFIG.SPEECH_BUBBLE.HEIGHT,
       transparent: true,
       frame: false,
+      titleBarStyle: process.platform === 'win32' ? 'hidden' : 'hiddenInset', // タイトルバーを隠す
+      titleBarOverlay: false, // タイトルバーオーバーレイを無効
+      thickFrame: false, // 太いフレームを無効（Windows）
       alwaysOnTop: true,
       skipTaskbar: true,
       resizable: false,

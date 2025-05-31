@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Chat with Mascot</title>
+    <link rel="stylesheet" href="src/styles/design-system.css">
+    <link rel="stylesheet" href="src/styles/components.css">
     <link rel="stylesheet" href="chat.css">
 </head>
 
@@ -183,6 +185,23 @@
             }
         });
 
+    </script>
+    <script type="module">
+        import { ThemeManager } from '/src/utils/themeManager.ts';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeManager = new ThemeManager();
+            
+            // グローバルに設定
+            window.themeManager = themeManager;
+            
+            // テーマ変更通知を受信
+            if (window.electronAPI && window.electronAPI.onThemeChanged) {
+                window.electronAPI.onThemeChanged((theme) => {
+                    themeManager.setTheme(theme);
+                });
+            }
+        });
     </script>
 </body>
 
