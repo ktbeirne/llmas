@@ -50,7 +50,13 @@ npm run publish          # Publish the app
 6. **Planning Before Implementation**: Always create a clear plan before starting any coding task. This plan should outline the steps to be taken, an estimate of affected files, and any potential challenges or edge cases.
 
 7. **Referring to Backlog items**: Our Kanban board is located at `/mnt/d/AI/Mascot/LLMDesktopMascot/.Obsidian/llmascot/Backlog/Kanban.md` and these backlog items are located at `/mnt/d/AI/Mascot/LLMDesktopMascot/.Obsidian/llmascot/Backlog/PBI/*.md` .Whenever a user asks you to implement a PBI, you must refer to these to understand the user story.
-   
+
+8. After receiving tool results, carefully reflect on their quality and determine optimal next steps before proceeding. Use your thinking to plan and iterate based on this new information, and then take the best next action.
+
+9. For maximum efficiency, whenever you need to perform multiple independent operations, invoke all relevant tools simultaneously rather than sequentially.
+
+10. **Don't hold back. Give it your all.**
+
 ## UI/UX Design Guidelines
 1. **Color Palette Adherence**: All UI design elements should be adhere to the color palette defined below. Ensure consistency in color usage across all windows and components.
 

@@ -20,6 +20,10 @@ declare global {
             sendChatMessage: (message: string) => Promise<string>;
             getChatHistory: () => Promise<any[]>;
             clearChatHistory: () => Promise<{ success: boolean; error?: string }>;
+            // システムプロンプト関連のAPI
+            getSystemPrompt: () => Promise<string>;
+            setSystemPrompt: (prompt: string) => Promise<{ success: boolean }>;
+            resetSystemPrompt: () => Promise<{ success: boolean }>;
         };
     }
 }

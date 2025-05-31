@@ -21,6 +21,69 @@ body {
 }
 
 
+/* タブコンテナ */
+.tab-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* タブヘッダー */
+.tab-header {
+    display: flex;
+    border-bottom: 2px solid #BFECFF;
+    margin-bottom: 20px;
+    background: white;
+    border-radius: 12px 12px 0 0;
+    overflow: hidden;
+}
+
+.tab-button {
+    flex: 1;
+    padding: 15px 20px;
+    border: none;
+    background: #f8f9fa;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 16px;
+    position: relative;
+}
+
+.tab-button:first-child {
+    border-right: 1px solid #e1e8ed;
+}
+
+.tab-button.active {
+    background: #BFECFF;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.tab-button:hover:not(.active) {
+    background: #e9ecef;
+    color: #495057;
+}
+
+/* タブコンテンツ */
+.tab-content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.tab-pane {
+    display: none;
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+}
+
+.tab-pane.active {
+    display: block;
+}
+
 main {
     flex: 1;
     min-height: 0;
@@ -63,16 +126,24 @@ label {
     color: #555;
 }
 
-select, input[type="number"], input[type="text"] {
+select, input[type="number"], input[type="text"], textarea {
     padding: 8px 12px;
     border: 2px solid #ddd;
     border-radius: 6px;
     font-size: 14px;
     transition: border-color 0.3s ease;
     min-width: 120px;
+    font-family: inherit;
 }
 
-select:focus, input:focus {
+textarea {
+    width: 100%;
+    min-height: 160px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+select:focus, input:focus, textarea:focus {
     outline: none;
     border-color: #BFECFF;
     box-shadow: 0 0 0 3px rgba(191, 236, 255, 0.1);
@@ -150,6 +221,16 @@ button:active {
     background-color: #f5b8d8;
 }
 
+button.danger {
+    background-color: #ff6b6b;
+    color: white;
+}
+
+button.danger:hover {
+    background-color: #ff5252;
+    transform: translateY(-1px);
+}
+
 footer {
     margin-top: 20px;
     padding-top: 15px;
@@ -167,6 +248,50 @@ footer {
 span {
     color: #666;
     font-size: 14px;
+}
+
+/* 新しいUI要素のスタイル */
+.section-description {
+    color: #666;
+    font-size: 14px;
+    margin: 8px 0 16px 0;
+    line-height: 1.5;
+}
+
+.character-count-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.character-count {
+    color: #888;
+    font-size: 12px;
+    margin: 0;
+}
+
+.performance-warning {
+    color: #ff6b6b;
+    font-size: 12px;
+    font-weight: 500;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.button-description {
+    color: #999;
+    font-size: 12px;
+    margin-left: 10px;
+    font-style: italic;
+}
+
+small {
+    display: block;
+    margin-top: 5px;
 }
 
 /* レスポンシブ対応 */

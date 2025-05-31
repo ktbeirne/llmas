@@ -7,6 +7,7 @@ interface WindowSizeSettings {
 }
 
 class SettingsRenderer {
+    // 既存のプロパティ
     private presetSelect: HTMLSelectElement;
     private customWidthInput: HTMLInputElement;
     private customHeightInput: HTMLInputElement;
@@ -17,6 +18,16 @@ class SettingsRenderer {
     private closeButton: HTMLButtonElement;
     private selectVrmButton: HTMLButtonElement;
 
+    // 新しいプロパティ
+    private tabButtons: NodeListOf<HTMLButtonElement>;
+    private tabPanes: NodeListOf<HTMLElement>;
+    private activeTab = 'display';
+    private systemPromptTextarea: HTMLTextAreaElement;
+    private promptCharacterCount: HTMLElement;
+    private performanceWarning: HTMLElement;
+    private resetSystemPromptButton: HTMLButtonElement;
+    private clearChatHistoryButton: HTMLButtonElement;
+
     constructor() {
         this.initializeElements();
         this.setupEventListeners();
@@ -24,6 +35,7 @@ class SettingsRenderer {
     }
 
     private initializeElements(): void {
+        // 既存の要素
         this.presetSelect = document.getElementById('window-size-preset') as HTMLSelectElement;
         this.customWidthInput = document.getElementById('custom-width') as HTMLInputElement;
         this.customHeightInput = document.getElementById('custom-height') as HTMLInputElement;
@@ -33,6 +45,15 @@ class SettingsRenderer {
         this.resetButton = document.getElementById('reset-settings') as HTMLButtonElement;
         this.closeButton = document.getElementById('close-settings') as HTMLButtonElement;
         this.selectVrmButton = document.getElementById('select-vrm-model') as HTMLButtonElement;
+
+        // 新しい要素
+        this.tabButtons = document.querySelectorAll('.tab-button') as NodeListOf<HTMLButtonElement>;
+        this.tabPanes = document.querySelectorAll('.tab-pane') as NodeListOf<HTMLElement>;
+        this.systemPromptTextarea = document.getElementById('system-prompt') as HTMLTextAreaElement;
+        this.promptCharacterCount = document.getElementById('prompt-character-count') as HTMLElement;
+        this.performanceWarning = document.getElementById('performance-warning') as HTMLElement;
+        this.resetSystemPromptButton = document.getElementById('reset-system-prompt') as HTMLButtonElement;
+        this.clearChatHistoryButton = document.getElementById('clear-chat-history') as HTMLButtonElement;
     }
 
     private setupEventListeners(): void {
@@ -67,6 +88,29 @@ class SettingsRenderer {
 
         this.selectVrmButton.addEventListener('click', () => {
             this.selectVrmModel();
+        });
+
+        // タブ切り替え
+        this.tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.dataset.tab;
+                if (tabName) {
+                    this.switchTab(tabName);
+                }
+            });
+        });
+
+        // システムプロンプト関連
+        this.systemPromptTextarea.addEventListener('input', () => {
+            this.updateCharacterCount();
+        });
+
+        this.resetSystemPromptButton.addEventListener('click', () => {
+            this.resetSystemPrompt();
+        });
+
+        this.clearChatHistoryButton.addEventListener('click', () => {
+            this.clearChatHistory();
         });
     }
 
@@ -120,6 +164,9 @@ class SettingsRenderer {
                 if (settings.vrmModelPath) {
                     this.currentVrmPath.value = settings.vrmModelPath;
                 }
+                
+                // システムプロンプトを読み込み
+                await this.loadSystemPrompt();
             } catch (error) {
                 console.error('設定の読み込みに失敗しました:', error);
             }
@@ -156,6 +203,9 @@ class SettingsRenderer {
                     windowSize: windowSizeSettings,
                     vrmModelPath
                 });
+                
+                // システムプロンプトも保存
+                await this.saveSystemPrompt();
                 
                 // 設定適用成功のフィードバック
                 this.showSuccessMessage('設定が保存されました');
@@ -212,6 +262,92 @@ class SettingsRenderer {
             this.applyButton.textContent = originalText;
             this.applyButton.style.backgroundColor = '';
         }, 2000);
+    }
+
+    // 新しいメソッド
+    private switchTab(tabName: string): void {
+        this.activeTab = tabName;
+
+        // すべてのタブボタンとペインから active クラスを削除
+        this.tabButtons.forEach(button => button.classList.remove('active'));
+        this.tabPanes.forEach(pane => pane.classList.remove('active'));
+
+        // 指定されたタブをアクティブにする
+        const activeButton = document.querySelector(`[data-tab="${tabName}"]`) as HTMLButtonElement;
+        const activePane = document.getElementById(`${tabName}-tab`) as HTMLElement;
+
+        if (activeButton && activePane) {
+            activeButton.classList.add('active');
+            activePane.classList.add('active');
+        }
+    }
+
+    private async loadSystemPrompt(): Promise<void> {
+        if (window.electronAPI && window.electronAPI.getSystemPrompt) {
+            try {
+                const prompt = await window.electronAPI.getSystemPrompt();
+                this.systemPromptTextarea.value = prompt || '';
+                this.updateCharacterCount();
+            } catch (error) {
+                console.error('システムプロンプトの読み込みに失敗しました:', error);
+            }
+        }
+    }
+
+    private async saveSystemPrompt(): Promise<void> {
+        const prompt = this.systemPromptTextarea.value.trim();
+
+        if (window.electronAPI && window.electronAPI.setSystemPrompt) {
+            try {
+                await window.electronAPI.setSystemPrompt(prompt);
+            } catch (error) {
+                console.error('システムプロンプトの保存に失敗しました:', error);
+                throw error;
+            }
+        }
+    }
+
+    private updateCharacterCount(): void {
+        const length = this.systemPromptTextarea.value.length;
+        this.promptCharacterCount.textContent = length.toString();
+        
+        // パフォーマンス警告の表示制御
+        if (length > 10000) {
+            this.performanceWarning.style.display = 'flex';
+        } else {
+            this.performanceWarning.style.display = 'none';
+        }
+    }
+
+    private async resetSystemPrompt(): Promise<void> {
+        const confirmReset = confirm('システムプロンプトをデフォルトに戻しますか？');
+        if (!confirmReset) return;
+
+        if (window.electronAPI && window.electronAPI.resetSystemPrompt) {
+            try {
+                await window.electronAPI.resetSystemPrompt();
+                await this.loadSystemPrompt();
+                this.showSuccessMessage('システムプロンプトがリセットされました');
+            } catch (error) {
+                console.error('システムプロンプトのリセットに失敗しました:', error);
+                alert('システムプロンプトのリセットに失敗しました。');
+            }
+        }
+    }
+
+    private async clearChatHistory(): Promise<void> {
+        const confirmClear = confirm('本当に会話履歴をすべて削除しますか？この操作は元に戻せません。');
+        if (!confirmClear) return;
+
+        if (window.electronAPI && window.electronAPI.clearChatHistory) {
+            try {
+                await window.electronAPI.clearChatHistory();
+                this.showSuccessMessage('会話履歴がクリアされました');
+            } catch (error) {
+                console.error('会話履歴のクリアに失敗しました:', error);
+                alert('会話履歴のクリアに失敗しました。');
+            }
+        }
     }
 }
 

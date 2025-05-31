@@ -73,5 +73,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     clearChatHistory: async (): Promise<{ success: boolean; error?: string }> => {
         return await ipcRenderer.invoke('clear-chat-history');
+    },
+
+    // システムプロンプト関連のAPI
+    getSystemPrompt: async (): Promise<string> => {
+        return await ipcRenderer.invoke('get-system-prompt');
+    },
+
+    setSystemPrompt: async (prompt: string): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('set-system-prompt', prompt);
+    },
+
+    resetSystemPrompt: async (): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('reset-system-prompt');
     }
 });

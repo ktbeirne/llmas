@@ -21,7 +21,9 @@
       "mcp__mcp-private-github-search__searchIssues",
       "Bash(gh issue list:*)",
       "Bash(gh issue view:*)",
-      "mcp__sequential-thinking__sequentialthinking"
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(npm run test:unit:*)",
+      "Bash(npm run:*)"
     ],
     "deny": []
   }

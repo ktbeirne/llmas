@@ -7,48 +7,93 @@
 </head>
 <body>
     <div id="settings-container">
-        <main>
-            <section id="window-size-section">
-                <h2>ウィンドウサイズ</h2>
-                
-                <div class="setting-group">
-                    <label for="window-size-preset">プリセット:</label>
-                    <select id="window-size-preset">
-                        <option value="small">小 (300×600)</option>
-                        <option value="medium" selected>中 (400×800)</option>
-                        <option value="large">大 (500×1000)</option>
-                        <option value="custom">カスタム</option>
-                    </select>
-                </div>
-                
-                <div id="custom-size-inputs">
-                    <div class="setting-group">
-                        <label for="custom-width">幅:</label>
-                        <input type="number" id="custom-width" min="200" max="1000" value="400">
-                        <span>px</span>
-                    </div>
-                    
-                    <div class="setting-group">
-                        <label for="custom-height">高さ:</label>
-                        <input type="number" id="custom-height" min="300" max="1200" value="800">
-                        <span>px</span>
-                    </div>
-                </div>
-            </section>
+        <div class="tab-container">
+            <div class="tab-header">
+                <button class="tab-button active" data-tab="display">画面表示設定</button>
+                <button class="tab-button" data-tab="chat">会話設定</button>
+            </div>
             
-            <section id="vrm-model-section">
-                <h2>VRMモデル</h2>
-                
-                <div class="setting-group">
-                    <label for="current-vrm-path">現在のモデル:</label>
-                    <input type="text" id="current-vrm-path" readonly value="/avatar.vrm">
+            <main class="tab-content">
+                <div class="tab-pane active" id="display-tab">
+                    <section id="window-size-section">
+                        <h2>ウィンドウサイズ</h2>
+                        
+                        <div class="setting-group">
+                            <label for="window-size-preset">プリセット:</label>
+                            <select id="window-size-preset">
+                                <option value="small">小 (300×600)</option>
+                                <option value="medium" selected>中 (400×800)</option>
+                                <option value="large">大 (500×1000)</option>
+                                <option value="custom">カスタム</option>
+                            </select>
+                        </div>
+                        
+                        <div id="custom-size-inputs">
+                            <div class="setting-group">
+                                <label for="custom-width">幅:</label>
+                                <input type="number" id="custom-width" min="200" max="1000" value="400">
+                                <span>px</span>
+                            </div>
+                            
+                            <div class="setting-group">
+                                <label for="custom-height">高さ:</label>
+                                <input type="number" id="custom-height" min="300" max="1200" value="800">
+                                <span>px</span>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <section id="vrm-model-section">
+                        <h2>VRMモデル</h2>
+                        
+                        <div class="setting-group">
+                            <label for="current-vrm-path">現在のモデル:</label>
+                            <input type="text" id="current-vrm-path" readonly value="/avatar.vrm">
+                        </div>
+                        
+                        <div class="setting-group">
+                            <button id="select-vrm-model" type="button">モデルファイルを選択</button>
+                        </div>
+                    </section>
                 </div>
                 
-                <div class="setting-group">
-                    <button id="select-vrm-model" type="button">モデルファイルを選択</button>
+                <div class="tab-pane" id="chat-tab">
+                    <section id="system-prompt-section">
+                        <h2>システムプロンプト</h2>
+                        <p class="section-description">マスコットの性格や応答スタイルを設定できます</p>
+                        
+                        <div class="setting-group">
+                            <label for="system-prompt">プロンプト内容:</label>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <textarea id="system-prompt" placeholder="あなたは親しみやすく愛らしいAIアシスタントです。ユーザーと楽しく会話してください。" rows="8"></textarea>
+                        </div>
+                        
+                        <div class="setting-group character-count-container">
+                            <small class="character-count">文字数: <span id="prompt-character-count">0</span></small>
+                            <small class="performance-warning" id="performance-warning" style="display: none;">
+                                ⚠️ 入力トークンが長すぎるとモデルのパフォーマンスに影響が出る可能性があります
+                            </small>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <button id="reset-system-prompt" type="button" class="secondary">デフォルトに戻す</button>
+                        </div>
+                    </section>
+                    
+                    <section id="chat-history-section">
+                        <h2>会話履歴</h2>
+                        <p class="section-description">会話履歴の管理を行えます</p>
+                        
+                        <div class="setting-group">
+                            <button id="clear-chat-history" type="button" class="danger">会話履歴をリセット</button>
+                            <small class="button-description">この操作は元に戻せません</small>
+                        </div>
+                    </section>
                 </div>
-            </section>
-        </main>
+            </main>
+        </div>
         
         <footer>
             <div class="button-group">

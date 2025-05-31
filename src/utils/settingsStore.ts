@@ -1,5 +1,6 @@
 import Store from 'electron-store';
 import path from 'path';
+import { ChatHistoryStore } from './chatHistoryStore';
 
 export interface WindowSizeSettings {
     width: number;
@@ -20,6 +21,7 @@ export const WINDOW_PRESETS = {
 
 export class SettingsStore {
     private store: Store<SettingsData>;
+    private chatHistoryStore: ChatHistoryStore;
 
     constructor() {
         this.store = new Store<SettingsData>({
@@ -33,6 +35,7 @@ export class SettingsStore {
                 vrmModelPath: '/avatar.vrm'
             }
         });
+        this.chatHistoryStore = new ChatHistoryStore();
     }
 
     getWindowSize(): WindowSizeSettings {
@@ -101,5 +104,27 @@ export class SettingsStore {
     // 設定ファイルのパスを取得（デバッグ用）
     getConfigPath(): string {
         return this.store.path;
+    }
+
+    // システムプロンプト関連のプロキシメソッド
+    getSystemPrompt(): string {
+        return this.chatHistoryStore.getSystemPrompt();
+    }
+
+    setSystemPrompt(prompt: string): void {
+        if (!prompt || prompt.trim().length === 0) {
+            throw new Error('System prompt cannot be empty');
+        }
+        
+        this.chatHistoryStore.setSystemPrompt(prompt);
+    }
+
+    // 会話履歴リセット関連のプロキシメソッド
+    clearChatHistory(): void {
+        this.chatHistoryStore.clearHistory();
+    }
+
+    resetSystemPromptToDefault(): void {
+        this.chatHistoryStore.setSystemPrompt('あなたは親しみやすく愛らしいAIアシスタントです。ユーザーと楽しく会話してください。');
     }
 }

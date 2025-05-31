@@ -1,6 +1,16 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SettingsStore } from './settingsStore';
-import { WINDOW_PRESETS } from '../config/constants';
+
+// Mock ChatHistoryStore
+vi.mock('./chatHistoryStore', () => {
+  return {
+    ChatHistoryStore: vi.fn(() => ({
+      getSystemPrompt: vi.fn(() => 'あなたは親しみやすく愛らしいAIアシスタントです。ユーザーと楽しく会話してください。'),
+      setSystemPrompt: vi.fn(),
+      clearHistory: vi.fn()
+    }))
+  };
+});
 
 // Mock electron-store
 vi.mock('electron-store', () => {
@@ -110,6 +120,61 @@ describe('SettingsStore', () => {
       settingsStore.resetToDefaults();
       
       expect(mockStore.clear).toHaveBeenCalled();
+    });
+  });
+
+  describe('システムプロンプト機能', () => {
+    let mockChatHistoryStore: any;
+
+    beforeEach(() => {
+      mockChatHistoryStore = settingsStore['chatHistoryStore']; // Access private chatHistoryStore for testing
+    });
+
+    describe('getSystemPrompt', () => {
+      it('should return system prompt from ChatHistoryStore', () => {
+        const result = settingsStore.getSystemPrompt();
+        
+        expect(mockChatHistoryStore.getSystemPrompt).toHaveBeenCalled();
+        expect(result).toBe('あなたは親しみやすく愛らしいAIアシスタントです。ユーザーと楽しく会話してください。');
+      });
+    });
+
+    describe('setSystemPrompt', () => {
+      it('should save system prompt through ChatHistoryStore', () => {
+        const newPrompt = 'テスト用のシステムプロンプトです。';
+        
+        settingsStore.setSystemPrompt(newPrompt);
+        
+        expect(mockChatHistoryStore.setSystemPrompt).toHaveBeenCalledWith(newPrompt);
+      });
+
+      it('should validate empty prompt', () => {
+        expect(() => settingsStore.setSystemPrompt('')).toThrow('System prompt cannot be empty');
+        expect(() => settingsStore.setSystemPrompt('   ')).toThrow('System prompt cannot be empty');
+      });
+
+      it('should accept long prompts without length restriction', () => {
+        const longPrompt = 'a'.repeat(15000);
+        
+        expect(() => settingsStore.setSystemPrompt(longPrompt)).not.toThrow();
+        expect(mockChatHistoryStore.setSystemPrompt).toHaveBeenCalledWith(longPrompt);
+      });
+    });
+
+    describe('clearChatHistory', () => {
+      it('should clear chat history through ChatHistoryStore', () => {
+        settingsStore.clearChatHistory();
+        
+        expect(mockChatHistoryStore.clearHistory).toHaveBeenCalled();
+      });
+    });
+
+    describe('resetSystemPromptToDefault', () => {
+      it('should reset system prompt to default value', () => {
+        settingsStore.resetSystemPromptToDefault();
+        
+        expect(mockChatHistoryStore.setSystemPrompt).toHaveBeenCalledWith('あなたは親しみやすく愛らしいAIアシスタントです。ユーザーと楽しく会話してください。');
+      });
     });
   });
 });

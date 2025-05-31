@@ -13,28 +13,12 @@
     <div id="input-area">
         <textarea id="prompt-input" placeholder="メッセージを入力..." rows="1"></textarea>
         <button id="send-button">送信</button>
-        <button id="clear-history-button">履歴削除</button>
-    </div>
-
-    <!-- 確認ダイアログ -->
-    <div id="confirmation-modal" class="modal">
-        <div class="modal-content">
-            <p>本当に会話履歴をすべて削除しますか？<br>この操作は元に戻せません。</p>
-            <div class="modal-buttons">
-                <button id="confirm-clear" class="modal-button confirm">はい</button>
-                <button id="cancel-clear" class="modal-button cancel">いいえ</button>
-            </div>
-        </div>
     </div>
 
     <script>
         const promptInput = document.getElementById('prompt-input');
         const sendButton = document.getElementById('send-button');
-        const clearHistoryButton = document.getElementById('clear-history-button');
         const responseArea = document.getElementById('response-area');
-        const confirmationModal = document.getElementById('confirmation-modal');
-        const confirmClearButton = document.getElementById('confirm-clear');
-        const cancelClearButton = document.getElementById('cancel-clear');
         const promptInputStyle = getComputedStyle(promptInput);
         const promptInputPaddingTop = parseFloat(promptInputStyle.paddingTop);
         const promptInputPaddingBottom = parseFloat(promptInputStyle.paddingBottom);
@@ -168,40 +152,6 @@
             }
         });
 
-        // --- 履歴削除機能 ---
-        clearHistoryButton.addEventListener('click', () => {
-            confirmationModal.style.display = 'block';
-        });
-
-        confirmClearButton.addEventListener('click', async () => {
-            try {
-                if (window.electronAPI && window.electronAPI.clearChatHistory) {
-                    const result = await window.electronAPI.clearChatHistory();
-                    if (result.success) {
-                        responseArea.innerHTML = ''; // UIの履歴もクリア
-                        confirmationModal.style.display = 'none';
-                    } else {
-                        console.error('履歴削除エラー:', result.error);
-                        addMessageToResponseArea('エラー: 履歴の削除に失敗しました。', 'mascot');
-                    }
-                }
-            } catch (error) {
-                console.error('履歴削除エラー:', error);
-                addMessageToResponseArea('エラー: 履歴の削除に失敗しました。', 'mascot');
-            }
-            confirmationModal.style.display = 'none';
-        });
-
-        cancelClearButton.addEventListener('click', () => {
-            confirmationModal.style.display = 'none';
-        });
-
-        // モーダルの外側をクリックしても閉じる
-        confirmationModal.addEventListener('click', (event) => {
-            if (event.target === confirmationModal) {
-                confirmationModal.style.display = 'none';
-            }
-        });
     </script>
 </body>
 

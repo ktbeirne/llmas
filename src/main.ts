@@ -390,6 +390,38 @@ function setupIPCHandlers(): void {
     
     return null;
   });
+
+  // システムプロンプト取得
+  ipcMain.handle(IPC_CHANNELS.CHAT.GET_SYSTEM_PROMPT, async () => {
+    try {
+      return settingsStore.getSystemPrompt();
+    } catch (error) {
+      console.error('システムプロンプトの取得エラー:', error);
+      throw error;
+    }
+  });
+
+  // システムプロンプト設定
+  ipcMain.handle(IPC_CHANNELS.CHAT.SET_SYSTEM_PROMPT, async (_event: IpcMainInvokeEvent, prompt: string) => {
+    try {
+      settingsStore.setSystemPrompt(prompt);
+      return { success: true };
+    } catch (error) {
+      console.error('システムプロンプトの設定エラー:', error);
+      throw error;
+    }
+  });
+
+  // システムプロンプトリセット
+  ipcMain.handle(IPC_CHANNELS.CHAT.RESET_SYSTEM_PROMPT, async () => {
+    try {
+      settingsStore.resetSystemPromptToDefault();
+      return { success: true };
+    } catch (error) {
+      console.error('システムプロンプトのリセットエラー:', error);
+      throw error;
+    }
+  });
 }
 
 /**

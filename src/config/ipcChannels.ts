@@ -11,6 +11,9 @@ export const IPC_CHANNELS = {
     CLOSE_WINDOW: 'close-chat',
     GET_HISTORY: 'get-chat-history',
     CLEAR_HISTORY: 'clear-chat-history',
+    GET_SYSTEM_PROMPT: 'get-system-prompt',
+    SET_SYSTEM_PROMPT: 'set-system-prompt',
+    RESET_SYSTEM_PROMPT: 'reset-system-prompt',
   },
   
   // スピーチバブル関連
