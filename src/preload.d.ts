@@ -24,6 +24,29 @@ declare global {
             getSystemPrompt: () => Promise<string>;
             setSystemPrompt: (prompt: string) => Promise<{ success: boolean }>;
             resetSystemPrompt: () => Promise<{ success: boolean }>;
+            // カメラ設定関連のAPI
+            getCameraSettings: () => Promise<any>;
+            setCameraSettings: (settings: any) => Promise<{ success: boolean }>;
+            resetCameraSettings: () => Promise<{ success: boolean }>;
+            // ウィンドウ位置関連のAPI
+            getMainWindowBounds: () => Promise<any>;
+            setMainWindowBounds: (bounds: any) => Promise<{ success: boolean }>;
+            getChatWindowBounds: () => Promise<any>;
+            setChatWindowBounds: (bounds: any) => Promise<{ success: boolean }>;
+            getChatWindowVisible: () => Promise<boolean>;
+            setChatWindowVisible: (visible: boolean) => Promise<{ success: boolean }>;
+            // 画面表示設定の一括操作API
+            saveAllDisplaySettings: (settings: any) => Promise<{ success: boolean }>;
+            resetAllDisplaySettings: () => Promise<{ success: boolean }>;
+            // ユーザー名・マスコット名関連のAPI
+            getUserName: () => Promise<string>;
+            setUserName: (userName: string) => Promise<{ success: boolean }>;
+            getMascotName: () => Promise<string>;
+            setMascotName: (mascotName: string) => Promise<{ success: boolean }>;
+            // システムプロンプトコア関連のAPI
+            getSystemPromptCore: () => Promise<string>;
+            setSystemPromptCore: (prompt: string) => Promise<{ success: boolean }>;
+            resetSystemPromptCore: () => Promise<{ success: boolean }>;
         };
     }
 }

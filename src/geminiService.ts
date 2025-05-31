@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold, GenerativeModel, Content } from '@google/generative-ai';
 import { ChatHistoryStore, ChatMessage } from './utils/chatHistoryStore';
+import { SettingsStore } from './utils/settingsStore';
 
 /**
  * Gemini APIサービスクラス
@@ -10,9 +11,11 @@ export class GeminiService {
   private model: GenerativeModel | null = null;
   private isInitialized = false;
   private chatHistory: ChatHistoryStore;
+  private settingsStore: SettingsStore;
 
   private constructor() {
     this.chatHistory = new ChatHistoryStore();
+    this.settingsStore = new SettingsStore();
   }
 
   /**
@@ -40,13 +43,23 @@ export class GeminiService {
 
     try {
       this.genAI = new GoogleGenerativeAI(apiKey);
+      
+      // 最終的なシステムプロンプトを構築
+      const finalSystemPrompt = this.settingsStore.buildFinalSystemPrompt();
+      console.log('構築されたシステムプロンプト:', finalSystemPrompt);
+      
       this.model = this.genAI.getGenerativeModel({
         model: 'gemini-2.5-flash-preview-05-20',
+        systemInstruction: finalSystemPrompt,
         safetySettings: [
           { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
           { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
         ],
       });
+      
+      // ChatHistoryStoreにも設定
+      this.chatHistory.setSystemPrompt(finalSystemPrompt);
+      
       this.isInitialized = true;
       console.log('Gemini Service が正常に初期化されました');
     } catch (error) {
@@ -141,6 +154,39 @@ export class GeminiService {
   }
 
   /**
+   * 設定が変更された時にシステムプロンプトを更新
+   */
+  updateSystemPrompt(): void {
+    if (!this.isInitialized || !this.genAI) {
+      console.warn('Gemini Service が初期化されていないため、システムプロンプトを更新できません');
+      return;
+    }
+
+    try {
+      // 最終的なシステムプロンプトを再構築
+      const finalSystemPrompt = this.settingsStore.buildFinalSystemPrompt();
+      console.log('システムプロンプトを更新:', finalSystemPrompt);
+      
+      // モデルを再作成
+      this.model = this.genAI.getGenerativeModel({
+        model: 'gemini-2.5-flash-preview-05-20',
+        systemInstruction: finalSystemPrompt,
+        safetySettings: [
+          { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+          { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+        ],
+      });
+      
+      // ChatHistoryStoreも更新
+      this.chatHistory.setSystemPrompt(finalSystemPrompt);
+      
+      console.log('システムプロンプトが正常に更新されました');
+    } catch (error) {
+      console.error('システムプロンプトの更新に失敗しました:', error);
+    }
+  }
+
+  /**
    * システムプロンプトを取得
    */
   getSystemPrompt(): string {
@@ -176,4 +222,8 @@ export function getChatHistory(): ChatMessage[] {
 
 export function clearChatHistory(): void {
   geminiService.clearChatHistory();
+}
+
+export function updateSystemPrompt(): void {
+  geminiService.updateSystemPrompt();
 }

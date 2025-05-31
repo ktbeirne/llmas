@@ -3,7 +3,7 @@ import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import dotenv from 'dotenv';
 dotenv.config();
-import { generateTextFromGemini, generateChatResponse, getChatHistory, clearChatHistory, initializeGemini } from './geminiService';
+import { generateTextFromGemini, generateChatResponse, getChatHistory, clearChatHistory, initializeGemini, updateSystemPrompt } from './geminiService';
 import { WindowManager } from './utils/WindowManager';
 import { ErrorHandler } from './utils/errorHandler';
 import { IPC_CHANNELS } from './config/ipcChannels';
@@ -33,11 +33,49 @@ function createMainWindow(): void {
   try {
     // 設定からウィンドウサイズを取得
     const windowSize = settingsStore.getWindowSize();
+    
+    // 保存されたウィンドウ位置を取得
+    const savedBounds = settingsStore.getMainWindowBounds();
+    console.log('[Main] メインウィンドウ作成 - 保存された位置:', savedBounds);
+    
     const config = WindowManager.getMainWindowConfig({
       width: windowSize.width,
-      height: windowSize.height
+      height: windowSize.height,
+      x: savedBounds?.x,
+      y: savedBounds?.y
     });
+    console.log('[Main] メインウィンドウ設定:', config);
     const window = windowManager.createWindow(config, 'index.html');
+    
+    // ウィンドウ位置変更時の自動保存
+    let moveTimeout: NodeJS.Timeout | null = null;
+    window.on('moved', () => {
+      if (moveTimeout) clearTimeout(moveTimeout);
+      moveTimeout = setTimeout(() => {
+        try {
+          const bounds = window.getBounds();
+          settingsStore.setMainWindowBounds(bounds);
+          console.log('メインウィンドウ位置を保存しました:', bounds);
+        } catch (error) {
+          console.error('メインウィンドウ位置の保存に失敗:', error);
+        }
+      }, 500);
+    });
+
+    // ウィンドウサイズ変更時の自動保存
+    let resizeTimeout: NodeJS.Timeout | null = null;
+    window.on('resized', () => {
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        try {
+          const bounds = window.getBounds();
+          settingsStore.setMainWindowBounds(bounds);
+          console.log('メインウィンドウサイズを保存しました:', bounds);
+        } catch (error) {
+          console.error('メインウィンドウサイズの保存に失敗:', error);
+        }
+      }, 500);
+    });
     
     // 開発環境では開発者ツールを開く（必要に応じて）
     // if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
@@ -53,8 +91,77 @@ function createMainWindow(): void {
  */
 function createChatWindow(): BrowserWindow | null {
   try {
+    // 保存されたチャットウィンドウ位置を取得
+    const savedBounds = settingsStore.getChatWindowBounds();
+    const savedVisible = settingsStore.getChatWindowVisible();
+    console.log('[Main] チャットウィンドウ作成 - 保存された位置:', savedBounds);
+    console.log('[Main] チャットウィンドウ作成 - 保存された表示状態:', savedVisible);
+    
     const config = WindowManager.getChatWindowConfig();
+    
+    // 保存された位置・サイズがあれば適用
+    if (savedBounds) {
+      config.x = savedBounds.x;
+      config.y = savedBounds.y;
+      config.width = savedBounds.width;
+      config.height = savedBounds.height;
+      console.log('[Main] チャットウィンドウ設定を適用:', config);
+    }
+    
     const window = windowManager.createWindow(config, PATHS.CHAT_HTML);
+    
+    // 保存された表示状態を復元
+    if (!savedVisible) {
+      window.hide();
+    }
+    
+    // ウィンドウ位置・サイズ変更時の自動保存
+    let chatMoveTimeout: NodeJS.Timeout | null = null;
+    window.on('moved', () => {
+      if (chatMoveTimeout) clearTimeout(chatMoveTimeout);
+      chatMoveTimeout = setTimeout(() => {
+        try {
+          const bounds = window.getBounds();
+          settingsStore.setChatWindowBounds(bounds);
+          console.log('チャットウィンドウ位置を保存しました:', bounds);
+        } catch (error) {
+          console.error('チャットウィンドウ位置の保存に失敗:', error);
+        }
+      }, 500);
+    });
+
+    let chatResizeTimeout: NodeJS.Timeout | null = null;
+    window.on('resized', () => {
+      if (chatResizeTimeout) clearTimeout(chatResizeTimeout);
+      chatResizeTimeout = setTimeout(() => {
+        try {
+          const bounds = window.getBounds();
+          settingsStore.setChatWindowBounds(bounds);
+          console.log('チャットウィンドウサイズを保存しました:', bounds);
+        } catch (error) {
+          console.error('チャットウィンドウサイズの保存に失敗:', error);
+        }
+      }, 500);
+    });
+
+    // 表示状態変更時の自動保存
+    window.on('show', () => {
+      try {
+        settingsStore.setChatWindowVisible(true);
+        console.log('チャットウィンドウ表示状態を保存しました: true');
+      } catch (error) {
+        console.error('チャットウィンドウ表示状態の保存に失敗:', error);
+      }
+    });
+
+    window.on('hide', () => {
+      try {
+        settingsStore.setChatWindowVisible(false);
+        console.log('チャットウィンドウ表示状態を保存しました: false');
+      } catch (error) {
+        console.error('チャットウィンドウ表示状態の保存に失敗:', error);
+      }
+    });
     
     // ウィンドウの読み込み完了を待つ
     window.webContents.on('did-finish-load', () => {
@@ -422,6 +529,199 @@ function setupIPCHandlers(): void {
       throw error;
     }
   });
+
+  // カメラ設定関連のIPCハンドラー
+  ipcMain.handle(IPC_CHANNELS.CAMERA.GET_SETTINGS, async () => {
+    try {
+      return settingsStore.getCameraSettings();
+    } catch (error) {
+      console.error('カメラ設定の取得エラー:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.CAMERA.SET_SETTINGS, async (_event: IpcMainInvokeEvent, settings: any) => {
+    try {
+      settingsStore.setCameraSettings(settings);
+      return { success: true };
+    } catch (error) {
+      console.error('カメラ設定の保存エラー:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.CAMERA.RESET_SETTINGS, async () => {
+    try {
+      settingsStore.resetDisplaySettings();
+      return { success: true };
+    } catch (error) {
+      console.error('カメラ設定のリセットエラー:', error);
+      throw error;
+    }
+  });
+
+  // ウィンドウ位置関連のIPCハンドラー
+  ipcMain.handle(IPC_CHANNELS.WINDOW.GET_MAIN_BOUNDS, async () => {
+    try {
+      return settingsStore.getMainWindowBounds();
+    } catch (error) {
+      console.error('メインウィンドウ位置の取得エラー:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.WINDOW.SET_MAIN_BOUNDS, async (_event: IpcMainInvokeEvent, bounds: any) => {
+    try {
+      settingsStore.setMainWindowBounds(bounds);
+      return { success: true };
+    } catch (error) {
+      console.error('メインウィンドウ位置の保存エラー:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.WINDOW.GET_CHAT_BOUNDS, async () => {
+    try {
+      return settingsStore.getChatWindowBounds();
+    } catch (error) {
+      console.error('チャットウィンドウ位置の取得エラー:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.WINDOW.SET_CHAT_BOUNDS, async (_event: IpcMainInvokeEvent, bounds: any) => {
+    try {
+      settingsStore.setChatWindowBounds(bounds);
+      return { success: true };
+    } catch (error) {
+      console.error('チャットウィンドウ位置の保存エラー:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.WINDOW.GET_CHAT_VISIBLE, async () => {
+    try {
+      return settingsStore.getChatWindowVisible();
+    } catch (error) {
+      console.error('チャットウィンドウ表示状態の取得エラー:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.WINDOW.SET_CHAT_VISIBLE, async (_event: IpcMainInvokeEvent, visible: boolean) => {
+    try {
+      settingsStore.setChatWindowVisible(visible);
+      return { success: true };
+    } catch (error) {
+      console.error('チャットウィンドウ表示状態の保存エラー:', error);
+      throw error;
+    }
+  });
+
+  // 画面表示設定の一括操作
+  ipcMain.handle(IPC_CHANNELS.DISPLAY.SAVE_ALL_SETTINGS, async (_event: IpcMainInvokeEvent, settings: any) => {
+    try {
+      if (settings.cameraSettings) {
+        settingsStore.setCameraSettings(settings.cameraSettings);
+      }
+      if (settings.mainWindowBounds) {
+        settingsStore.setMainWindowBounds(settings.mainWindowBounds);
+      }
+      if (settings.chatWindowBounds) {
+        settingsStore.setChatWindowBounds(settings.chatWindowBounds);
+      }
+      if (typeof settings.chatWindowVisible === 'boolean') {
+        settingsStore.setChatWindowVisible(settings.chatWindowVisible);
+      }
+      return { success: true };
+    } catch (error) {
+      console.error('画面表示設定の一括保存エラー:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.DISPLAY.RESET_ALL_SETTINGS, async () => {
+    try {
+      settingsStore.resetDisplaySettings();
+      return { success: true };
+    } catch (error) {
+      console.error('画面表示設定のリセットエラー:', error);
+      throw error;
+    }
+  });
+
+  // ユーザー名・マスコット名関連のIPCハンドラー
+  ipcMain.handle(IPC_CHANNELS.CHAT.GET_USER_NAME, async () => {
+    try {
+      return settingsStore.getUserName();
+    } catch (error) {
+      console.error('ユーザー名の取得エラー:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.CHAT.SET_USER_NAME, async (_event: IpcMainInvokeEvent, userName: string) => {
+    try {
+      settingsStore.setUserName(userName);
+      updateSystemPrompt(); // Geminiのシステムプロンプトを更新
+      return { success: true };
+    } catch (error) {
+      console.error('ユーザー名の設定エラー:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.CHAT.GET_MASCOT_NAME, async () => {
+    try {
+      return settingsStore.getMascotName();
+    } catch (error) {
+      console.error('マスコット名の取得エラー:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.CHAT.SET_MASCOT_NAME, async (_event: IpcMainInvokeEvent, mascotName: string) => {
+    try {
+      settingsStore.setMascotName(mascotName);
+      updateSystemPrompt(); // Geminiのシステムプロンプトを更新
+      return { success: true };
+    } catch (error) {
+      console.error('マスコット名の設定エラー:', error);
+      throw error;
+    }
+  });
+
+  // システムプロンプトコア関連のIPCハンドラー
+  ipcMain.handle(IPC_CHANNELS.CHAT.GET_SYSTEM_PROMPT_CORE, async () => {
+    try {
+      return settingsStore.getSystemPromptCore();
+    } catch (error) {
+      console.error('システムプロンプトコアの取得エラー:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.CHAT.SET_SYSTEM_PROMPT_CORE, async (_event: IpcMainInvokeEvent, prompt: string) => {
+    try {
+      settingsStore.setSystemPromptCore(prompt);
+      updateSystemPrompt(); // Geminiのシステムプロンプトを更新
+      return { success: true };
+    } catch (error) {
+      console.error('システムプロンプトコアの設定エラー:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.CHAT.RESET_SYSTEM_PROMPT_CORE, async () => {
+    try {
+      settingsStore.setSystemPromptCore('あなたは親しみやすいデスクトップマスコットです。ユーザーとの会話を楽しみ、役立つ情報を提供してください。');
+      updateSystemPrompt(); // Geminiのシステムプロンプトを更新
+      return { success: true };
+    } catch (error) {
+      console.error('システムプロンプトコアのリセットエラー:', error);
+      throw error;
+    }
+  });
 }
 
 /**
@@ -455,6 +755,41 @@ app.whenReady().then(async () => {
 });
 
 // すべてのウィンドウが閉じられた時の処理
+// アプリ終了前の設定保存
+async function saveAllDisplaySettingsBeforeQuit() {
+  try {
+    const mainWindow = windowManager.getWindow('main');
+    const chatWindow = windowManager.getWindow('chat');
+    
+    // メインウィンドウの位置・サイズを保存
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const mainBounds = mainWindow.getBounds();
+      settingsStore.setMainWindowBounds(mainBounds);
+      console.log('終了前にメインウィンドウ設定を保存しました:', mainBounds);
+    }
+    
+    // チャットウィンドウの位置・サイズ・表示状態を保存
+    if (chatWindow && !chatWindow.isDestroyed()) {
+      const chatBounds = chatWindow.getBounds();
+      const chatVisible = chatWindow.isVisible();
+      settingsStore.setChatWindowBounds(chatBounds);
+      settingsStore.setChatWindowVisible(chatVisible);
+      console.log('終了前にチャットウィンドウ設定を保存しました:', { bounds: chatBounds, visible: chatVisible });
+    }
+  } catch (error) {
+    console.error('終了前の設定保存でエラー:', error);
+  }
+}
+
+app.on('before-quit', async (event) => {
+  console.log('アプリケーション終了前の処理を開始...');
+  
+  // 設定保存を実行
+  await saveAllDisplaySettingsBeforeQuit();
+  
+  console.log('アプリケーション終了前の処理が完了しました');
+});
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     // macOS以外ではアプリを終了

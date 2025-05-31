@@ -14,6 +14,15 @@ export const IPC_CHANNELS = {
     GET_SYSTEM_PROMPT: 'get-system-prompt',
     SET_SYSTEM_PROMPT: 'set-system-prompt',
     RESET_SYSTEM_PROMPT: 'reset-system-prompt',
+    // ユーザー名・マスコット名関連
+    GET_USER_NAME: 'get-user-name',
+    SET_USER_NAME: 'set-user-name',
+    GET_MASCOT_NAME: 'get-mascot-name',
+    SET_MASCOT_NAME: 'set-mascot-name',
+    // システムプロンプトコア関連
+    GET_SYSTEM_PROMPT_CORE: 'get-system-prompt-core',
+    SET_SYSTEM_PROMPT_CORE: 'set-system-prompt-core',
+    RESET_SYSTEM_PROMPT_CORE: 'reset-system-prompt-core',
   },
   
   // スピーチバブル関連
@@ -27,11 +36,31 @@ export const IPC_CHANNELS = {
   WINDOW: {
     GET_MAIN_POSITION: 'get-main-window-position',
     ALL_CLOSED: 'window-all-closed',
+    GET_MAIN_BOUNDS: 'get-main-window-bounds',
+    SET_MAIN_BOUNDS: 'set-main-window-bounds',
+    GET_CHAT_BOUNDS: 'get-chat-window-bounds',
+    SET_CHAT_BOUNDS: 'set-chat-window-bounds',
+    GET_CHAT_VISIBLE: 'get-chat-window-visible',
+    SET_CHAT_VISIBLE: 'set-chat-window-visible',
+  },
+  
+  // カメラ設定
+  CAMERA: {
+    GET_SETTINGS: 'get-camera-settings',
+    SET_SETTINGS: 'set-camera-settings',
+    RESET_SETTINGS: 'reset-camera-settings',
+  },
+  
+  // 画面表示設定
+  DISPLAY: {
+    SAVE_ALL_SETTINGS: 'save-all-display-settings',
+    RESET_ALL_SETTINGS: 'reset-all-display-settings',
   },
   
   // アプリケーション制御
   APP: {
     QUIT: 'quit-app',
+    BEFORE_QUIT: 'before-quit',
   },
 } as const;
 

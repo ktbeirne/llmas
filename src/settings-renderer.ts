@@ -22,7 +22,9 @@ class SettingsRenderer {
     private tabButtons: NodeListOf<HTMLButtonElement>;
     private tabPanes: NodeListOf<HTMLElement>;
     private activeTab = 'display';
-    private systemPromptTextarea: HTMLTextAreaElement;
+    private userNameInput: HTMLInputElement;
+    private mascotNameInput: HTMLInputElement;
+    private systemPromptCoreTextarea: HTMLTextAreaElement;
     private promptCharacterCount: HTMLElement;
     private performanceWarning: HTMLElement;
     private resetSystemPromptButton: HTMLButtonElement;
@@ -49,7 +51,9 @@ class SettingsRenderer {
         // 新しい要素
         this.tabButtons = document.querySelectorAll('.tab-button') as NodeListOf<HTMLButtonElement>;
         this.tabPanes = document.querySelectorAll('.tab-pane') as NodeListOf<HTMLElement>;
-        this.systemPromptTextarea = document.getElementById('system-prompt') as HTMLTextAreaElement;
+        this.userNameInput = document.getElementById('user-name') as HTMLInputElement;
+        this.mascotNameInput = document.getElementById('mascot-name') as HTMLInputElement;
+        this.systemPromptCoreTextarea = document.getElementById('system-prompt-core') as HTMLTextAreaElement;
         this.promptCharacterCount = document.getElementById('prompt-character-count') as HTMLElement;
         this.performanceWarning = document.getElementById('performance-warning') as HTMLElement;
         this.resetSystemPromptButton = document.getElementById('reset-system-prompt') as HTMLButtonElement;
@@ -101,7 +105,7 @@ class SettingsRenderer {
         });
 
         // システムプロンプト関連
-        this.systemPromptTextarea.addEventListener('input', () => {
+        this.systemPromptCoreTextarea.addEventListener('input', () => {
             this.updateCharacterCount();
         });
 
@@ -165,8 +169,8 @@ class SettingsRenderer {
                     this.currentVrmPath.value = settings.vrmModelPath;
                 }
                 
-                // システムプロンプトを読み込み
-                await this.loadSystemPrompt();
+                // ユーザー名・マスコット名・システムプロンプトを読み込み
+                await this.loadChatSettings();
             } catch (error) {
                 console.error('設定の読み込みに失敗しました:', error);
             }
@@ -204,8 +208,8 @@ class SettingsRenderer {
                     vrmModelPath
                 });
                 
-                // システムプロンプトも保存
-                await this.saveSystemPrompt();
+                // チャット設定も保存
+                await this.saveChatSettings();
                 
                 // 設定適用成功のフィードバック
                 this.showSuccessMessage('設定が保存されました');
@@ -282,33 +286,54 @@ class SettingsRenderer {
         }
     }
 
-    private async loadSystemPrompt(): Promise<void> {
-        if (window.electronAPI && window.electronAPI.getSystemPrompt) {
-            try {
-                const prompt = await window.electronAPI.getSystemPrompt();
-                this.systemPromptTextarea.value = prompt || '';
-                this.updateCharacterCount();
-            } catch (error) {
-                console.error('システムプロンプトの読み込みに失敗しました:', error);
+    private async loadChatSettings(): Promise<void> {
+        try {
+            // ユーザー名・マスコット名・システムプロンプトを読み込み
+            if (window.electronAPI && window.electronAPI.getUserName) {
+                const userName = await window.electronAPI.getUserName();
+                this.userNameInput.value = userName || 'User';
             }
+
+            if (window.electronAPI && window.electronAPI.getMascotName) {
+                const mascotName = await window.electronAPI.getMascotName();
+                this.mascotNameInput.value = mascotName || 'Mascot';
+            }
+
+            if (window.electronAPI && window.electronAPI.getSystemPromptCore) {
+                const promptCore = await window.electronAPI.getSystemPromptCore();
+                this.systemPromptCoreTextarea.value = promptCore || '';
+                this.updateCharacterCount();
+            }
+        } catch (error) {
+            console.error('チャット設定の読み込みに失敗しました:', error);
         }
     }
 
-    private async saveSystemPrompt(): Promise<void> {
-        const prompt = this.systemPromptTextarea.value.trim();
+    private async saveChatSettings(): Promise<void> {
+        try {
+            const userName = this.userNameInput.value.trim() || 'User';
+            const mascotName = this.mascotNameInput.value.trim() || 'Mascot';
+            const promptCore = this.systemPromptCoreTextarea.value.trim();
 
-        if (window.electronAPI && window.electronAPI.setSystemPrompt) {
-            try {
-                await window.electronAPI.setSystemPrompt(prompt);
-            } catch (error) {
-                console.error('システムプロンプトの保存に失敗しました:', error);
-                throw error;
+            if (window.electronAPI) {
+                if (window.electronAPI.setUserName) {
+                    await window.electronAPI.setUserName(userName);
+                }
+                if (window.electronAPI.setMascotName) {
+                    await window.electronAPI.setMascotName(mascotName);
+                }
+                if (window.electronAPI.setSystemPromptCore) {
+                    await window.electronAPI.setSystemPromptCore(promptCore);
+                }
             }
+        } catch (error) {
+            console.error('チャット設定の保存に失敗しました:', error);
+            throw error;
         }
     }
 
     private updateCharacterCount(): void {
-        const length = this.systemPromptTextarea.value.length;
+        const length = this.systemPromptCoreTextarea.value.length;
         this.promptCharacterCount.textContent = length.toString();
         
         // パフォーマンス警告の表示制御
@@ -323,10 +348,10 @@ class SettingsRenderer {
         const confirmReset = confirm('システムプロンプトをデフォルトに戻しますか？');
         if (!confirmReset) return;
 
-        if (window.electronAPI && window.electronAPI.resetSystemPrompt) {
+        if (window.electronAPI && window.electronAPI.resetSystemPromptCore) {
             try {
-                await window.electronAPI.resetSystemPrompt();
-                await this.loadSystemPrompt();
+                await window.electronAPI.resetSystemPromptCore();
+                await this.loadChatSettings();
                 this.showSuccessMessage('システムプロンプトがリセットされました');
             } catch (error) {
                 console.error('システムプロンプトのリセットに失敗しました:', error);

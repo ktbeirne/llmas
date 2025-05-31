@@ -150,11 +150,11 @@ export class WindowManager {
   /**
    * メインウィンドウの設定を生成
    */
-  static getMainWindowConfig(customSize?: { width: number; height: number }): WindowConfig {
-    const width = customSize?.width || WINDOW_CONFIG.MAIN.WIDTH;
-    const height = customSize?.height || WINDOW_CONFIG.MAIN.HEIGHT;
+  static getMainWindowConfig(options?: { width?: number; height?: number; x?: number; y?: number }): WindowConfig {
+    const width = options?.width || WINDOW_CONFIG.MAIN.WIDTH;
+    const height = options?.height || WINDOW_CONFIG.MAIN.HEIGHT;
     
-    return {
+    const config: WindowConfig = {
       name: 'main',
       width,
       height,
@@ -168,6 +168,13 @@ export class WindowManager {
         nodeIntegration: false,
       },
     };
+
+    // 位置が指定されている場合は設定
+    if (options?.x !== undefined && options?.y !== undefined) {
+      config.position = { x: options.x, y: options.y };
+    }
+
+    return config;
   }
 
   /**

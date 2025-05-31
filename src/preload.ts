@@ -86,5 +86,82 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     resetSystemPrompt: async (): Promise<{ success: boolean }> => {
         return await ipcRenderer.invoke('reset-system-prompt');
+    },
+
+    // カメラ設定関連のAPI
+    getCameraSettings: async (): Promise<any> => {
+        return await ipcRenderer.invoke('get-camera-settings');
+    },
+
+    setCameraSettings: async (settings: any): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('set-camera-settings', settings);
+    },
+
+    resetCameraSettings: async (): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('reset-camera-settings');
+    },
+
+    // ウィンドウ位置関連のAPI
+    getMainWindowBounds: async (): Promise<any> => {
+        return await ipcRenderer.invoke('get-main-window-bounds');
+    },
+
+    setMainWindowBounds: async (bounds: any): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('set-main-window-bounds', bounds);
+    },
+
+    getChatWindowBounds: async (): Promise<any> => {
+        return await ipcRenderer.invoke('get-chat-window-bounds');
+    },
+
+    setChatWindowBounds: async (bounds: any): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('set-chat-window-bounds', bounds);
+    },
+
+    getChatWindowVisible: async (): Promise<boolean> => {
+        return await ipcRenderer.invoke('get-chat-window-visible');
+    },
+
+    setChatWindowVisible: async (visible: boolean): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('set-chat-window-visible', visible);
+    },
+
+    // 画面表示設定の一括操作API
+    saveAllDisplaySettings: async (settings: any): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('save-all-display-settings', settings);
+    },
+
+    resetAllDisplaySettings: async (): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('reset-all-display-settings');
+    },
+
+    // ユーザー名・マスコット名関連のAPI
+    getUserName: async (): Promise<string> => {
+        return await ipcRenderer.invoke('get-user-name');
+    },
+
+    setUserName: async (userName: string): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('set-user-name', userName);
+    },
+
+    getMascotName: async (): Promise<string> => {
+        return await ipcRenderer.invoke('get-mascot-name');
+    },
+
+    setMascotName: async (mascotName: string): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('set-mascot-name', mascotName);
+    },
+
+    // システムプロンプトコア関連のAPI
+    getSystemPromptCore: async (): Promise<string> => {
+        return await ipcRenderer.invoke('get-system-prompt-core');
+    },
+
+    setSystemPromptCore: async (prompt: string): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('set-system-prompt-core', prompt);
+    },
+
+    resetSystemPromptCore: async (): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('reset-system-prompt-core');
     }
 });

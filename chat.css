@@ -26,37 +26,58 @@ body {
     -webkit-app-region: no-drag;
 }
 
-#response-area p {
-    /* 個々のメッセージのスタイル */
-    padding: 10px 15px;
-    border-radius: 18px;
-    /* 吹き出しをより丸く */
-    margin-bottom: 10px;
+/* メッセージコンテナ */
+.message-container {
+    margin-bottom: 15px;
     max-width: 75%;
-    /* 吹き出しの最大幅を画面の75%に */
     word-wrap: break-word;
-    white-space: pre-line;
-    /* 長い単語も折り返す */
 }
 
-/* ユーザーのメッセージ (右寄せ、プライマリカラー背景) */
+/* ユーザーのメッセージコンテナ (右寄せ) */
 .user-message {
-    background-color: #BFECFF;
-    color: #333;
     margin-left: auto;
     margin-right: 0;
-    border-bottom-right-radius: 5px;
-    white-space: pre-line;
+    text-align: right;
 }
 
-/* マスコットのメッセージ (左寄せ、セカンダリカラー背景) */
+/* マスコットのメッセージコンテナ (左寄せ) */
 .mascot-message {
-    background-color: #CDC1FF;
-    color: #333;
     margin-right: auto;
     margin-left: 0;
-    border-bottom-left-radius: 5px;
+    text-align: left;
+}
+
+/* 送信者名 */
+.sender-name {
+    font-weight: bold;
+    font-size: 0.9em;
+    color: #666;
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* メッセージ内容 */
+.message-container p {
+    padding: 10px 15px;
+    border-radius: 18px;
+    margin: 0;
     white-space: pre-line;
+    display: inline-block;
+    max-width: 100%;
+}
+
+/* ユーザーのメッセージ内容 */
+.user-message p {
+    background-color: #BFECFF;
+    color: #333;
+    border-bottom-right-radius: 5px;
+}
+
+/* マスコットのメッセージ内容 */
+.mascot-message p {
+    background-color: #CDC1FF;
+    color: #333;
+    border-bottom-left-radius: 5px;
 }
 
 #input-area {
@@ -117,15 +138,3 @@ body {
 }
 
 
-.user-message::before {
-    content: "You: ";
-    font-weight: bold;
-    margin-right: 5px;
-}
-
-.mascot-message::before {
-    content: "Mascot: ";
-    font-weight: bold;
-    margin-right: 5px; 
-    white-space: pre-line;
-}

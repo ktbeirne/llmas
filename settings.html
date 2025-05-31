@@ -58,16 +58,31 @@
                 </div>
                 
                 <div class="tab-pane" id="chat-tab">
-                    <section id="system-prompt-section">
-                        <h2>システムプロンプト</h2>
-                        <p class="section-description">マスコットの性格や応答スタイルを設定できます</p>
+                    <section id="names-section">
+                        <h2>ユーザーとマスコットの名前</h2>
+                        <p class="section-description">あなたの名前とマスコットの名前を設定してください</p>
                         
                         <div class="setting-group">
-                            <label for="system-prompt">プロンプト内容:</label>
+                            <label for="user-name">あなたの名前（ユーザー名）:</label>
+                            <input type="text" id="user-name" placeholder="User" maxlength="50">
                         </div>
                         
                         <div class="setting-group">
-                            <textarea id="system-prompt" placeholder="あなたは親しみやすく愛らしいAIアシスタントです。ユーザーと楽しく会話してください。" rows="8"></textarea>
+                            <label for="mascot-name">マスコットの名前:</label>
+                            <input type="text" id="mascot-name" placeholder="Mascot" maxlength="50">
+                        </div>
+                    </section>
+                    
+                    <section id="system-prompt-section">
+                        <h2>システムプロンプト（キャラクターの性格・役割）</h2>
+                        <p class="section-description">マスコットの基本的な性格や応答スタイルを記述してください。あなたの名前やマスコットの名前に関する指示は自動的に追加されます。</p>
+                        
+                        <div class="setting-group">
+                            <label for="system-prompt-core">プロンプト内容:</label>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <textarea id="system-prompt-core" placeholder="あなたは親しみやすく愛らしいAIアシスタントです。ユーザーと楽しく会話してください。" rows="8"></textarea>
                         </div>
                         
                         <div class="setting-group character-count-container">

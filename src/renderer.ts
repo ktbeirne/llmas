@@ -49,6 +49,73 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enabled = false;
 controls.target.set(0.0, 1.0, 0.0); // OrbitControlsの初期ターゲットをモデルの腰あたり(Y=1.0)に設定
 controls.update();
+
+// カメラ設定を復元
+async function restoreCameraSettings() {
+    try {
+        if (window.electronAPI && window.electronAPI.getCameraSettings) {
+            const settings = await window.electronAPI.getCameraSettings();
+            if (settings) {
+                // カメラ位置を復元
+                camera.position.set(settings.position.x, settings.position.y, settings.position.z);
+                
+                // OrbitControlsターゲットを復元
+                controls.target.set(settings.target.x, settings.target.y, settings.target.z);
+                
+                // ズームを復元
+                camera.zoom = settings.zoom;
+                camera.updateProjectionMatrix();
+                
+                // OrbitControlsを更新
+                controls.update();
+                
+                console.log('カメラ設定を復元しました:', settings);
+            }
+        }
+    } catch (error) {
+        console.error('カメラ設定の復元に失敗しました:', error);
+    }
+}
+
+// カメラ設定を保存
+async function saveCameraSettings() {
+    try {
+        if (window.electronAPI && window.electronAPI.setCameraSettings) {
+            const settings = {
+                position: {
+                    x: camera.position.x,
+                    y: camera.position.y,
+                    z: camera.position.z
+                },
+                target: {
+                    x: controls.target.x,
+                    y: controls.target.y,
+                    z: controls.target.z
+                },
+                zoom: camera.zoom
+            };
+            
+            await window.electronAPI.setCameraSettings(settings);
+            console.log('カメラ設定を保存しました:', settings);
+        }
+    } catch (error) {
+        console.error('カメラ設定の保存に失敗しました:', error);
+    }
+}
+
+// カメラ変更時の自動保存（デバウンス処理付き）
+let saveTimeout: number | null = null;
+function scheduleCameraSave() {
+    if (saveTimeout) {
+        clearTimeout(saveTimeout);
+    }
+    saveTimeout = window.setTimeout(() => {
+        saveCameraSettings();
+    }, 1000); // 1秒後に保存
+}
+
+// OrbitControlsの変更イベントを監視
+controls.addEventListener('change', scheduleCameraSave);
 let loadedVRMInstance: VRM | null = null; // renderer側でVRMインスタンスを保持する必要があれば
 
 const lookAtTarget = new THREE.Object3D(); // マウスで動かす注視点
@@ -170,6 +237,9 @@ loadVRM('/avatar.vrm', scene, (vrm) => { // vrmモデルオブジェクトを受
             // → vrmController.tsに onMixerReady?: () => void のようなコールバックを追加するのが良いかも。
             //    ひとまずは、アニメーションロード完了をもってonAllAssetsReadyを呼んでみます。
             onAllAssetsReady();
+            
+            // VRMモデルロード完了後にカメラ設定を復元
+            restoreCameraSettings();
         });
     } else {
         console.error('renderer.ts: VRMモデルのロードに失敗しました。');
@@ -314,6 +384,16 @@ function animate() {
     renderer.render(scene, camera);
 }
 animate();
+
+// ページの読み込み完了時にカメラ設定を復元
+window.addEventListener('DOMContentLoaded', () => {
+    restoreCameraSettings();
+});
+
+// アプリ終了前にカメラ設定を保存
+window.addEventListener('beforeunload', () => {
+    saveCameraSettings();
+});
 
 // もしウィンドウサイズが変わったら、カメラとレンダラーも追従させます
 window.addEventListener('resize', () => {

@@ -81,17 +81,47 @@
         }
         initialAdjustTextareaHeight(); // 読み込み時に一度実行
         // --- ↑ テキストエリアの高さ自動調整ここまで ↑ ---
+        // ユーザー名とマスコット名を保存するグローバル変数
+        let userName = 'User';
+        let mascotName = 'Mascot';
+
+        // --- 名前を読み込む関数 ---
+        async function loadNames() {
+            try {
+                if (window.electronAPI) {
+                    if (window.electronAPI.getUserName) {
+                        userName = await window.electronAPI.getUserName() || 'User';
+                    }
+                    if (window.electronAPI.getMascotName) {
+                        mascotName = await window.electronAPI.getMascotName() || 'Mascot';
+                    }
+                }
+            } catch (error) {
+                console.error('名前の読み込みエラー:', error);
+            }
+        }
+
         // --- メッセージを応答エリアに追加する関数 ---
         function addMessageToResponseArea(messageText, senderType) { // senderType は 'user' または 'mascot'
-            const p = document.createElement('p');
-            p.textContent = messageText; // メッセージ本文だけを設定
+            const messageContainer = document.createElement('div');
+            messageContainer.classList.add('message-container');
+            
+            const senderName = document.createElement('span');
+            senderName.classList.add('sender-name');
+            senderName.textContent = senderType === 'user' ? userName : mascotName;
+            
+            const messageContent = document.createElement('p');
+            messageContent.textContent = messageText;
 
             if (senderType === 'user') {
-                p.classList.add('user-message');
+                messageContainer.classList.add('user-message');
             } else if (senderType === 'mascot') {
-                p.classList.add('mascot-message');
+                messageContainer.classList.add('mascot-message');
             }
-            responseArea.appendChild(p);
+            
+            messageContainer.appendChild(senderName);
+            messageContainer.appendChild(messageContent);
+            responseArea.appendChild(messageContainer);
             responseArea.scrollTop = responseArea.scrollHeight; // 自動スクロール
         }
 
@@ -124,9 +154,10 @@
             }
         }
 
-        // --- ページ読み込み時に履歴を表示 ---
-        window.addEventListener('DOMContentLoaded', () => {
-            loadChatHistory();
+        // --- ページ読み込み時に名前と履歴を読み込み ---
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadNames(); // 名前を最初に読み込み
+            loadChatHistory(); // その後履歴を読み込み
         });
 
         // --- 送信ボタンのクリック処理（履歴機能付き） ---
