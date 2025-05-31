@@ -43,6 +43,8 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@modelcontextprotocol/server-puppeteer": "^2025.5.12",
+    "@modelcontextprotocol/server-sequential-thinking": "^0.6.2",
     "@pixiv/three-vrm": "^3.4.1",
     "@pixiv/three-vrm-animation": "^3.4.1",
     "dotenv": "^16.5.0",

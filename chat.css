@@ -1,9 +1,7 @@
 body {
     font-family: 'Segoe UI', Meiryo, 'メイリオ', 'Hiragino Kaku Gothic ProN', 'ヒラギノ角ゴ ProN W3', sans-serif;
-    /* モダンで見やすいフォントに */
     margin: 0;
-    background-color: #f0f4f8;
-    /* 全体の背景色を少し落ち着いた色に */
+    background-color: #FFF6E3;
     display: flex;
     flex-direction: column;
     height: 100vh;
@@ -41,28 +39,24 @@ body {
     /* 長い単語も折り返す */
 }
 
-/* ユーザーのメッセージ (右寄せ、青背景) */
+/* ユーザーのメッセージ (右寄せ、プライマリカラー背景) */
 .user-message {
-    background-color: #007bff;
-    color: white;
+    background-color: #BFECFF;
+    color: #333;
     margin-left: auto;
-    /* これで右に寄ります */
     margin-right: 0;
     border-bottom-right-radius: 5px;
     white-space: pre-line;
-    /* 右下の角だけ少し平らにして吹き出しっぽく */
 }
 
-/* マスコットのメッセージ (左寄せ、薄いグレー背景) */
+/* マスコットのメッセージ (左寄せ、セカンダリカラー背景) */
 .mascot-message {
-    background-color: #e9ecef;
-    color: #343a40;
+    background-color: #CDC1FF;
+    color: #333;
     margin-right: auto;
-    /* これで左に寄ります */
     margin-left: 0;
     border-bottom-left-radius: 5px;
     white-space: pre-line;
-    /* 左下の角だけ少し平らに */
 }
 
 #input-area {
@@ -106,21 +100,87 @@ body {
 
 #send-button {
     padding: 12px 20px;
-    /* パディングを少し大きく */
     border: none;
-    background-color: #007bff;
-    color: white;
+    background-color: #BFECFF;
+    color: #333;
     border-radius: 20px;
-    /* ボタンも丸く */
     cursor: pointer;
     font-size: 1em;
     font-weight: bold;
     transition: background-color 0.15s ease-in-out;
     -webkit-app-region: no-drag;
+    border: 1px solid #999;
 }
 
 #send-button:hover {
-    background-color: #0056b3; }
+    background-color: #A6D9FF;
+}
+
+/* 履歴リセットボタン */
+#clear-history-button {
+    padding: 8px 12px;
+    border: none;
+    background-color: #FFCCEA;
+    color: #333;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 0.9em;
+    margin-left: 10px;
+    transition: background-color 0.15s ease-in-out;
+    -webkit-app-region: no-drag;
+    border: 1px solid #999;
+}
+
+#clear-history-button:hover {
+    background-color: #FFB3E1;
+}
+
+/* 確認ダイアログ */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: #FFF6E3;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 12px;
+    width: 300px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.modal-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.modal-button.confirm {
+    background-color: #FFCCEA;
+    color: #333;
+}
+
+.modal-button.cancel {
+    background-color: #CDC1FF;
+    color: #333;
+}
 
 .user-message::before {
     content: "You: ";

@@ -13,12 +13,28 @@
     <div id="input-area">
         <textarea id="prompt-input" placeholder="メッセージを入力..." rows="1"></textarea>
         <button id="send-button">送信</button>
+        <button id="clear-history-button">履歴削除</button>
+    </div>
+
+    <!-- 確認ダイアログ -->
+    <div id="confirmation-modal" class="modal">
+        <div class="modal-content">
+            <p>本当に会話履歴をすべて削除しますか？<br>この操作は元に戻せません。</p>
+            <div class="modal-buttons">
+                <button id="confirm-clear" class="modal-button confirm">はい</button>
+                <button id="cancel-clear" class="modal-button cancel">いいえ</button>
+            </div>
+        </div>
     </div>
 
     <script>
         const promptInput = document.getElementById('prompt-input');
         const sendButton = document.getElementById('send-button');
+        const clearHistoryButton = document.getElementById('clear-history-button');
         const responseArea = document.getElementById('response-area');
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const confirmClearButton = document.getElementById('confirm-clear');
+        const cancelClearButton = document.getElementById('cancel-clear');
         const promptInputStyle = getComputedStyle(promptInput);
         const promptInputPaddingTop = parseFloat(promptInputStyle.paddingTop);
         const promptInputPaddingBottom = parseFloat(promptInputStyle.paddingBottom);
@@ -106,7 +122,30 @@
                 }
             });
 
-        // --- 送信ボタンのクリック処理 (こちらを正しい形として残します) ---
+        // --- 履歴の読み込みと表示 ---
+        async function loadChatHistory() {
+            try {
+                if (window.electronAPI && window.electronAPI.getChatHistory) {
+                    const history = await window.electronAPI.getChatHistory();
+                    for (const message of history) {
+                        if (message.role === 'user') {
+                            addMessageToResponseArea(message.content, 'user');
+                        } else if (message.role === 'assistant') {
+                            addMessageToResponseArea(message.content, 'mascot');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('履歴の読み込みエラー:', error);
+            }
+        }
+
+        // --- ページ読み込み時に履歴を表示 ---
+        window.addEventListener('DOMContentLoaded', () => {
+            loadChatHistory();
+        });
+
+        // --- 送信ボタンのクリック処理（履歴機能付き） ---
         sendButton.addEventListener('click', async () => {
             const prompt = promptInput.value;
             if (!prompt.trim()) return;
@@ -114,26 +153,53 @@
             addMessageToResponseArea(prompt, 'user'); // ★メッセージ本文とタイプ 'user' を渡す
             promptInput.value = ''; // 入力欄クリア
 
-            if (window.electronAPI && window.electronAPI.sendPromptToGemini) {
+            if (window.electronAPI && window.electronAPI.sendChatMessage) {
                 try {
-                    // （オプション）「考え中...」メッセージを表示
-                    // const thinkingMessageP = addMessageToResponseArea("考え中...", 'mascot'); 
-
-                    const response = await window.electronAPI.sendPromptToGemini(prompt);
-
-                    // （オプション）もし「考え中...」メッセージを出していたら、それを更新するか削除する
-                    // if (thinkingMessageP) thinkingMessageP.remove();
-
+                    const response = await window.electronAPI.sendChatMessage(prompt);
                     addMessageToResponseArea(response, 'mascot'); // ★返答本文とタイプ 'mascot' を渡す
                 } catch (error) {
-                    console.error('Error sending prompt to Gemini:', error);
-                    // エラーメッセージの型をチェックして、messageプロパティが存在すればそれを使う
+                    console.error('Error sending chat message:', error);
                     const errorMessage = (error instanceof Error) ? error.message : String(error);
                     addMessageToResponseArea('エラー: ' + errorMessage, 'mascot');
                 }
             } else {
-                console.error('electronAPI or sendPromptToGemini is not available.');
+                console.error('electronAPI or sendChatMessage is not available.');
                 addMessageToResponseArea('エラー: メインプロセスに接続できません。', 'mascot');
+            }
+        });
+
+        // --- 履歴削除機能 ---
+        clearHistoryButton.addEventListener('click', () => {
+            confirmationModal.style.display = 'block';
+        });
+
+        confirmClearButton.addEventListener('click', async () => {
+            try {
+                if (window.electronAPI && window.electronAPI.clearChatHistory) {
+                    const result = await window.electronAPI.clearChatHistory();
+                    if (result.success) {
+                        responseArea.innerHTML = ''; // UIの履歴もクリア
+                        confirmationModal.style.display = 'none';
+                    } else {
+                        console.error('履歴削除エラー:', result.error);
+                        addMessageToResponseArea('エラー: 履歴の削除に失敗しました。', 'mascot');
+                    }
+                }
+            } catch (error) {
+                console.error('履歴削除エラー:', error);
+                addMessageToResponseArea('エラー: 履歴の削除に失敗しました。', 'mascot');
+            }
+            confirmationModal.style.display = 'none';
+        });
+
+        cancelClearButton.addEventListener('click', () => {
+            confirmationModal.style.display = 'none';
+        });
+
+        // モーダルの外側をクリックしても閉じる
+        confirmationModal.addEventListener('click', (event) => {
+            if (event.target === confirmationModal) {
+                confirmationModal.style.display = 'none';
             }
         });
     </script>

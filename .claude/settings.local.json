@@ -16,7 +16,12 @@
       "Bash(npm install)",
       "Bash(pkill:*)",
       "Bash(npm test:*)",
-      "Bash(timeout 10s npm start)"
+      "Bash(timeout 10s npm start)",
+      "Bash(/home/user/.nvm/versions/node/v22.16.0/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/x64-linux/rg -n \"TODO|FIXME|BUG|HACK|XXX|REFACTOR|OPTIMIZE\" --type ts --type md -A 2 -B 2)",
+      "mcp__mcp-private-github-search__searchIssues",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue view:*)",
+      "mcp__sequential-thinking__sequentialthinking"
     ],
     "deny": []
   }

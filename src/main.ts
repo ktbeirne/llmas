@@ -3,7 +3,7 @@ import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import dotenv from 'dotenv';
 dotenv.config();
-import { generateTextFromGemini, initializeGemini } from './geminiService';
+import { generateTextFromGemini, generateChatResponse, getChatHistory, clearChatHistory, initializeGemini } from './geminiService';
 import { WindowManager } from './utils/WindowManager';
 import { ErrorHandler } from './utils/errorHandler';
 import { IPC_CHANNELS } from './config/ipcChannels';
@@ -148,7 +148,7 @@ function initializeAPI(): void {
  * IPCハンドラーの設定
  */
 function setupIPCHandlers(): void {
-  // Geminiへのプロンプト送信
+  // Geminiへのプロンプト送信（従来機能）
   ipcMain.handle('send-prompt-to-gemini', async (_event: IpcMainInvokeEvent, prompt: string) => {
     console.log(`メインプロセスがプロンプト "${prompt}" を受け取りました`);
     
@@ -185,6 +185,56 @@ function setupIPCHandlers(): void {
       SpeechBubbleManager.showWithText(speechBubbleWindow, errorMessage);
       
       return errorMessage;
+    }
+  });
+
+  // チャット機能（履歴管理付き）
+  ipcMain.handle(IPC_CHANNELS.CHAT.SEND_MESSAGE, async (_event: IpcMainInvokeEvent, message: string) => {
+    console.log(`チャットメッセージを受信: "${message}"`);
+    
+    if (!message) {
+      return "エラー: メッセージが空です。";
+    }
+    
+    try {
+      const response = await generateChatResponse(message);
+      console.log('[Chat Handler] 応答を生成しました:', response.substring(0, 50) + '...');
+      
+      // SpeechBubbleに応答を表示
+      const speechBubbleWindow = windowManager.getWindow('speechBubble');
+      SpeechBubbleManager.showWithText(speechBubbleWindow, response);
+      
+      return response;
+    } catch (error) {
+      ErrorHandler.handle(error);
+      const errorMessage = `エラー: ${error instanceof Error ? error.message : "不明なエラー"}`;
+      
+      // エラーもSpeechBubbleに表示
+      const speechBubbleWindow = windowManager.getWindow('speechBubble');
+      SpeechBubbleManager.showWithText(speechBubbleWindow, errorMessage);
+      
+      return errorMessage;
+    }
+  });
+
+  // 会話履歴取得
+  ipcMain.handle(IPC_CHANNELS.CHAT.GET_HISTORY, async () => {
+    try {
+      return getChatHistory();
+    } catch (error) {
+      ErrorHandler.handle(error);
+      return [];
+    }
+  });
+
+  // 会話履歴クリア
+  ipcMain.handle(IPC_CHANNELS.CHAT.CLEAR_HISTORY, async () => {
+    try {
+      clearChatHistory();
+      return { success: true };
+    } catch (error) {
+      ErrorHandler.handle(error);
+      return { success: false, error: error instanceof Error ? error.message : "不明なエラー" };
     }
   });
 

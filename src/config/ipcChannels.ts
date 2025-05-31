@@ -9,6 +9,8 @@ export const IPC_CHANNELS = {
     RECEIVE_RESPONSE: 'receive-response',
     OPEN_WINDOW: 'open-chat',
     CLOSE_WINDOW: 'close-chat',
+    GET_HISTORY: 'get-chat-history',
+    CLEAR_HISTORY: 'clear-chat-history',
   },
   
   // スピーチバブル関連

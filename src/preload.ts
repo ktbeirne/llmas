@@ -60,5 +60,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     selectVrmFile: async (): Promise<string | null> => {
         return await ipcRenderer.invoke('select-vrm-file');
+    },
+
+    // チャット履歴関連のAPI
+    sendChatMessage: async (message: string): Promise<string> => {
+        return await ipcRenderer.invoke('send-message', message);
+    },
+
+    getChatHistory: async (): Promise<any[]> => {
+        return await ipcRenderer.invoke('get-chat-history');
+    },
+
+    clearChatHistory: async (): Promise<{ success: boolean; error?: string }> => {
+        return await ipcRenderer.invoke('clear-chat-history');
     }
 });

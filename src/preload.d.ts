@@ -16,6 +16,10 @@ declare global {
             saveSettings: (settings: any) => Promise<void>;
             resetSettings: () => Promise<void>;
             selectVrmFile: () => Promise<string | null>;
+            // チャット履歴関連のAPI
+            sendChatMessage: (message: string) => Promise<string>;
+            getChatHistory: () => Promise<any[]>;
+            clearChatHistory: () => Promise<{ success: boolean; error?: string }>;
         };
     }
 }
