@@ -67,9 +67,3 @@ export interface ElectronAPI {
     setDefaultExpression: (expressionName: string) => Promise<{ success: boolean }>;
     resetToDefaultExpression: () => Promise<{ success: boolean }>;
 }
-
-declare global {
-    interface Window {
-        electronAPI: ElectronAPI;
-    }
-}

@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold, GenerativeModel, Content } from '@google/generative-ai';
+
 import { ChatHistoryStore, ChatMessage } from './utils/chatHistoryStore';
 import { SettingsStore } from './utils/settingsStore';
 import { ToolsService } from './services/toolsService';

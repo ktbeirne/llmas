@@ -1,5 +1,7 @@
-import { BrowserWindow, BrowserWindowConstructorOptions } from 'electron';
 import path from 'path';
+
+import { BrowserWindow, BrowserWindowConstructorOptions } from 'electron';
+
 import { WINDOW_CONFIG } from '../config/constants';
 
 // Electron Forge Viteプラグインによって自動的に定義される環境変数
@@ -10,6 +12,8 @@ export interface WindowConfig {
   name: string;
   width: number;
   height: number;
+  x?: number;
+  y?: number;
   minWidth?: number;
   minHeight?: number;
   transparent?: boolean;
@@ -326,7 +330,7 @@ export class WindowManager {
       height: WINDOW_CONFIG.SETTINGS.HEIGHT,
       minWidth: WINDOW_CONFIG.SETTINGS.MIN_WIDTH,
       minHeight: WINDOW_CONFIG.SETTINGS.MIN_HEIGHT,
-      frame: true,
+      frame: false,
       titleBarStyle: 'hidden',
       transparent: false,
       show: true,

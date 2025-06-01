@@ -1,8 +1,10 @@
-import { app, BrowserWindow, ipcMain, IpcMainInvokeEvent, dialog } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
-import started from 'electron-squirrel-startup';
+
+import { app, BrowserWindow, ipcMain, IpcMainInvokeEvent, dialog } from 'electron';
+// electron-squirrel-startup は動的インポートで処理
 import dotenv from 'dotenv';
+
 dotenv.config();
 import { generateTextFromGemini, generateChatResponse, getChatHistory, clearChatHistory, initializeGemini, reinitializeGemini, updateSystemPrompt } from './geminiService';
 import { WindowManager } from './utils/WindowManager';
@@ -15,10 +17,10 @@ import { ToolsService } from './services/toolsService';
 import { FunctionCallHandler } from './services/functionCallHandler';
 
 // Electron Forge Viteプラグインによって自動的に定義される環境変数
-declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
-declare const MAIN_WINDOW_VITE_NAME: string;
+// (実際の使用はWindowManagerで行われるため、ここでは宣言を削除)
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
+import started from 'electron-squirrel-startup';
 if (started) {
   app.quit();
 }
@@ -206,7 +208,7 @@ function createChatWindow(): BrowserWindow | null {
       console.log('[ChatWindow] HTMLの読み込みが完了しました');
     });
     
-    window.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    window.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
       console.error('[ChatWindow] 読み込みエラー:', errorCode, errorDescription);
     });
     
@@ -240,7 +242,7 @@ function createSpeechBubbleWindow(): void {
       console.log('[SpeechBubble] HTMLのロードが完了しました');
     });
     
-    window.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    window.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
       console.error('[SpeechBubble] ロードエラー:', errorCode, errorDescription);
     });
     
@@ -967,7 +969,7 @@ function setupIPCHandlers(): void {
   ipcMain.handle(IPC_CHANNELS.THEME.GET_AVAILABLE_THEMES, async () => {
     try {
       // 利用可能なテーマ一覧を返す
-      return [
+      const themes = [
         {
           id: 'default',
           name: 'ソフト＆ドリーミー',
@@ -1035,6 +1037,7 @@ function setupIPCHandlers(): void {
           }
         }
       ];
+      return themes;
     } catch (error) {
       console.error('利用可能テーマの取得エラー:', error);
       throw error;
@@ -1312,7 +1315,7 @@ async function generateDynamicToolsJson(): Promise<void> {
         fs.writeFileSync(dynamicPath, JSON.stringify(originalTools, null, 2));
         console.log('[Main] 動的tools.json保存完了:', dynamicPath);
       } catch (error) {
-        console.warn('[Main] 動的tools.json保存失敗:', dynamicPath, error.message);
+        console.warn('[Main] 動的tools.json保存失敗:', dynamicPath, error instanceof Error ? error.message : String(error));
       }
     }
     
@@ -1382,7 +1385,7 @@ async function saveAllDisplaySettingsBeforeQuit() {
   }
 }
 
-app.on('before-quit', async (event) => {
+app.on('before-quit', async (_event) => {
   console.log('アプリケーション終了前の処理を開始...');
   
   // 設定保存を実行

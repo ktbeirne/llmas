@@ -7,7 +7,7 @@ export interface ChatMessage {
 }
 
 export class ChatHistoryStore {
-  private store: Store;
+  private store: any;
   private readonly HISTORY_KEY = 'chatHistory';
   private readonly SYSTEM_PROMPT_KEY = 'systemPrompt';
   private readonly DEFAULT_SYSTEM_PROMPT = 'あなたは親しみやすく愛らしいAIアシスタントです。ユーザーと楽しく会話してください。';

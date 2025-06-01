@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { BrowserWindow } from 'electron';
+// import { BrowserWindow } from 'electron';
 
 // モックの設定
 vi.mock('electron', () => ({

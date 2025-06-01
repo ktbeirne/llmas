@@ -1,17 +1,17 @@
-import { ElectronAPI } from './preload.d.ts';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import * as THREE from 'three';
+import { VRM, VRMHumanBoneName } from '@pixiv/three-vrm';
+
+import type { ElectronAPI } from './preload.types';
+import { loadVRM, loadAnimation,updateVRMFeatures } from './vrmController';
+import { getAvailableExpressions, applyExpression } from './vrmController';
+import './index.css';
+
 declare global {
   interface Window {
     electronAPI: ElectronAPI;
   }
 }
-
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { loadVRM, loadAnimation,updateVRMFeatures } from './vrmController';
-import * as THREE from 'three';
-import { VRMUtils, VRMLoaderPlugin, VRM, VRMHumanBoneName } from '@pixiv/three-vrm'; 
-import { getHeadScreenPosition, getAvailableExpressions, applyExpression } from './vrmController';
-import './index.css';
-import { themeManager } from './utils/themeManager';
 
 const canvasElement = document.getElementById('vrm-canvas') as HTMLCanvasElement;
 const scene = new THREE.Scene();
@@ -20,13 +20,9 @@ const initialAspect = canvasAreaInit ? canvasAreaInit.clientWidth / canvasAreaIn
 const camera = new THREE.PerspectiveCamera(30, initialAspect, 0.1, 20);
 camera.position.set(0.0, 1.2, 5.0);
 const speechBubbleContainer = document.getElementById('speech-bubble-container') as HTMLDivElement;
-const speechBubble = document.getElementById('speech-bubble') as HTMLDivElement;
 const speechBubbleText = document.getElementById('speech-bubble-text') as HTMLParagraphElement;
 let speechBubbleTimeout: number | null = null;
 
-const MIN_DISPLAY_TIME_MS = 6000;    // 最低でも表示する時間 (例: 4秒 = 4000ミリ秒)
-const MAX_DISPLAY_TIME_MS = 60000;   // 最大でもこの時間まで (例: 20秒 = 20000ミリ秒)
-const CHARS_PER_SECOND_READING_SPEED = 5; // 1秒あたりに読める文字数の目安 (例: 6文字/秒)
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -145,8 +141,6 @@ window.addEventListener('mousemove', (event) => {
         headPosition.set(0, 1.3, 0); // フォールバック
     }
 
-    const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-    const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
 
     // lookAtTarget の位置を、もっと大胆に動かしてみる
     // const targetX = mouseX * 5.0; // X方向の移動範囲を大きく (以前は * 2.0 や * 4.0 でした)

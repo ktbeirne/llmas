@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { WindowManager } from './WindowManager';
 import { BrowserWindow } from 'electron';
+
+import { WindowManager } from './WindowManager';
 
 // モックの設定
 vi.mock('electron', () => ({
@@ -12,6 +13,7 @@ vi.mock('electron', () => ({
     focus: vi.fn(),
     isDestroyed: vi.fn().mockReturnValue(false),
     getTitle: vi.fn().mockReturnValue('Test Window'),
+    setMenuBarVisibility: vi.fn(),
     webContents: {
       send: vi.fn(),
       on: vi.fn(),
@@ -35,7 +37,7 @@ vi.mock('path', () => ({
 }));
 
 // MAIN_WINDOW_VITE_DEV_SERVER_URL をモック
-global.MAIN_WINDOW_VITE_DEV_SERVER_URL = 'http://localhost:5173';
+(global as any).MAIN_WINDOW_VITE_DEV_SERVER_URL = 'http://localhost:5173';
 
 describe('WindowManager', () => {
   let windowManager: WindowManager;
