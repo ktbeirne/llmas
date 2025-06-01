@@ -620,7 +620,7 @@ window.addEventListener('beforeunload', () => {
 });
 
 // VRM表情関連の関数をグローバルに公開
-(window as any).vrmExpression = {
+window.vrmExpression = {
     getAvailableExpressions: () => {
         try {
             console.log('[Renderer] グローバル表情取得要求');
@@ -630,6 +630,25 @@ window.addEventListener('beforeunload', () => {
         } catch (error) {
             console.error('[Renderer] グローバル表情取得エラー:', error);
             return [];
+        }
+    },
+    
+    setExpression: (name: string, intensity?: number) => {
+        try {
+            console.log('[Renderer] グローバル表情設定要求:', name, intensity);
+            applyExpression(name, intensity);
+        } catch (error) {
+            console.error('[Renderer] グローバル表情設定エラー:', error);
+        }
+    },
+    
+    resetToDefaultExpression: () => {
+        try {
+            console.log('[Renderer] デフォルト表情リセット要求');
+            // デフォルト表情への reset ロジックを実装する必要があります
+            // 現在は空の実装
+        } catch (error) {
+            console.error('[Renderer] デフォルト表情リセットエラー:', error);
         }
     },
     

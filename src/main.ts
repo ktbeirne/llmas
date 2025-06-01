@@ -11,10 +11,11 @@ import { WindowManager } from './utils/WindowManager';
 import { ErrorHandler } from './utils/errorHandler';
 import { IPC_CHANNELS } from './config/ipcChannels';
 import { WINDOW_CONFIG, PATHS, APP_CONFIG } from './config/constants';
-import { SettingsStore } from './utils/settingsStore';
+import { SettingsStore, SettingsData, CameraSettings, WindowBounds } from './utils/settingsStore';
 import { SpeechBubbleManager } from './utils/speechBubbleManager';
 import { ToolsService } from './services/toolsService';
 import { FunctionCallHandler } from './services/functionCallHandler';
+import { VRMExpressionInfo, ExpressionSettings, ToolsConfig } from './types/tools';
 
 // Electron Forge Viteプラグインによって自動的に定義される環境変数
 // (実際の使用はWindowManagerで行われるため、ここでは宣言を削除)
@@ -666,7 +667,7 @@ function setupIPCHandlers(): void {
   });
 
   // 設定の保存
-  ipcMain.handle('save-settings', async (_event: IpcMainInvokeEvent, settings: any) => {
+  ipcMain.handle('save-settings', async (_event: IpcMainInvokeEvent, settings: SettingsData) => {
     try {
       settingsStore.saveAllSettings(settings);
       
@@ -755,7 +756,7 @@ function setupIPCHandlers(): void {
     }
   });
 
-  ipcMain.handle(IPC_CHANNELS.CAMERA.SET_SETTINGS, async (_event: IpcMainInvokeEvent, settings: any) => {
+  ipcMain.handle(IPC_CHANNELS.CAMERA.SET_SETTINGS, async (_event: IpcMainInvokeEvent, settings: CameraSettings) => {
     try {
       settingsStore.setCameraSettings(settings);
       return { success: true };
@@ -785,7 +786,7 @@ function setupIPCHandlers(): void {
     }
   });
 
-  ipcMain.handle(IPC_CHANNELS.WINDOW.SET_MAIN_BOUNDS, async (_event: IpcMainInvokeEvent, bounds: any) => {
+  ipcMain.handle(IPC_CHANNELS.WINDOW.SET_MAIN_BOUNDS, async (_event: IpcMainInvokeEvent, bounds: WindowBounds) => {
     try {
       settingsStore.setMainWindowBounds(bounds);
       return { success: true };
@@ -804,7 +805,7 @@ function setupIPCHandlers(): void {
     }
   });
 
-  ipcMain.handle(IPC_CHANNELS.WINDOW.SET_CHAT_BOUNDS, async (_event: IpcMainInvokeEvent, bounds: any) => {
+  ipcMain.handle(IPC_CHANNELS.WINDOW.SET_CHAT_BOUNDS, async (_event: IpcMainInvokeEvent, bounds: WindowBounds) => {
     try {
       settingsStore.setChatWindowBounds(bounds);
       return { success: true };
@@ -834,7 +835,7 @@ function setupIPCHandlers(): void {
   });
 
   // 画面表示設定の一括操作
-  ipcMain.handle(IPC_CHANNELS.DISPLAY.SAVE_ALL_SETTINGS, async (_event: IpcMainInvokeEvent, settings: any) => {
+  ipcMain.handle(IPC_CHANNELS.DISPLAY.SAVE_ALL_SETTINGS, async (_event: IpcMainInvokeEvent, settings: SettingsData) => {
     try {
       if (settings.cameraSettings) {
         settingsStore.setCameraSettings(settings.cameraSettings);
@@ -1097,7 +1098,7 @@ function setupIPCHandlers(): void {
     }
   });
 
-  ipcMain.handle('set-expression-settings', async (_event: IpcMainInvokeEvent, settings: any) => {
+  ipcMain.handle('set-expression-settings', async (_event: IpcMainInvokeEvent, settings: ExpressionSettings) => {
     try {
       settingsStore.setExpressionSettings(settings);
       return { success: true };
@@ -1245,8 +1246,8 @@ async function generateDynamicToolsJson(): Promise<void> {
     const expressionSettings = settingsStore.getExpressionSettings();
     
     // 表情名の重複と大文字小文字の問題を解決
-    const uniqueExpressions = availableExpressions.reduce((acc: any[], expr: any) => {
-      const existingIndex = acc.findIndex((e: any) => e.name.toLowerCase() === expr.name.toLowerCase());
+    const uniqueExpressions = availableExpressions.reduce((acc: VRMExpressionInfo[], expr: VRMExpressionInfo) => {
+      const existingIndex = acc.findIndex((e: VRMExpressionInfo) => e.name.toLowerCase() === expr.name.toLowerCase());
       if (existingIndex === -1) {
         acc.push(expr);
       } else {
@@ -1261,10 +1262,10 @@ async function generateDynamicToolsJson(): Promise<void> {
     
     // 有効な表情のみをフィルタ（詳細デバッグ）
     console.log('[Main] 表情フィルタリング詳細:');
-    console.log('  - 利用可能表情（重複除去後):', uniqueExpressions.map((e: any) => e.name));
+    console.log('  - 利用可能表情（重複除去後):', uniqueExpressions.map((e: VRMExpressionInfo) => e.name));
     console.log('  - 表情設定:', expressionSettings);
     
-    const enabledExpressions = uniqueExpressions.filter((expr: any) => {
+    const enabledExpressions = uniqueExpressions.filter((expr: VRMExpressionInfo) => {
       const setting = expressionSettings[expr.name];
       const isEnabled = setting && setting.enabled;
       console.log(`  - ${expr.name}: 設定=${JSON.stringify(setting)}, 有効=${isEnabled}`);
@@ -1282,7 +1283,7 @@ async function generateDynamicToolsJson(): Promise<void> {
     }
     
     console.log('[Main] 有効な表情数:', enabledExpressions.length);
-    console.log('[Main] 有効な表情名:', enabledExpressions.map((e: any) => e.name));
+    console.log('[Main] 有効な表情名:', enabledExpressions.map((e: VRMExpressionInfo) => e.name));
     
     // ToolsServiceを使用してtools.jsonを読み込み
     const toolsService = ToolsService.getInstance();
@@ -1292,13 +1293,13 @@ async function generateDynamicToolsJson(): Promise<void> {
     const originalTools = toolsService.getTools();
     
     // set_expression関数の説明を動的更新
-    const setExpressionTool = originalTools.find((tool: any) => tool.name === 'set_expression');
+    const setExpressionTool = originalTools.find((tool: ToolsConfig[0]) => tool.name === 'set_expression');
     if (setExpressionTool && enabledExpressions.length > 0) {
-      const expressionNames = enabledExpressions.map((expr: any) => expr.name).join(', ');
+      const expressionNames = enabledExpressions.map((expr: VRMExpressionInfo) => expr.name).join(', ');
       setExpressionTool.description = `VRMマスコットの表情を設定します。利用可能な表情: ${expressionNames}`;
       
       // enumに有効な表情名を追加
-      setExpressionTool.parameters.properties.expression_name.enum = enabledExpressions.map((expr: any) => expr.name);
+      setExpressionTool.parameters.properties.expression_name.enum = enabledExpressions.map((expr: VRMExpressionInfo) => expr.name);
     }
     
     // 動的tools.jsonを保存（複数の場所に保存して確実にアクセス可能にする）
