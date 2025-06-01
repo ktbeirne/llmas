@@ -40,7 +40,8 @@
       "Bash(mv:*)",
       "Bash(npm outdated)",
       "Bash(npm update:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": []
   }
