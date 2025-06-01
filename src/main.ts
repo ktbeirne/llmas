@@ -17,6 +17,10 @@ import { setupExpressionHandlers } from './main/handlers/ExpressionHandlers';
 import { setupThemeHandlers } from './main/handlers/ThemeHandlers';
 import { setupCommunicationHandlers } from './main/handlers/CommunicationHandlers';
 import { generateDynamicToolsJson } from './main/services/DynamicToolsGenerator';
+import { SettingsHandler } from './main/ipc/handlers/SettingsHandler';
+import { ChatHandler } from './main/ipc/handlers/ChatHandler';
+import { VRMHandler } from './main/ipc/handlers/VRMHandler';
+import { IPCErrorHandler } from './main/ipc/IPCErrorHandler';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -38,6 +42,11 @@ const windowManagerController = new WindowManagerController(
   settingsStore,
   speechBubbleManager
 );
+
+// 新しいIPCハンドラーシステム
+const settingsHandler = new SettingsHandler(settingsStore, windowManagerController);
+const chatHandler = new ChatHandler(settingsStore, windowManagerController);
+const vrmHandler = new VRMHandler(windowManagerController);
 
 // FunctionCallHandlerにWindowManagerを注入
 const functionCallHandler = FunctionCallHandler.getInstance();
@@ -88,221 +97,27 @@ async function initializeAPI(): Promise<void> {
  * IPCハンドラーの設定
  */
 function setupIPCHandlers(): void {
-  // コミュニケーション関連のIPCハンドラーを設定
-  setupCommunicationHandlers(windowManagerController, settingsStore);
-
-  // チャットウィンドウの表示切り替え
-  ipcMain.on('toggle-chat-visibility', () => {
-    windowManagerController.toggleChatWindow();
-  });
-
-  // アプリケーション終了
-  ipcMain.on('quit-app', () => {
-    console.log('アプリケーション終了リクエストを受信しました');
-    // すべてのウィンドウを閉じる
-    BrowserWindow.getAllWindows().forEach(window => window.close());
-    // アプリケーションを終了
-    app.quit();
-  });
-
-  // 設定ウィンドウのトグル
-  ipcMain.on('toggle-settings-window', () => {
-    windowManagerController.toggleSettingsWindow();
-  });
-
-  // 設定ウィンドウを開く
-  ipcMain.on('open-settings', () => {
-    const settingsController = windowManagerController.getSettingsWindowController();
-    settingsController.show();
-  });
-
-  // 設定ウィンドウを閉じる
-  ipcMain.on('close-settings', () => {
-    const settingsController = windowManagerController.getSettingsWindowController();
-    settingsController.close();
-  });
-
-  // 設定の取得
-  ipcMain.handle('get-settings', async () => {
-    return settingsStore.getAllSettings();
-  });
-
-  // 設定の保存
-  ipcMain.handle('save-settings', async (_event: IpcMainInvokeEvent, settings: SettingsData) => {
-    try {
-      settingsStore.saveAllSettings(settings);
-      
-      // メインウィンドウのサイズを更新
-      const mainWindow = windowManagerController.getMainWindow();
-      if (mainWindow && settings.windowSize) {
-        mainWindow.setSize(settings.windowSize.width, settings.windowSize.height);
-      }
-      
-      // VRMモデルの更新（実装が必要）
-      if (settings.vrmModelPath) {
-        // TODO: VRMモデルの読み込み処理を実装
-        console.log('VRMモデルパスが更新されました:', settings.vrmModelPath);
-      }
-      
-      return { success: true };
-    } catch (error) {
-      console.error('設定の保存エラー:', error);
-      throw error;
-    }
-  });
-
-  // 設定のリセット
-  ipcMain.handle('reset-settings', async () => {
-    settingsStore.resetToDefaults();
-    return settingsStore.getAllSettings();
-  });
-
-  // VRMファイル選択ダイアログ
-  ipcMain.handle('select-vrm-file', async () => {
-    const result = await dialog.showOpenDialog({
-      title: 'VRMファイルを選択',
-      filters: [
-        { name: 'VRM Files', extensions: ['vrm'] },
-        { name: 'All Files', extensions: ['*'] }
-      ],
-      properties: ['openFile']
-    });
-    
-    if (!result.canceled && result.filePaths.length > 0) {
-      return result.filePaths[0];
-    }
-    
-    return null;
-  });
-
-
-  // カメラ設定関連のIPCハンドラー
-  ipcMain.handle(IPC_CHANNELS.CAMERA.GET_SETTINGS, async () => {
-    try {
-      return settingsStore.getCameraSettings();
-    } catch (error) {
-      console.error('カメラ設定の取得エラー:', error);
-      throw error;
-    }
-  });
-
-  ipcMain.handle(IPC_CHANNELS.CAMERA.SET_SETTINGS, async (_event: IpcMainInvokeEvent, settings: CameraSettings) => {
-    try {
-      settingsStore.setCameraSettings(settings);
-      return { success: true };
-    } catch (error) {
-      console.error('カメラ設定の保存エラー:', error);
-      throw error;
-    }
-  });
-
-  ipcMain.handle(IPC_CHANNELS.CAMERA.RESET_SETTINGS, async () => {
-    try {
-      settingsStore.resetDisplaySettings();
-      return { success: true };
-    } catch (error) {
-      console.error('カメラ設定のリセットエラー:', error);
-      throw error;
-    }
-  });
-
-  // ウィンドウ位置関連のIPCハンドラー
-  ipcMain.handle(IPC_CHANNELS.WINDOW.GET_MAIN_BOUNDS, async () => {
-    try {
-      return settingsStore.getMainWindowBounds();
-    } catch (error) {
-      console.error('メインウィンドウ位置の取得エラー:', error);
-      throw error;
-    }
-  });
-
-  ipcMain.handle(IPC_CHANNELS.WINDOW.SET_MAIN_BOUNDS, async (_event: IpcMainInvokeEvent, bounds: WindowBounds) => {
-    try {
-      settingsStore.setMainWindowBounds(bounds);
-      return { success: true };
-    } catch (error) {
-      console.error('メインウィンドウ位置の保存エラー:', error);
-      throw error;
-    }
-  });
-
-  ipcMain.handle(IPC_CHANNELS.WINDOW.GET_CHAT_BOUNDS, async () => {
-    try {
-      return settingsStore.getChatWindowBounds();
-    } catch (error) {
-      console.error('チャットウィンドウ位置の取得エラー:', error);
-      throw error;
-    }
-  });
-
-  ipcMain.handle(IPC_CHANNELS.WINDOW.SET_CHAT_BOUNDS, async (_event: IpcMainInvokeEvent, bounds: WindowBounds) => {
-    try {
-      settingsStore.setChatWindowBounds(bounds);
-      return { success: true };
-    } catch (error) {
-      console.error('チャットウィンドウ位置の保存エラー:', error);
-      throw error;
-    }
-  });
-
-  ipcMain.handle(IPC_CHANNELS.WINDOW.GET_CHAT_VISIBLE, async () => {
-    try {
-      return settingsStore.getChatWindowVisible();
-    } catch (error) {
-      console.error('チャットウィンドウ表示状態の取得エラー:', error);
-      throw error;
-    }
-  });
-
-  ipcMain.handle(IPC_CHANNELS.WINDOW.SET_CHAT_VISIBLE, async (_event: IpcMainInvokeEvent, visible: boolean) => {
-    try {
-      settingsStore.setChatWindowVisible(visible);
-      return { success: true };
-    } catch (error) {
-      console.error('チャットウィンドウ表示状態の保存エラー:', error);
-      throw error;
-    }
-  });
-
-  // 画面表示設定の一括操作
-  ipcMain.handle(IPC_CHANNELS.DISPLAY.SAVE_ALL_SETTINGS, async (_event: IpcMainInvokeEvent, settings: SettingsData) => {
-    try {
-      if (settings.cameraSettings) {
-        settingsStore.setCameraSettings(settings.cameraSettings);
-      }
-      if (settings.mainWindowBounds) {
-        settingsStore.setMainWindowBounds(settings.mainWindowBounds);
-      }
-      if (settings.chatWindowBounds) {
-        settingsStore.setChatWindowBounds(settings.chatWindowBounds);
-      }
-      if (typeof settings.chatWindowVisible === 'boolean') {
-        settingsStore.setChatWindowVisible(settings.chatWindowVisible);
-      }
-      return { success: true };
-    } catch (error) {
-      console.error('画面表示設定の一括保存エラー:', error);
-      throw error;
-    }
-  });
-
-  ipcMain.handle(IPC_CHANNELS.DISPLAY.RESET_ALL_SETTINGS, async () => {
-    try {
-      settingsStore.resetDisplaySettings();
-      return { success: true };
-    } catch (error) {
-      console.error('画面表示設定のリセットエラー:', error);
-      throw error;
-    }
-  });
-
-
-
-  // 表情関連のIPCハンドラーを設定
-  setupExpressionHandlers(windowManagerController, settingsStore);
+  console.log('[Main] 新しいIPC構造でハンドラーを設定中...');
   
-  // テーマ関連のIPCハンドラーを設定
-  setupThemeHandlers(settingsStore);
+  try {
+    // 新しいIPCハンドラーシステムを登録
+    settingsHandler.setupHandlers();
+    chatHandler.setupHandlers();
+    vrmHandler.setupHandlers();
+    
+    // 既存のハンドラーを設定（段階的移行）
+    setupExpressionHandlers(windowManagerController, settingsStore);
+    setupThemeHandlers(settingsStore);
+    
+    // 注意: CommunicationHandlersは段階的にChatHandlerに移行済み
+    // 重複を避けるため、CommunicationHandlersの呼び出しをコメントアウト
+    // setupCommunicationHandlers(windowManagerController, settingsStore);
+    
+    console.log('[Main] 新しいIPC構造でのハンドラー設定が完了しました');
+  } catch (error) {
+    const errorResponse = IPCErrorHandler.handleError(error, 'Main', 'setupIPCHandlers');
+    console.error('[Main] IPCハンドラー設定中にエラーが発生:', errorResponse);
+  }
 }
 
 
