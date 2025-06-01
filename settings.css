@@ -1,4 +1,75 @@
 /* ========================================
+   ウィンドウドラッグ領域の設定
+======================================== */
+
+/* ドラッグエリアの明確化：背景部分をドラッグ可能に */
+#settings-container {
+    -webkit-app-region: drag;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 15px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    position: relative;
+}
+
+/* 設定画面の背景にドラッグ領域を追加 */
+#settings-container::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    -webkit-app-region: drag;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* タブボタンはクリック可能にするためno-drag */
+.tab-button {
+    -webkit-app-region: no-drag;
+}
+
+/* 全てのインタラクティブ要素を明示的にno-dragに設定 */
+button,
+input,
+textarea,
+select,
+.tab-content,
+.tab-pane,
+.expression-list,
+.expression-item,
+.preview-controls,
+section,
+main,
+footer,
+#chat-tab,
+#names-section,
+.setting-group,
+#user-name,
+#mascot-name,
+#system-prompt-core,
+#system-prompt-section,
+#expressions-tab,
+#display-tab,
+.form-group,
+.input-group {
+    -webkit-app-region: no-drag !important;
+}
+
+/* 強制的なno-drag設定 */
+.force-no-drag {
+    -webkit-app-region: no-drag !important;
+    pointer-events: auto !important;
+}
+
+/* ========================================
    折りたたみ要素のスタイル
 ======================================== */
 
@@ -71,16 +142,7 @@ body {
     transition: background-color var(--transition-duration) var(--transition-timing);
 }
 
-#settings-container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 15px;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    overflow-y: auto;
-}
+/* #settings-container は上部で定義済み */
 
 
 /* タブコンテナ */
@@ -133,13 +195,15 @@ body {
 .tab-content {
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
+    overflow: hidden;
 }
 
 .tab-pane {
     display: none;
+    height: calc(100vh - 200px);
     overflow-y: auto;
-    max-height: calc(100vh - 200px);
+    padding-right: 10px;
+    box-sizing: border-box;
 }
 
 .tab-pane.active {
@@ -149,7 +213,7 @@ body {
 main {
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
+    overflow: hidden;
 }
 
 section {
@@ -500,4 +564,236 @@ small {
     .theme-card {
         padding: 16px;
     }
+}
+
+/* ========================================
+   表情設定タブのスタイル
+======================================== */
+
+.expression-list {
+    /* 二重スクロール解消：高さ制限とスクロールを削除 */
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    background-color: var(--color-surface);
+}
+
+.expression-item {
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+    background-color: var(--color-surface-secondary);
+    transition: all var(--transition-duration) var(--transition-timing);
+}
+
+.expression-item:last-child {
+    margin-bottom: 0;
+}
+
+.expression-item:hover {
+    background-color: var(--color-surface);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.expression-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.expression-checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex: 1;
+}
+
+.expression-checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-primary);
+}
+
+.expression-checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    min-width: auto;
+    cursor: pointer;
+}
+
+.expression-name {
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+
+.expression-type {
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.expression-type.preset {
+    background-color: var(--color-primary);
+    color: var(--color-text-inverse);
+}
+
+.expression-type.custom {
+    background-color: var(--color-accent);
+    color: var(--color-text-inverse);
+}
+
+.expression-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.slider-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex: 1;
+}
+
+.slider-group label {
+    min-width: 100px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+}
+
+.slider-group input[type="range"] {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--color-border);
+    outline: none;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.slider-group input[type="range"]:hover {
+    opacity: 1;
+}
+
+.slider-group input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slider-group input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.weight-value {
+    min-width: 40px;
+    text-align: center;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    background-color: var(--color-surface);
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--color-border);
+}
+
+.preview-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    padding: var(--spacing-md);
+    background-color: var(--color-surface-secondary);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+}
+
+.preview-controls select {
+    min-width: 150px;
+}
+
+.loading-message,
+.error-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-md);
+    font-size: 14px;
+}
+
+.loading-message {
+    background-color: var(--color-surface-secondary);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+}
+
+.error-message {
+    background-color: #fee;
+    color: #c53030;
+    border: 1px solid #feb2b2;
+}
+
+.setting-info {
+    background-color: var(--color-surface-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-md);
+}
+
+.setting-info h4 {
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--color-text-primary);
+    font-size: 16px;
+}
+
+.setting-info ul {
+    margin: 0;
+    padding-left: var(--spacing-md);
+}
+
+.setting-info li {
+    margin-bottom: var(--spacing-xs);
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+}
+
+.subsection-description {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-sm);
+}/* ========================================
+   タブ専用ボタングループのスタイル
+======================================== */
+
+.tab-button-group {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--color-border);
+}
+
+.tab-button-group button {
+    min-width: 120px;
 }

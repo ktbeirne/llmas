@@ -71,6 +71,19 @@ html {
   z-index: 1;
   transition: background-color var(--transition-duration) var(--transition-timing);
   border-top: 1px solid var(--color-border);
+  position: relative;
+}
+
+/* アイコンエリアの背景部分に十分なドラッグ領域を確保 */
+#icon-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  -webkit-app-region: drag;
+  z-index: -1;
 }
 
 #toggle-chat-icon {

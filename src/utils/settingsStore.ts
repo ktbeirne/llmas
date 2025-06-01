@@ -1,6 +1,7 @@
 import Store from 'electron-store';
 import path from 'path';
 import { ChatHistoryStore } from './chatHistoryStore';
+import { ExpressionSettings } from '../types/tools';
 
 export interface WindowSizeSettings {
     width: number;
@@ -32,6 +33,8 @@ export interface SettingsData {
     mascotName?: string;
     systemPromptCore?: string;
     theme?: string;
+    expressionSettings?: ExpressionSettings;
+    defaultExpression?: string;
 }
 
 export const WINDOW_PRESETS = {
@@ -63,7 +66,27 @@ export class SettingsStore {
                 userName: 'User',
                 mascotName: 'Mascot',
                 systemPromptCore: 'あなたは親しみやすいデスクトップマスコットです。ユーザーとの会話を楽しみ、役立つ情報を提供してください。',
-                theme: 'default'
+                theme: 'default',
+                defaultExpression: 'neutral',
+                expressionSettings: {
+                    'happy': { enabled: true, defaultWeight: 1.0 },
+                    'sad': { enabled: true, defaultWeight: 1.0 },
+                    'angry': { enabled: true, defaultWeight: 1.0 },
+                    'surprised': { enabled: true, defaultWeight: 1.0 },
+                    'relaxed': { enabled: true, defaultWeight: 1.0 },
+                    'neutral': { enabled: true, defaultWeight: 1.0 },
+                    'fun': { enabled: true, defaultWeight: 1.0 },
+                    'joy': { enabled: true, defaultWeight: 1.0 },
+                    'sorrow': { enabled: true, defaultWeight: 1.0 },
+                    'aa': { enabled: true, defaultWeight: 1.0 },
+                    'ih': { enabled: true, defaultWeight: 1.0 },
+                    'ou': { enabled: true, defaultWeight: 1.0 },
+                    'ee': { enabled: true, defaultWeight: 1.0 },
+                    'oh': { enabled: true, defaultWeight: 1.0 },
+                    'blink': { enabled: true, defaultWeight: 1.0 },
+                    'blinkL': { enabled: true, defaultWeight: 1.0 },
+                    'blinkR': { enabled: true, defaultWeight: 1.0 }
+                }
             }
         });
         this.chatHistoryStore = new ChatHistoryStore();
@@ -71,6 +94,12 @@ export class SettingsStore {
         // デバッグ用：ストアの場所と現在のデータを出力
         console.log('[SettingsStore] 設定ファイル保存場所:', this.store.path);
         console.log('[SettingsStore] 現在保存されているデータ:', this.store.store);
+        
+        // 既存ユーザーの設定に表情設定がない場合は初期化
+        this.initializeExpressionSettingsIfMissing();
+        
+        // 強制的に設定を保存して確実に永続化
+        this.store.store;
     }
 
     getWindowSize(): WindowSizeSettings {
@@ -296,5 +325,106 @@ export class SettingsStore {
 
     setTheme(theme: string): void {
         this.store.set('theme', theme);
+    }
+
+    // 表情設定関連のメソッド
+    getExpressionSettings(): ExpressionSettings {
+        return this.store.get('expressionSettings', {}) as ExpressionSettings;
+    }
+
+    setExpressionSettings(settings: ExpressionSettings): void {
+        this.store.set('expressionSettings', settings);
+    }
+
+    updateExpressionSetting(expressionName: string, enabled: boolean, defaultWeight: number): void {
+        const currentSettings = this.getExpressionSettings();
+        currentSettings[expressionName] = {
+            enabled,
+            defaultWeight: Math.max(0, Math.min(1, defaultWeight))
+        };
+        this.setExpressionSettings(currentSettings);
+    }
+
+    getExpressionSetting(expressionName: string): { enabled: boolean; defaultWeight: number } | null {
+        const settings = this.getExpressionSettings();
+        return settings[expressionName] || null;
+    }
+
+    removeExpressionSetting(expressionName: string): void {
+        const currentSettings = this.getExpressionSettings();
+        delete currentSettings[expressionName];
+        this.setExpressionSettings(currentSettings);
+    }
+
+    resetExpressionSettings(): void {
+        this.store.delete('expressionSettings');
+    }
+
+    // 有効な表情のリストを取得
+    getEnabledExpressions(): string[] {
+        const settings = this.getExpressionSettings();
+        return Object.keys(settings).filter(name => settings[name].enabled);
+    }
+
+    // 表情のデフォルトウェイトを取得（設定されていない場合は1.0）
+    getExpressionDefaultWeight(expressionName: string): number {
+        const setting = this.getExpressionSetting(expressionName);
+        return setting ? setting.defaultWeight : 1.0;
+    }
+
+    // 表情が有効かどうかをチェック
+    isExpressionEnabled(expressionName: string): boolean {
+        const setting = this.getExpressionSetting(expressionName);
+        const result = setting ? setting.enabled : false;
+        console.log(`[SettingsStore] isExpressionEnabled('${expressionName}'): setting=${JSON.stringify(setting)}, result=${result}`);
+        return result;
+    }
+
+    // 既存ユーザーの設定に表情設定がない場合は基本的な表情を初期化
+    private initializeExpressionSettingsIfMissing(): void {
+        const currentSettings = this.getExpressionSettings();
+        
+        // 表情設定が空またはundefinedの場合、デフォルト表情を設定
+        if (!currentSettings || Object.keys(currentSettings).length === 0) {
+            console.log('[SettingsStore] 表情設定が見つからないため、基本表情を初期化します');
+            
+            const defaultExpressions = {
+                'happy': { enabled: true, defaultWeight: 1.0 },
+                'sad': { enabled: true, defaultWeight: 1.0 },
+                'angry': { enabled: true, defaultWeight: 1.0 },
+                'surprised': { enabled: true, defaultWeight: 1.0 },
+                'relaxed': { enabled: true, defaultWeight: 1.0 },
+                'neutral': { enabled: true, defaultWeight: 1.0 },
+                'fun': { enabled: true, defaultWeight: 1.0 },
+                'joy': { enabled: true, defaultWeight: 1.0 },
+                'sorrow': { enabled: true, defaultWeight: 1.0 },
+                'aa': { enabled: true, defaultWeight: 1.0 },
+                'ih': { enabled: true, defaultWeight: 1.0 },
+                'ou': { enabled: true, defaultWeight: 1.0 },
+                'ee': { enabled: true, defaultWeight: 1.0 },
+                'oh': { enabled: true, defaultWeight: 1.0 },
+                'blink': { enabled: true, defaultWeight: 1.0 },
+                'blinkL': { enabled: true, defaultWeight: 1.0 },
+                'blinkR': { enabled: true, defaultWeight: 1.0 }
+            };
+            
+            this.setExpressionSettings(defaultExpressions);
+            console.log('[SettingsStore] 基本表情の初期化が完了しました:', Object.keys(defaultExpressions));
+        } else {
+            console.log('[SettingsStore] 既存の表情設定を使用します:', Object.keys(currentSettings));
+        }
+    }
+
+    // デフォルト表情関連のメソッド
+    getDefaultExpression(): string {
+        return this.store.get('defaultExpression', 'neutral') as string;
+    }
+
+    setDefaultExpression(expressionName: string): void {
+        if (!expressionName || typeof expressionName !== 'string') {
+            throw new Error('無効な表情名です');
+        }
+        this.store.set('defaultExpression', expressionName);
+        console.log(`[SettingsStore] デフォルト表情を '${expressionName}' に設定しました`);
     }
 }

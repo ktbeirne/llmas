@@ -1,6 +1,9 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold, GenerativeModel, Content } from '@google/generative-ai';
 import { ChatHistoryStore, ChatMessage } from './utils/chatHistoryStore';
 import { SettingsStore } from './utils/settingsStore';
+import { ToolsService } from './services/toolsService';
+import { FunctionCallHandler } from './services/functionCallHandler';
+import { LLMFunctionCall } from './types/tools';
 
 /**
  * Gemini APIサービスクラス
@@ -12,10 +15,14 @@ export class GeminiService {
   private isInitialized = false;
   private chatHistory: ChatHistoryStore;
   private settingsStore: SettingsStore;
+  private toolsService: ToolsService;
+  private functionCallHandler: FunctionCallHandler;
 
   private constructor() {
     this.chatHistory = new ChatHistoryStore();
     this.settingsStore = new SettingsStore();
+    this.toolsService = ToolsService.getInstance();
+    this.functionCallHandler = FunctionCallHandler.getInstance();
   }
 
   /**
@@ -31,7 +38,7 @@ export class GeminiService {
   /**
    * Geminiサービスを初期化
    */
-  initialize(apiKey: string): void {
+  async initialize(apiKey: string): Promise<void> {
     if (!apiKey) {
       throw new Error('APIキーが指定されていません');
     }
@@ -41,8 +48,34 @@ export class GeminiService {
       return;
     }
 
+    await this.performInitialization(apiKey);
+  }
+
+  /**
+   * Geminiサービスを強制的に再初期化
+   */
+  async reinitialize(apiKey: string): Promise<void> {
+    if (!apiKey) {
+      throw new Error('APIキーが指定されていません');
+    }
+
+    console.log('Gemini Service を強制再初期化中...');
+    this.isInitialized = false; // 初期化フラグをリセット
+    await this.performInitialization(apiKey);
+  }
+
+  /**
+   * 実際の初期化処理
+   */
+  private async performInitialization(apiKey: string): Promise<void> {
+
     try {
       this.genAI = new GoogleGenerativeAI(apiKey);
+      
+      // Function Calling用ツールを読み込み
+      await this.toolsService.loadTools();
+      const tools = this.toolsService.getToolsForGemini();
+      console.log('Function Calling用ツールを読み込み:', tools.length, '個');
       
       // 最終的なシステムプロンプトを構築
       const finalSystemPrompt = this.settingsStore.buildFinalSystemPrompt();
@@ -51,17 +84,14 @@ export class GeminiService {
       this.model = this.genAI.getGenerativeModel({
         model: 'gemini-2.5-flash-preview-05-20',
         systemInstruction: finalSystemPrompt,
-        safetySettings: [
-          { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-          { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-        ],
+        tools: tools.length > 0 ? tools : undefined,
       });
       
       // ChatHistoryStoreにも設定
       this.chatHistory.setSystemPrompt(finalSystemPrompt);
       
       this.isInitialized = true;
-      console.log('Gemini Service が正常に初期化されました');
+      console.log('Gemini Service が正常に初期化されました（Function Calling対応）');
     } catch (error) {
       this.isInitialized = false;
       throw new Error(`Gemini Service の初期化に失敗しました: ${error instanceof Error ? error.message : '不明なエラー'}`);
@@ -92,11 +122,39 @@ export class GeminiService {
       console.log('Geminiに送信する会話履歴:', contents);
       const result = await this.model.generateContent({ contents });
       const response = result.response;
-      const text = response.text();
       
-      this.chatHistory.addMessage('assistant', text);
-      console.log('Geminiからの返答:', text);
-      return text;
+      // Function Callがあるかチェック
+      const functionCalls = this.extractFunctionCalls(response);
+      
+      if (functionCalls.length > 0) {
+        console.log('Function Callが検出されました:', functionCalls);
+        
+        // Function Callを実行
+        const functionResults = await this.functionCallHandler.executeFunctions(functionCalls);
+        
+        // 結果をLLM用に整形
+        const functionResultText = this.functionCallHandler.formatResultsForLLM(functionCalls, functionResults);
+        
+        // Function Call結果を含めて再度LLMに送信
+        const followUpContents = [...contents, 
+          { role: 'model', parts: [{ text: 'Function Call実行中...' }] },
+          { role: 'user', parts: [{ text: `Function Call実行結果:\n${functionResultText}` }] }
+        ];
+        
+        console.log('Function Call結果を含めて再送信:', followUpContents);
+        const followUpResult = await this.model.generateContent({ contents: followUpContents });
+        const finalResponse = followUpResult.response.text();
+        
+        this.chatHistory.addMessage('assistant', finalResponse);
+        console.log('Function Call処理後の最終応答:', finalResponse);
+        return finalResponse;
+      } else {
+        // 通常の応答
+        const text = response.text();
+        this.chatHistory.addMessage('assistant', text);
+        console.log('Geminiからの返答:', text);
+        return text;
+      }
     } catch (error) {
       console.error('Gemini APIの呼び出し中にエラーが発生しました:', error);
       throw new Error(
@@ -167,10 +225,14 @@ export class GeminiService {
       const finalSystemPrompt = this.settingsStore.buildFinalSystemPrompt();
       console.log('システムプロンプトを更新:', finalSystemPrompt);
       
+      // ツールの再取得
+      const tools = this.toolsService.isToolsLoaded() ? this.toolsService.getToolsForGemini() : [];
+      
       // モデルを再作成
       this.model = this.genAI.getGenerativeModel({
         model: 'gemini-2.5-flash-preview-05-20',
         systemInstruction: finalSystemPrompt,
+        tools: tools.length > 0 ? tools : undefined,
         safetySettings: [
           { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
           { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
@@ -199,13 +261,49 @@ export class GeminiService {
   isReady(): boolean {
     return this.isInitialized;
   }
+
+  /**
+   * Gemini APIのレスポンスからFunction Callを抽出
+   */
+  private extractFunctionCalls(response: any): LLMFunctionCall[] {
+    const functionCalls: LLMFunctionCall[] = [];
+    
+    try {
+      // Gemini APIのFunction Call形式に応じて解析
+      const candidates = response.candidates || [];
+      
+      for (const candidate of candidates) {
+        const content = candidate.content;
+        if (!content || !content.parts) continue;
+        
+        for (const part of content.parts) {
+          if (part.functionCall) {
+            const functionCall: LLMFunctionCall = {
+              name: part.functionCall.name,
+              args: part.functionCall.args || {}
+            };
+            functionCalls.push(functionCall);
+            console.log('Function Call抽出:', functionCall);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Function Call抽出エラー:', error);
+    }
+    
+    return functionCalls;
+  }
 }
 
 // 後方互換性のための関数
 const geminiService = GeminiService.getInstance();
 
-export function initializeGemini(apiKey: string): void {
-  geminiService.initialize(apiKey);
+export async function initializeGemini(apiKey: string): Promise<void> {
+  return geminiService.initialize(apiKey);
+}
+
+export async function reinitializeGemini(apiKey: string): Promise<void> {
+  return geminiService.reinitialize(apiKey);
 }
 
 export async function generateTextFromGemini(prompt: string): Promise<string> {

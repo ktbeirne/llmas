@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>設定デバッグ</title>
+    <link rel="stylesheet" href="src/styles/design-system.css">
+    <link rel="stylesheet" href="src/styles/components.css">
+    <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+    <div id="settings-container">
+        <div class="tab-container">
+            <div class="tab-header">
+                <button class="tab-button active" data-tab="display">画面表示設定</button>
+                <button class="tab-button" data-tab="chat">会話設定</button>
+                <button class="tab-button" data-tab="expressions">表情・アニメーション設定</button>
+            </div>
+            
+            <main class="tab-content">
+                <!-- 会話設定タブ -->
+                <div class="tab-pane active" id="chat-tab">
+                    <section id="names-section">
+                        <h2>ユーザーとマスコットの名前</h2>
+                        <p class="section-description">あなたの名前とマスコットの名前を設定してください</p>
+                        
+                        <div class="setting-group">
+                            <label for="user-name">あなたの名前（ユーザー名）:</label>
+                            <input type="text" id="user-name" placeholder="User" maxlength="50" value="TestUser">
+                        </div>
+                        
+                        <div class="setting-group">
+                            <label for="mascot-name">マスコットの名前:</label>
+                            <input type="text" id="mascot-name" placeholder="Mascot" maxlength="50" value="TestMascot">
+                        </div>
+                    </section>
+                    
+                    <section id="system-prompt-section">
+                        <h2>システムプロンプト（キャラクターの性格・役割）</h2>
+                        <div class="setting-group">
+                            <textarea id="system-prompt-core" placeholder="テストプロンプト" rows="4">あなたは親しみやすいAIアシスタントです。</textarea>
+                        </div>
+                        
+                        <div class="setting-group character-count-container">
+                            <small class="character-count">文字数: <span id="prompt-character-count">0</span></small>
+                            <small class="performance-warning" id="performance-warning" style="display: none;">
+                                ⚠️ 入力トークンが長すぎるとモデルのパフォーマンスに影響が出る可能性があります
+                            </small>
+                        </div>
+                    </section>
+                    
+                    <!-- 会話設定タブ専用ボタン -->
+                    <div class="tab-button-group">
+                        <button id="apply-chat-settings" type="button" class="primary">会話設定を適用</button>
+                        <button id="reset-chat-settings" type="button" class="secondary">会話設定をリセット</button>
+                    </div>
+                </div>
+                
+                <!-- 表情設定タブ -->
+                <div class="tab-pane" id="expressions-tab">
+                    <section id="expression-settings-section">
+                        <h2>🎭 表情制御設定</h2>
+                        
+                        <div class="setting-group">
+                            <div id="expression-loading" class="loading-message" style="display: none;">
+                                <span>VRMモデルから表情情報を読み込み中...</span>
+                            </div>
+                            
+                            <div id="expression-list" class="expression-list">
+                                <div class="expression-item" data-expression="happy">
+                                    <div class="expression-header">
+                                        <div class="expression-checkbox-group">
+                                            <input type="checkbox" id="expr-happy" checked>
+                                            <label for="expr-happy">
+                                                <span class="expression-name">Happy</span>
+                                            </label>
+                                        </div>
+                                        <span class="expression-type preset">プリセット</span>
+                                    </div>
+                                    <div class="expression-controls">
+                                        <div class="slider-group">
+                                            <label for="weight-happy">デフォルト強度:</label>
+                                            <input type="range" id="weight-happy" min="0" max="1" step="0.1" value="1.0">
+                                            <span class="weight-value">1.0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="expression-error" class="error-message" style="display: none;">
+                                <span>表情情報の読み込みに失敗しました。</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 表情・アニメーション設定タブ専用ボタン -->
+                        <div class="tab-button-group">
+                            <button id="apply-expression-settings" type="button" class="primary">適用</button>
+                            <button id="reset-expression-settings" type="button" class="secondary">リセット</button>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+        
+        <footer>
+            <div class="button-group">
+                <button id="close-settings" type="button" class="secondary">閉じる</button>
+            </div>
+        </footer>
+    </div>
+    
+    <div id="debug-console" style="position: fixed; bottom: 10px; right: 10px; width: 400px; height: 300px; background: white; border: 1px solid #ccc; padding: 10px; font-family: monospace; font-size: 12px; overflow-y: scroll; z-index: 1000;">
+        <h4>Debug Console</h4>
+        <div id="debug-log"></div>
+    </div>
+    
+    <script type="module">
+        // Mock electronAPI for testing
+        window.electronAPI = {
+            setUserName: async (userName) => {
+                console.log('Mock setUserName called with:', userName);
+                return { success: true };
+            },
+            setMascotName: async (mascotName) => {
+                console.log('Mock setMascotName called with:', mascotName);
+                return { success: true };
+            },
+            setSystemPromptCore: async (prompt) => {
+                console.log('Mock setSystemPromptCore called with:', prompt);
+                return { success: true };
+            },
+            setExpressionSettings: async (settings) => {
+                console.log('Mock setExpressionSettings called with:', settings);
+                return { success: true };
+            },
+            resetExpressionSettings: async () => {
+                console.log('Mock resetExpressionSettings called');
+                return { success: true };
+            },
+            getUserName: async () => 'TestUser',
+            getMascotName: async () => 'TestMascot',
+            getSystemPromptCore: async () => 'テストプロンプト'
+        };
+        
+        // Debug console
+        const debugLog = document.getElementById('debug-log');
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function addDebugMessage(type, ...args) {
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            const div = document.createElement('div');
+            div.style.color = type === 'error' ? 'red' : type === 'warn' ? 'orange' : 'black';
+            div.textContent = `[${type.toUpperCase()}] ${message}`;
+            debugLog.appendChild(div);
+            debugLog.scrollTop = debugLog.scrollHeight;
+        }
+        
+        console.log = (...args) => {
+            originalLog.apply(console, args);
+            addDebugMessage('log', ...args);
+        };
+        
+        console.error = (...args) => {
+            originalError.apply(console, args);
+            addDebugMessage('error', ...args);
+        };
+        
+        console.warn = (...args) => {
+            originalWarn.apply(console, args);
+            addDebugMessage('warn', ...args);
+        };
+        
+        console.log('Debug page loaded. electronAPI available:', !!window.electronAPI);
+    </script>
+    <script type="module" src="/src/settings-renderer.ts"></script>
+</body>
+</html>
