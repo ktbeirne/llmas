@@ -1,4 +1,4 @@
-import { ElectronAPI } from './preload.d.ts';
+import type { ElectronAPI } from './preload.types';
 declare global {
   interface Window {
     electronAPI: ElectronAPI;
@@ -13,52 +13,52 @@ interface WindowSizeSettings {
 
 class SettingsRenderer {
     // 既存のプロパティ
-    private presetSelect: HTMLSelectElement;
-    private customWidthInput: HTMLInputElement;
-    private customHeightInput: HTMLInputElement;
-    private customSizeInputs: HTMLElement;
-    private currentVrmPath: HTMLInputElement;
-    private applyButton: HTMLButtonElement;
-    private resetButton: HTMLButtonElement;
-    private closeButton: HTMLButtonElement;
-    private selectVrmButton: HTMLButtonElement;
+    private presetSelect!: HTMLSelectElement;
+    private customWidthInput!: HTMLInputElement;
+    private customHeightInput!: HTMLInputElement;
+    private customSizeInputs!: HTMLElement;
+    private currentVrmPath!: HTMLInputElement;
+    private applyButton!: HTMLButtonElement;
+    private resetButton!: HTMLButtonElement;
+    private closeButton!: HTMLButtonElement;
+    private selectVrmButton!: HTMLButtonElement;
     
     // タブ専用ボタン
-    private applyDisplayButton: HTMLButtonElement;
-    private resetDisplayButton: HTMLButtonElement;
-    private applyChatButton: HTMLButtonElement;
-    private resetChatButton: HTMLButtonElement;
-    private applyExpressionButton: HTMLButtonElement;
-    private resetExpressionButton: HTMLButtonElement;
+    private applyDisplayButton!: HTMLButtonElement;
+    private resetDisplayButton!: HTMLButtonElement;
+    private applyChatButton!: HTMLButtonElement;
+    private resetChatButton!: HTMLButtonElement;
+    private applyExpressionButton!: HTMLButtonElement;
+    private resetExpressionButton!: HTMLButtonElement;
 
     // 新しいプロパティ
-    private tabButtons: NodeListOf<HTMLButtonElement>;
-    private tabPanes: NodeListOf<HTMLElement>;
+    private tabButtons!: NodeListOf<HTMLButtonElement>;
+    private tabPanes!: NodeListOf<HTMLElement>;
     private activeTab = 'display';
-    private userNameInput: HTMLInputElement;
-    private mascotNameInput: HTMLInputElement;
-    private systemPromptCoreTextarea: HTMLTextAreaElement;
-    private promptCharacterCount: HTMLElement;
-    private performanceWarning: HTMLElement;
-    private resetSystemPromptButton: HTMLButtonElement;
-    private clearChatHistoryButton: HTMLButtonElement;
-    private themeGrid: HTMLElement;
+    private userNameInput!: HTMLInputElement;
+    private mascotNameInput!: HTMLInputElement;
+    private systemPromptCoreTextarea!: HTMLTextAreaElement;
+    private promptCharacterCount!: HTMLElement;
+    private performanceWarning!: HTMLElement;
+    private resetSystemPromptButton!: HTMLButtonElement;
+    private clearChatHistoryButton!: HTMLButtonElement;
+    private themeGrid!: HTMLElement;
     private selectedTheme = 'default';
     private availableThemes: any[] = [];
     
     // 表情設定関連のプロパティ
     private expressionSettings: any = {};
     private availableExpressions: any[] = [];
-    private expressionList: HTMLElement;
-    private expressionLoading: HTMLElement;
-    private expressionError: HTMLElement;
-    private previewExpressionSelect: HTMLSelectElement;
-    private previewIntensity: HTMLInputElement;
-    private previewIntensityValue: HTMLElement;
-    private previewExpressionBtn: HTMLButtonElement;
-    private resetExpressionBtn: HTMLButtonElement;
-    private saveExpressionsBtn: HTMLButtonElement;
-    private resetExpressionsBtn: HTMLButtonElement;
+    private expressionList!: HTMLElement;
+    private expressionLoading!: HTMLElement;
+    private expressionError!: HTMLElement;
+    private previewExpressionSelect!: HTMLSelectElement;
+    private previewIntensity!: HTMLInputElement;
+    private previewIntensityValue!: HTMLElement;
+    private previewExpressionBtn!: HTMLButtonElement;
+    private resetExpressionBtn!: HTMLButtonElement;
+    private saveExpressionsBtn!: HTMLButtonElement;
+    private resetExpressionsBtn!: HTMLButtonElement;
     private isExpressionsInitialized = false;
 
     constructor() {
@@ -492,7 +492,7 @@ class SettingsRenderer {
             }
         } catch (error) {
             console.error('[DEBUG] saveChatSettings でエラー発生:', error);
-            console.error('[DEBUG] エラーの詳細:', error.stack);
+            console.error('[DEBUG] エラーの詳細:', error instanceof Error ? error.stack : String(error));
             throw error;
         }
     }
@@ -634,7 +634,7 @@ class SettingsRenderer {
 
             // preview が配列であることを確認
             const previewColors = Array.isArray(theme.preview) ? theme.preview : Object.values(theme.preview);
-            previewColors.forEach((color: string, index: number) => {
+            previewColors.forEach((color: string, _index: number) => {
                 const colorDiv = document.createElement('div');
                 colorDiv.className = 'theme-color';
                 colorDiv.style.backgroundColor = color;
@@ -895,7 +895,7 @@ class SettingsRenderer {
             
         } catch (error) {
             console.error('表情設定の初期化に失敗:', error);
-            this.showExpressionError(`表情設定の読み込みに失敗しました: ${error.message || error}`);
+            this.showExpressionError(`表情設定の読み込みに失敗しました: ${error instanceof Error ? error.message : String(error)}`);
             this.isExpressionsInitialized = false; // 再試行可能にする
         }
     }
@@ -1160,12 +1160,12 @@ class SettingsRenderer {
                 alert('表情設定をStoreに保存しました。');
             } else {
                 console.error('[DEBUG] 表情設定保存失敗:', result);
-                alert(`表情設定のStore保存に失敗しました: ${result ? result.error || 'Unknown error' : 'No result returned'}`);
+                alert(`表情設定のStore保存に失敗しました: ${result ? (result as any).error || 'Unknown error' : 'No result returned'}`);
             }
         } catch (error) {
             console.error('[DEBUG] saveExpressionSettings でエラー発生:', error);
-            console.error('[DEBUG] エラーの詳細:', error.stack);
-            alert(`表情設定の保存でエラーが発生しました: ${error.message}`);
+            console.error('[DEBUG] エラーの詳細:', error instanceof Error ? error.stack : String(error));
+            alert(`表情設定の保存でエラーが発生しました: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 
@@ -1204,116 +1204,6 @@ class SettingsRenderer {
         }
     }
     
-    // タブ専用ボタンのイベントリスナー設定
-    private setupTabSpecificButtonListeners(): void {
-        console.log('[DEBUG] タブ専用ボタンのイベントリスナーを設定中...');
-        
-        // DOMで直接ボタンを再取得してイベントリスナーを設定（初期化時にnullのあった要素を再取得）
-        setTimeout(() => {
-            console.log('[DEBUG] タブ専用ボタンをDOMから再取得中...');
-            
-            // 画面表示設定タブのボタン
-            const applyDisplayBtn = document.getElementById('apply-display-settings') as HTMLButtonElement;
-            const resetDisplayBtn = document.getElementById('reset-display-settings') as HTMLButtonElement;
-            
-            if (applyDisplayBtn) {
-                applyDisplayBtn.addEventListener('click', async () => {
-                    console.log('[DEBUG] 画面表示設定の適用ボタンがクリックされました');
-                    await this.applySettings();
-                });
-                console.log('[DEBUG] applyDisplayButtonのイベントリスナーを追加しました');
-            } else {
-                console.error('[DEBUG] apply-display-settingsボタンが見つかりません');
-            }
-            
-            if (resetDisplayBtn) {
-                resetDisplayBtn.addEventListener('click', async () => {
-                    console.log('[DEBUG] 画面表示設定のリセットボタンがクリックされました');
-                    await this.resetSettings();
-                });
-                console.log('[DEBUG] resetDisplayButtonのイベントリスナーを追加しました');
-            } else {
-                console.error('[DEBUG] reset-display-settingsボタンが見つかりません');
-            }
-            
-            // 会話設定タブのボタン
-            const applyChatBtn = document.getElementById('apply-chat-settings') as HTMLButtonElement;
-            const resetChatBtn = document.getElementById('reset-chat-settings') as HTMLButtonElement;
-            
-            if (applyChatBtn) {
-                console.log('[DEBUG] apply-chat-settingsボタンの詳細:', {
-                    id: applyChatBtn.id,
-                    className: applyChatBtn.className,
-                    textContent: applyChatBtn.textContent,
-                    disabled: applyChatBtn.disabled
-                });
-                applyChatBtn.addEventListener('click', async (event) => {
-                    console.log('[DEBUG] 会話設定の適用ボタンがクリックされました');
-                    console.log('[DEBUG] イベント詳細:', event);
-                    event.preventDefault();
-                    try {
-                        await this.applyChatSettings();
-                    } catch (error) {
-                        console.error('[DEBUG] applyChatSettings実行中にエラー:', error);
-                    }
-                });
-                console.log('[DEBUG] applyChatButtonのイベントリスナーを追加しました');
-            } else {
-                console.error('[DEBUG] apply-chat-settingsボタンが見つかりません');
-                console.log('[DEBUG] DOMを再確認:', document.getElementById('apply-chat-settings'));
-            }
-            
-            if (resetChatBtn) {
-                resetChatBtn.addEventListener('click', async () => {
-                    console.log('[DEBUG] 会話設定のリセットボタンがクリックされました');
-                    await this.resetChatSettings();
-                });
-                console.log('[DEBUG] resetChatButtonのイベントリスナーを追加しました');
-            } else {
-                console.error('[DEBUG] reset-chat-settingsボタンが見つかりません');
-            }
-            
-            // 表情・アニメーション設定タブのボタン（Store対応）
-            const applyExpressionBtn = document.getElementById('apply-expression-settings') as HTMLButtonElement;
-            const resetExpressionBtn = document.getElementById('reset-expression-settings') as HTMLButtonElement;
-            
-            if (applyExpressionBtn) {
-                console.log('[DEBUG] apply-expression-settingsボタンの詳細:', {
-                    id: applyExpressionBtn.id,
-                    className: applyExpressionBtn.className,
-                    textContent: applyExpressionBtn.textContent,
-                    disabled: applyExpressionBtn.disabled
-                });
-                applyExpressionBtn.addEventListener('click', async (event) => {
-                    console.log('[DEBUG] 表情設定の適用ボタンがクリックされました（Store保存）');
-                    console.log('[DEBUG] イベント詳細:', event);
-                    event.preventDefault();
-                    try {
-                        await this.saveExpressionSettings();
-                    } catch (error) {
-                        console.error('[DEBUG] saveExpressionSettings実行中にエラー:', error);
-                    }
-                });
-                console.log('[DEBUG] applyExpressionButtonのイベントリスナーを追加しました（Store保存対応）');
-            } else {
-                console.error('[DEBUG] apply-expression-settingsボタンが見つかりません');
-                console.log('[DEBUG] DOMを再確認:', document.getElementById('apply-expression-settings'));
-            }
-            
-            if (resetExpressionBtn) {
-                resetExpressionBtn.addEventListener('click', async () => {
-                    console.log('[DEBUG] 表情設定のリセットボタンがクリックされました（Store削除・イベント発行）');
-                    await this.resetExpressionSettings();
-                });
-                console.log('[DEBUG] resetExpressionButtonのイベントリスナーを追加しました（Store削除・イベント発行対応）');
-            } else {
-                console.error('[DEBUG] reset-expression-settingsボタンが見つかりません');
-            }
-            
-            console.log('[DEBUG] タブ専用ボタンのイベントリスナー設定完了');
-        }, 500); // DOMの読み込みを待つために少し遅らせる
-    }
-    
     // 会話設定のみを適用するメソッド
     private async applyChatSettings(): Promise<void> {
         try {
@@ -1339,8 +1229,8 @@ class SettingsRenderer {
             console.log('[DEBUG] applyChatSettings完了');
         } catch (error) {
             console.error('[DEBUG] applyChatSettings でエラー発生:', error);
-            console.error('[DEBUG] エラーの詳細:', error.stack);
-            alert(`会話設定の保存に失敗しました: ${error.message}`);
+            console.error('[DEBUG] エラーの詳細:', error instanceof Error ? error.stack : String(error));
+            alert(`会話設定の保存に失敗しました: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
     
@@ -1382,7 +1272,7 @@ class SettingsRenderer {
             this.showResetSuccessMessage('会話設定がリセットされました');
         } catch (error) {
             console.error('会話設定のリセットでエラー発生:', error);
-            alert(`会話設定のリセットに失敗しました: ${error.message}`);
+            alert(`会話設定のリセットに失敗しました: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
     
@@ -1475,41 +1365,6 @@ class SettingsRenderer {
             }, 100);
         } catch (error) {
             console.error('フォーム要素の復元でエラーが発生しました:', error);
-        }
-    }
-    
-    // ウィンドウフォーカスの強制回復メソッド
-    private forceWindowFocusRecovery(): void {
-        try {
-            // ウィンドウ自体にフォーカスを戻す
-            if (window.focus) {
-                window.focus();
-            }
-            
-            // documentにフォーカスイベントを発火
-            const focusEvent = new FocusEvent('focus', { bubbles: true });
-            document.dispatchEvent(focusEvent);
-            
-            // 短時間後にユーザー名入力フィールドに再度フォーカス
-            setTimeout(() => {
-                if (this.userNameInput) {
-                    // 強制的にフォーカス可能な状態にする
-                    this.userNameInput.tabIndex = 0;
-                    this.userNameInput.disabled = false;
-                    this.userNameInput.readOnly = false;
-                    
-                    // フォーカスを設定
-                    this.userNameInput.focus();
-                    this.userNameInput.click();
-                    
-                    // 選択状態にする
-                    if (this.userNameInput.select) {
-                        this.userNameInput.select();
-                    }
-                }
-            }, 100);
-        } catch (error) {
-            console.error('ウィンドウフォーカス回復でエラーが発生しました:', error);
         }
     }
     

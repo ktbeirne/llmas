@@ -33,7 +33,14 @@
       "Bash(node:*)",
       "Bash(curl:*)",
       "Bash(kill:*)",
-      "Bash(true)"
+      "Bash(true)",
+      "Bash(npm --version)",
+      "Bash(npm audit:*)",
+      "Bash(npm install:*)",
+      "Bash(mv:*)",
+      "Bash(npm outdated)",
+      "Bash(npm update:*)",
+      "Bash(sed:*)"
     ],
     "deny": []
   }

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { VRMUtils, VRMLoaderPlugin, VRM, VRMHumanBoneName } from '@pixiv/three-vrm'; 
 import { createVRMAnimationClip, VRMAnimationLoaderPlugin, VRMAnimation } from '@pixiv/three-vrm-animation';
+
 import { VRMExpressionInfo } from './types/tools';
 
 /**
@@ -254,7 +255,7 @@ export class VRMController {
     const customExpressions = this.currentVRM.expressionManager.customExpressionMap;
     
     Object.keys(allExpressions).forEach(name => {
-      const isPreset = !customExpressions.hasOwnProperty(name);
+      const isPreset = !Object.prototype.hasOwnProperty.call(customExpressions, name);
       expressions.push({
         name,
         displayName: this.getExpressionDisplayName(name),
@@ -329,13 +330,14 @@ export class VRMController {
    */
   private resetNonBasicExpressions(): void {
     if (!this.currentVRM?.expressionManager) return;
-
+    
+    const vrm = this.currentVRM;
     const basicExpressions = ['blink', 'blinkLeft', 'blinkRight', 'lookUp', 'lookDown', 'lookLeft', 'lookRight'];
-    const allExpressions = this.currentVRM.expressionManager.expressionMap;
+    const allExpressions = vrm.expressionManager!.expressionMap;
     
     Object.keys(allExpressions).forEach(name => {
       if (!basicExpressions.includes(name)) {
-        this.currentVRM!.expressionManager.setValue(name, 0.0);
+        vrm.expressionManager!.setValue(name, 0.0);
       }
     });
   }
@@ -357,10 +359,11 @@ export class VRMController {
   resetAllExpressions(): void {
     if (!this.currentVRM?.expressionManager) return;
 
-    const allExpressions = this.currentVRM.expressionManager.expressionMap;
+    const vrm = this.currentVRM;
+    const allExpressions = vrm.expressionManager!.expressionMap;
     Object.keys(allExpressions).forEach(name => {
       if (!name.startsWith('blink')) {
-        this.currentVRM!.expressionManager.setValue(name, 0.0);
+        vrm.expressionManager!.setValue(name, 0.0);
       }
     });
     

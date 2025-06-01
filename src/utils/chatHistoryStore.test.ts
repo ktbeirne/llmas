@@ -1,17 +1,18 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import { ChatHistoryStore } from './chatHistoryStore';
 
 // electron-store のモック
 vi.mock('electron-store', () => {
   const Store = vi.fn(() => ({
     store: new Map(),
-    get: vi.fn(function(key: string, defaultValue?: any) {
+    get: vi.fn(function(this: any, key: string, defaultValue?: any) {
       return this.store.get(key) ?? defaultValue;
     }),
-    set: vi.fn(function(key: string, value: any) {
+    set: vi.fn(function(this: any, key: string, value: any) {
       this.store.set(key, value);
     }),
-    clear: vi.fn(function() {
+    clear: vi.fn(function(this: any) {
       this.store.clear();
     })
   }));

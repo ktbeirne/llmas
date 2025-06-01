@@ -1,7 +1,10 @@
+
 import Store from 'electron-store';
-import path from 'path';
-import { ChatHistoryStore } from './chatHistoryStore';
+
 import { ExpressionSettings } from '../types/tools';
+
+import { ChatHistoryStore } from './chatHistoryStore';
+
 
 export interface WindowSizeSettings {
     width: number;
@@ -44,11 +47,11 @@ export const WINDOW_PRESETS = {
 } as const;
 
 export class SettingsStore {
-    private store: Store<SettingsData>;
+    private store: any;
     private chatHistoryStore: ChatHistoryStore;
 
     constructor() {
-        this.store = new Store<SettingsData>({
+        this.store = new Store({
             name: 'app-settings',
             defaults: {
                 windowSize: {
