@@ -1,5 +1,9 @@
 // src/preload.ts
 import { contextBridge, ipcRenderer } from 'electron';
+import { SettingsData, CameraSettings, WindowBounds } from './utils/settingsStore';
+import { ChatMessage } from './utils/chatHistoryStore';
+import { VRMExpressionInfo, ExpressionSettings } from './types/tools';
+import { ThemeInfo } from './types/ipc';
 
 contextBridge.exposeInMainWorld('electronAPI', {
     sendPromptToGemini: async (prompt: string): Promise<string> => {
@@ -50,11 +54,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.send('toggle-settings-window');
     },
 
-    getSettings: async (): Promise<any> => {
+    getSettings: async (): Promise<SettingsData> => {
         return await ipcRenderer.invoke('get-settings');
     },
 
-    saveSettings: async (settings: any): Promise<void> => {
+    saveSettings: async (settings: SettingsData): Promise<void> => {
         return await ipcRenderer.invoke('save-settings', settings);
     },
 
@@ -71,7 +75,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
         return await ipcRenderer.invoke('send-message', message);
     },
 
-    getChatHistory: async (): Promise<any[]> => {
+    getChatHistory: async (): Promise<ChatMessage[]> => {
         return await ipcRenderer.invoke('get-chat-history');
     },
 
@@ -93,11 +97,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
 
     // カメラ設定関連のAPI
-    getCameraSettings: async (): Promise<any> => {
+    getCameraSettings: async (): Promise<CameraSettings> => {
         return await ipcRenderer.invoke('get-camera-settings');
     },
 
-    setCameraSettings: async (settings: any): Promise<{ success: boolean }> => {
+    setCameraSettings: async (settings: CameraSettings): Promise<{ success: boolean }> => {
         return await ipcRenderer.invoke('set-camera-settings', settings);
     },
 
@@ -106,19 +110,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
 
     // ウィンドウ位置関連のAPI
-    getMainWindowBounds: async (): Promise<any> => {
+    getMainWindowBounds: async (): Promise<WindowBounds> => {
         return await ipcRenderer.invoke('get-main-window-bounds');
     },
 
-    setMainWindowBounds: async (bounds: any): Promise<{ success: boolean }> => {
+    setMainWindowBounds: async (bounds: WindowBounds): Promise<{ success: boolean }> => {
         return await ipcRenderer.invoke('set-main-window-bounds', bounds);
     },
 
-    getChatWindowBounds: async (): Promise<any> => {
+    getChatWindowBounds: async (): Promise<WindowBounds> => {
         return await ipcRenderer.invoke('get-chat-window-bounds');
     },
 
-    setChatWindowBounds: async (bounds: any): Promise<{ success: boolean }> => {
+    setChatWindowBounds: async (bounds: WindowBounds): Promise<{ success: boolean }> => {
         return await ipcRenderer.invoke('set-chat-window-bounds', bounds);
     },
 
@@ -131,7 +135,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
 
     // 画面表示設定の一括操作API
-    saveAllDisplaySettings: async (settings: any): Promise<{ success: boolean }> => {
+    saveAllDisplaySettings: async (settings: SettingsData): Promise<{ success: boolean }> => {
         return await ipcRenderer.invoke('save-all-display-settings', settings);
     },
 
@@ -178,7 +182,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
         return await ipcRenderer.invoke('set-theme', theme);
     },
 
-    getAvailableThemes: async (): Promise<any[]> => {
+    getAvailableThemes: async (): Promise<ThemeInfo[]> => {
         return await ipcRenderer.invoke('get-available-themes');
     },
 
@@ -193,15 +197,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
 
     // 表情設定関連のAPI
-    getAvailableExpressions: async (): Promise<any[]> => {
+    getAvailableExpressions: async (): Promise<VRMExpressionInfo[]> => {
         return await ipcRenderer.invoke('get-available-expressions');
     },
 
-    getExpressionSettings: async (): Promise<any> => {
+    getExpressionSettings: async (): Promise<ExpressionSettings> => {
         return await ipcRenderer.invoke('get-expression-settings');
     },
 
-    setExpressionSettings: async (settings: any): Promise<{ success: boolean }> => {
+    setExpressionSettings: async (settings: ExpressionSettings): Promise<{ success: boolean }> => {
         return await ipcRenderer.invoke('set-expression-settings', settings);
     },
 

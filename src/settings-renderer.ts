@@ -1,4 +1,7 @@
 import type { ElectronAPI } from './preload.types';
+import { VRMExpressionInfo, ExpressionSettings } from './types/tools';
+import { ThemeInfo } from './types/ipc';
+
 declare global {
   interface Window {
     electronAPI: ElectronAPI;
@@ -44,11 +47,11 @@ class SettingsRenderer {
     private clearChatHistoryButton!: HTMLButtonElement;
     private themeGrid!: HTMLElement;
     private selectedTheme = 'default';
-    private availableThemes: any[] = [];
+    private availableThemes: ThemeInfo[] = [];
     
     // 表情設定関連のプロパティ
-    private expressionSettings: any = {};
-    private availableExpressions: any[] = [];
+    private expressionSettings: ExpressionSettings = {};
+    private availableExpressions: VRMExpressionInfo[] = [];
     private expressionList!: HTMLElement;
     private expressionLoading!: HTMLElement;
     private expressionError!: HTMLElement;
@@ -627,13 +630,13 @@ class SettingsRenderer {
 
             const themeDescription = document.createElement('p');
             themeDescription.className = 'theme-description';
-            themeDescription.textContent = theme.description;
+            themeDescription.textContent = theme.description || '';
 
             const themePreview = document.createElement('div');
             themePreview.className = 'theme-preview';
 
             // preview が配列であることを確認
-            const previewColors = Array.isArray(theme.preview) ? theme.preview : Object.values(theme.preview);
+            const previewColors = theme.preview || [];
             previewColors.forEach((color: string, _index: number) => {
                 const colorDiv = document.createElement('div');
                 colorDiv.className = 'theme-color';
@@ -680,8 +683,8 @@ class SettingsRenderer {
         this.updateThemeSelection();
         
         // ThemeManagerを直接呼び出してテーマを即座にプレビュー
-        if ((window as any).themeManager) {
-            (window as any).themeManager.setTheme(themeId);
+        if (window.themeManager) {
+            window.themeManager.setTheme(themeId);
         }
     }
 
@@ -851,7 +854,7 @@ class SettingsRenderer {
             this.showExpressionLoading();
             
             // VRMモデルの状態を確認
-            let expressions: any[] = [];
+            let expressions: VRMExpressionInfo[] = [];
             let retryCount = 0;
             const maxRetries = 5;
             
@@ -1063,7 +1066,7 @@ class SettingsRenderer {
 
     private async updateExpressionSetting(expressionName: string, enabled: boolean, defaultWeight: number): Promise<void> {
         if (!this.expressionSettings[expressionName]) {
-            this.expressionSettings[expressionName] = {};
+            this.expressionSettings[expressionName] = { enabled: false, defaultWeight: 0 };
         }
         this.expressionSettings[expressionName].enabled = enabled;
         this.expressionSettings[expressionName].defaultWeight = defaultWeight;
@@ -1160,7 +1163,7 @@ class SettingsRenderer {
                 alert('表情設定をStoreに保存しました。');
             } else {
                 console.error('[DEBUG] 表情設定保存失敗:', result);
-                alert(`表情設定のStore保存に失敗しました: ${result ? (result as any).error || 'Unknown error' : 'No result returned'}`);
+                alert(`表情設定のStore保存に失敗しました: ${result && 'error' in result ? result.error || 'Unknown error' : 'No result returned'}`);
             }
         } catch (error) {
             console.error('[DEBUG] saveExpressionSettings でエラー発生:', error);
