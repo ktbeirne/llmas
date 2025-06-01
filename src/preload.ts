@@ -1,5 +1,6 @@
 // src/preload.ts
 import { contextBridge, ipcRenderer } from 'electron';
+
 import { SettingsData, CameraSettings, WindowBounds } from './utils/settingsStore';
 import { ChatMessage } from './utils/chatHistoryStore';
 import { VRMExpressionInfo, ExpressionSettings } from './types/tools';

@@ -6,6 +6,7 @@
 // 既存の型定義をインポート
 import { ChatMessage } from '../utils/chatHistoryStore';
 import { WindowBounds, CameraSettings, SettingsData } from '../utils/settingsStore';
+
 import { ExpressionSettings, VRMExpressionInfo } from './tools';
 
 /**
