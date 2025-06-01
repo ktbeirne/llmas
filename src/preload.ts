@@ -190,5 +190,47 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // 設定ウィンドウ状態変更通知のリスナー
     onSettingsWindowStateChanged: (callback: (isOpen: boolean) => void) => {
         ipcRenderer.on('settings-window-state-changed', (_event, isOpen) => callback(isOpen));
+    },
+
+    // 表情設定関連のAPI
+    getAvailableExpressions: async (): Promise<any[]> => {
+        return await ipcRenderer.invoke('get-available-expressions');
+    },
+
+    getExpressionSettings: async (): Promise<any> => {
+        return await ipcRenderer.invoke('get-expression-settings');
+    },
+
+    setExpressionSettings: async (settings: any): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('set-expression-settings', settings);
+    },
+
+    updateExpressionSetting: async (expressionName: string, enabled: boolean, defaultWeight: number): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('update-expression-setting', expressionName, enabled, defaultWeight);
+    },
+
+    resetExpressionSettings: async (): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('reset-expression-settings');
+    },
+
+    previewExpression: async (expressionName: string, intensity?: number): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('preview-expression', expressionName, intensity);
+    },
+
+    updateToolsAndReinitializeGemini: async (): Promise<{ success: boolean; error?: string }> => {
+        return await ipcRenderer.invoke('update-tools-and-reinitialize-gemini');
+    },
+
+    // デフォルト表情関連のAPI
+    getDefaultExpression: async (): Promise<string> => {
+        return await ipcRenderer.invoke('get-default-expression');
+    },
+
+    setDefaultExpression: async (expressionName: string): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('set-default-expression', expressionName);
+    },
+
+    resetToDefaultExpression: async (): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('reset-expression-to-default');
     }
 });

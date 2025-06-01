@@ -28,7 +28,12 @@
       "mcp__playwright__browser_snapshot",
       "mcp__playwright__browser_install",
       "Bash(gh api:*)",
-      "mcp__playwright__browser_navigate"
+      "mcp__playwright__browser_navigate",
+      "Bash(timeout:*)",
+      "Bash(node:*)",
+      "Bash(curl:*)",
+      "Bash(kill:*)",
+      "Bash(true)"
     ],
     "deny": []
   }

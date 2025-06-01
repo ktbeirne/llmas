@@ -22,10 +22,10 @@ export const WINDOW_CONFIG = {
     CHARS_PER_SECOND: 10, // 1秒あたりの文字数
   },
   SETTINGS: {
-    WIDTH: 550,
-    HEIGHT: 550,
-    MIN_WIDTH: 500,
-    MIN_HEIGHT: 500,
+    WIDTH: 700,
+    HEIGHT: 600,
+    MIN_WIDTH: 650,
+    MIN_HEIGHT: 550,
   },
 } as const;
 

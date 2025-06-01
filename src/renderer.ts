@@ -1,10 +1,15 @@
-/// <reference path="preload.d.ts" />
+import { ElectronAPI } from './preload.d.ts';
+declare global {
+  interface Window {
+    electronAPI: ElectronAPI;
+  }
+}
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { loadVRM, loadAnimation,updateVRMFeatures } from './vrmController';
 import * as THREE from 'three';
 import { VRMUtils, VRMLoaderPlugin, VRM, VRMHumanBoneName } from '@pixiv/three-vrm'; 
-import { getHeadScreenPosition } from './vrmController';
+import { getHeadScreenPosition, getAvailableExpressions, applyExpression } from './vrmController';
 import './index.css';
 import { themeManager } from './utils/themeManager';
 
@@ -229,7 +234,7 @@ loadVRM('/avatar.vrm', scene, (vrm) => { // vrmモデルオブジェクトを受
     if (vrm) {
         loadedVRMInstance = vrm; // 必要なら保持
         // 次にアニメーションをロード
-        loadAnimation('/VRMA_03.vrma', () => {
+        loadAnimation('/idle.vrma', () => {
             console.log('renderer.ts: アニメーションのロードが完了しました。');
             // モデルとアニメーションの両方がロードされた後に実行したい処理があれば、ここか、
             // あるいは tryInitMixerAndPlay が成功したことを知る別の仕組みが必要になります。
@@ -491,9 +496,9 @@ if (quitAppButton) {
 
 // ✨ MainWindow タイトルバー監視・強制非表示システム
 class TitleBarMonitor {
-    private isRunning: boolean = false;
+    private isRunning = false;
     private monitorInterval: number | null = null;
-    private frameCount: number = 0;
+    private frameCount = 0;
     
     start() {
         if (this.isRunning) return;
@@ -501,10 +506,10 @@ class TitleBarMonitor {
         this.isRunning = true;
         console.log('[TitleBarMonitor] Starting titlebar monitoring...');
         
-        // 高頻度でタイトルバーをチェック（約60fps）
+        // 軽量な監視（2秒間隔）
         this.monitorInterval = window.setInterval(() => {
             this.checkAndHideTitleBar();
-        }, 16); // 16ms ≈ 60fps
+        }, 2000); // 2秒間隔に変更
         
         // フォーカス・ブラーイベントでも強制実行
         window.addEventListener('focus', () => this.forceTitleBarHiding());
@@ -619,5 +624,32 @@ if (document.readyState === 'loading') {
 window.addEventListener('beforeunload', () => {
     titleBarMonitor.stop();
 });
+
+// VRM表情関連の関数をグローバルに公開
+(window as any).vrmExpression = {
+    getAvailableExpressions: () => {
+        try {
+            console.log('[Renderer] グローバル表情取得要求');
+            const expressions = getAvailableExpressions();
+            console.log('[Renderer] グローバル表情取得結果:', expressions.length);
+            return expressions;
+        } catch (error) {
+            console.error('[Renderer] グローバル表情取得エラー:', error);
+            return [];
+        }
+    },
+    
+    applyExpression: (expressionName: string, intensity?: number) => {
+        try {
+            console.log('[Renderer] グローバル表情適用要求:', expressionName, intensity);
+            const success = applyExpression(expressionName, intensity);
+            console.log('[Renderer] グローバル表情適用結果:', success);
+            return success;
+        } catch (error) {
+            console.error('[Renderer] グローバル表情適用エラー:', error);
+            return false;
+        }
+    }
+};
 
 

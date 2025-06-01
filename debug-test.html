@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>デバッグテスト</title>
+</head>
+<body>
+    <h1>設定ボタンデバッグテスト</h1>
+    
+    <div>
+        <h2>テスト用ボタン</h2>
+        <button id="test-button">テストボタン</button>
+        <button id="apply-chat-settings">会話設定適用</button>
+        <button id="apply-expression-settings">表情設定適用</button>
+    </div>
+    
+    <div id="output" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; background: #f9f9f9;">
+        <h3>デバッグ出力:</h3>
+        <div id="log"></div>
+    </div>
+    
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            console.log(`[DEBUG] ${message}`);
+        }
+        
+        // イベントリスナーをドキュメントレベルで設定
+        document.addEventListener('click', async (event) => {
+            const target = event.target;
+            if (!target || target.tagName !== 'BUTTON') return;
+            
+            const buttonId = target.id;
+            log(`ボタンクリック検出: ${buttonId}`);
+            
+            switch (buttonId) {
+                case 'test-button':
+                    log('テストボタンが正常にクリックされました');
+                    alert('テストボタンが動作しています！');
+                    break;
+                    
+                case 'apply-chat-settings':
+                    log('会話設定適用ボタンがクリックされました');
+                    
+                    // electronAPIの確認
+                    if (window.electronAPI) {
+                        log('electronAPIが利用可能です');
+                        log('利用可能なメソッド: ' + Object.keys(window.electronAPI).join(', '));
+                        
+                        if (window.electronAPI.setUserName) {
+                            try {
+                                const result = await window.electronAPI.setUserName('テストユーザー');
+                                log('setUserName結果: ' + JSON.stringify(result));
+                            } catch (error) {
+                                log('setUserNameエラー: ' + error.message);
+                            }
+                        } else {
+                            log('setUserNameメソッドが存在しません');
+                        }
+                    } else {
+                        log('electronAPIが利用できません');
+                    }
+                    break;
+                    
+                case 'apply-expression-settings':
+                    log('表情設定適用ボタンがクリックされました');
+                    
+                    if (window.electronAPI) {
+                        log('electronAPIが利用可能です');
+                        
+                        if (window.electronAPI.setExpressionSettings) {
+                            try {
+                                const testSettings = {
+                                    'happy': { enabled: true, defaultWeight: 0.8 },
+                                    'sad': { enabled: false, defaultWeight: 0.5 }
+                                };
+                                const result = await window.electronAPI.setExpressionSettings(testSettings);
+                                log('setExpressionSettings結果: ' + JSON.stringify(result));
+                            } catch (error) {
+                                log('setExpressionSettingsエラー: ' + error.message);
+                            }
+                        } else {
+                            log('setExpressionSettingsメソッドが存在しません');
+                        }
+                    } else {
+                        log('electronAPIが利用できません');
+                    }
+                    break;
+            }
+        });
+        
+        // 初期化時の確認
+        document.addEventListener('DOMContentLoaded', () => {
+            log('DOM読み込み完了');
+            log('electronAPI利用可能性: ' + (window.electronAPI ? 'はい' : 'いいえ'));
+            
+            // ボタンの存在確認
+            const buttons = ['test-button', 'apply-chat-settings', 'apply-expression-settings'];
+            buttons.forEach(id => {
+                const button = document.getElementById(id);
+                log(`ボタン ${id}: ${button ? '存在' : '存在しない'}`);
+            });
+        });
+    </script>
+</body>
+</html>

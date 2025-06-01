@@ -69,6 +69,13 @@ export const IPC_CHANNELS = {
     SET_THEME: 'set-theme',
     GET_AVAILABLE_THEMES: 'get-available-themes',
   },
+  
+  // 表情関連
+  EXPRESSION: {
+    GET_DEFAULT_EXPRESSION: 'get-default-expression',
+    SET_DEFAULT_EXPRESSION: 'set-default-expression',
+    RESET_TO_DEFAULT: 'reset-expression-to-default',
+  },
 } as const;
 
 // 型安全性のためのヘルパー型

@@ -1,15 +1,18 @@
 import { app, BrowserWindow, ipcMain, IpcMainInvokeEvent, dialog } from 'electron';
 import path from 'node:path';
+import fs from 'node:fs';
 import started from 'electron-squirrel-startup';
 import dotenv from 'dotenv';
 dotenv.config();
-import { generateTextFromGemini, generateChatResponse, getChatHistory, clearChatHistory, initializeGemini, updateSystemPrompt } from './geminiService';
+import { generateTextFromGemini, generateChatResponse, getChatHistory, clearChatHistory, initializeGemini, reinitializeGemini, updateSystemPrompt } from './geminiService';
 import { WindowManager } from './utils/WindowManager';
 import { ErrorHandler } from './utils/errorHandler';
 import { IPC_CHANNELS } from './config/ipcChannels';
 import { WINDOW_CONFIG, PATHS, APP_CONFIG } from './config/constants';
 import { SettingsStore } from './utils/settingsStore';
 import { SpeechBubbleManager } from './utils/speechBubbleManager';
+import { ToolsService } from './services/toolsService';
+import { FunctionCallHandler } from './services/functionCallHandler';
 
 // Electron Forge Viteプラグインによって自動的に定義される環境変数
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
@@ -25,6 +28,10 @@ const windowManager = new WindowManager();
 
 // 設定ストアのインスタンス
 const settingsStore = new SettingsStore();
+
+// FunctionCallHandlerにWindowManagerを注入
+const functionCallHandler = FunctionCallHandler.getInstance();
+functionCallHandler.setWindowManager(windowManager);
 
 /**
  * メインウィンドウを作成
@@ -60,14 +67,18 @@ function createMainWindow(): void {
             window.setTitle('');
             console.log('[Main] Windows用タイトルクリア処理完了');
             
-            // 継続的なタイトルバー監視を開始
-            startTitleBarMonitoring(window);
+            // 継続的なタイトルバー監視を開始（環境変数で無効化可能）
+            if (process.env.DISABLE_TITLEBAR_MONITORING !== 'true') {
+              startTitleBarMonitoring(window);
+            } else {
+              console.log('[Main] タイトルバー監視が無効化されています');
+            }
           }
         }, 100);
       } else {
-        // macOS/Linuxでも監視開始
+        // macOS/Linuxでも監視開始（環境変数で無効化可能）
         setTimeout(() => {
-          if (!window.isDestroyed()) {
+          if (!window.isDestroyed() && process.env.DISABLE_TITLEBAR_MONITORING !== 'true') {
             startTitleBarMonitoring(window);
           }
         }, 100);
@@ -273,7 +284,7 @@ function createSettingsWindow(): BrowserWindow | null {
 /**
  * Gemini APIキーの初期化
  */
-function initializeAPI(): void {
+async function initializeAPI(): Promise<void> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     ErrorHandler.handle(
@@ -283,19 +294,47 @@ function initializeAPI(): void {
     app.quit();
     return;
   }
-  initializeGemini(apiKey);
+  try {
+    await initializeGemini(apiKey);
+    console.log('Gemini Service とFunction Calling が初期化されました');
+    
+    // 初期化後に動的tools.json生成を実行
+    setTimeout(async () => {
+      try {
+        console.log('[Main] 起動時動的tools.json生成を開始');
+        await generateDynamicToolsJson();
+        await reinitializeGemini(apiKey);
+        console.log('[Main] 起動時動的tools.json生成完了');
+      } catch (dynamicError) {
+        console.error('[Main] 起動時動的tools.json生成エラー:', dynamicError);
+      }
+    }, 2000); // VRMロード待ち
+  } catch (error) {
+    ErrorHandler.handle(
+      new Error(`Gemini Service の初期化に失敗: ${error instanceof Error ? error.message : '不明なエラー'}`),
+      true
+    );
+  }
 }
 
 /**
- * MainWindow用タイトルバー継続監視
+ * MainWindow用タイトルバー継続監視（軽量版）
  */
 function startTitleBarMonitoring(window: BrowserWindow): void {
-  console.log('[Main] Starting titlebar monitoring for main window...');
+  console.log('[Main] Starting lightweight titlebar monitoring for main window...');
   
-  // 高頻度でタイトルをリセット（約30fps）
+  let isDragging = false;
+  let dragStartTime = 0;
+  
+  // 軽量な監視（1秒間隔）- ドラッグ中は停止
   const monitorInterval = setInterval(() => {
     if (window.isDestroyed()) {
       clearInterval(monitorInterval);
+      return;
+    }
+    
+    // ドラッグ中は監視を一時停止
+    if (isDragging && Date.now() - dragStartTime < 500) {
       return;
     }
     
@@ -303,34 +342,45 @@ function startTitleBarMonitoring(window: BrowserWindow): void {
     if (window.getTitle() !== '') {
       window.setTitle('');
     }
-  }, 33); // 33ms ≈ 30fps
+  }, 1000); // 1秒間隔に変更
   
-  // フォーカス・ブラーイベントでも強制リセット
+  // フォーカス・ブラーイベントでリセット（ドラッグに影響しない）
   window.on('focus', () => {
     if (!window.isDestroyed()) {
-      window.setTitle('');
-      console.log('[Main] Title reset on focus');
+      setTimeout(() => window.setTitle(''), 100); // 少し遅延
     }
   });
   
   window.on('blur', () => {
     if (!window.isDestroyed()) {
-      window.setTitle('');
-      console.log('[Main] Title reset on blur');
+      setTimeout(() => window.setTitle(''), 100); // 少し遅延
     }
   });
   
-  // ウィンドウ移動・リサイズ時も強制リセット
+  // ドラッグ開始検出
+  window.on('will-move', () => {
+    isDragging = true;
+    dragStartTime = Date.now();
+  });
+  
+  // ドラッグ終了検出（moved イベント後にドラッグ完了と判定）
   window.on('moved', () => {
-    if (!window.isDestroyed()) {
-      window.setTitle('');
-    }
+    // ドラッグ終了後にタイトルをリセット（遅延付き）
+    setTimeout(() => {
+      if (!window.isDestroyed()) {
+        window.setTitle('');
+        isDragging = false;
+      }
+    }, 200);
   });
   
+  // リサイズ後にタイトルリセット（遅延付き）
   window.on('resized', () => {
-    if (!window.isDestroyed()) {
-      window.setTitle('');
-    }
+    setTimeout(() => {
+      if (!window.isDestroyed()) {
+        window.setTitle('');
+      }
+    }, 100);
   });
   
   // ウィンドウが閉じられる時に監視停止
@@ -437,7 +487,8 @@ function setupIPCHandlers(): void {
   // スピーチバブルの非表示
   ipcMain.on('hide-speech-bubble-window', () => {
     const speechBubbleWindow = windowManager.getWindow('speechBubble');
-    SpeechBubbleManager.hide(speechBubbleWindow);
+    const mainWindow = windowManager.getWindow('main');
+    SpeechBubbleManager.hideAndResetExpression(speechBubbleWindow, mainWindow);
   });
 
   // スピーチバブルのサイズ通知とポジション更新
@@ -486,7 +537,9 @@ function setupIPCHandlers(): void {
           const rect = bubble.getBoundingClientRect();
           console.log('Content actual size:', {width: rect.width, height: rect.height, offsetW: bubble.offsetWidth, offsetH: bubble.offsetHeight});
         }
-      `).catch(() => {});
+      `).catch((error: Error) => {
+        console.error('ウィンドウサイズ計算エラー:', error);
+      });
     }, 100);
     
     if (!speechBubbleWindow.isVisible()) {
@@ -987,6 +1040,289 @@ function setupIPCHandlers(): void {
       throw error;
     }
   });
+
+  // 表情設定関連のIPCハンドラー
+  ipcMain.handle('get-available-expressions', async () => {
+    try {
+      console.log('[Main] 利用可能表情の取得を開始');
+      
+      // メインウィンドウ（レンダラープロセス）から直接VRM情報を取得
+      const mainWindow = windowManager.getWindow('main');
+      if (!mainWindow) {
+        console.warn('[Main] メインウィンドウが見つかりません');
+        return [];
+      }
+      
+      // レンダラープロセスでVRM情報を取得するJavaScriptを実行
+      const expressions = await mainWindow.webContents.executeJavaScript(`
+        (() => {
+          try {
+            console.log('[Renderer] グローバルVRM表情関数の確認');
+            
+            if (window.vrmExpression && typeof window.vrmExpression.getAvailableExpressions === 'function') {
+              console.log('[Renderer] グローバルvrmExpression関数が見つかりました');
+              const result = window.vrmExpression.getAvailableExpressions();
+              console.log('[Renderer] グローバルVRM表情取得結果:', Array.isArray(result) ? result.length : 'not array', result);
+              return result;
+            } else {
+              console.error('[Renderer] グローバルvrmExpression関数が見つかりません');
+              console.log('[Renderer] window.vrmExpression状態:', typeof window.vrmExpression);
+              return [];
+            }
+          } catch (error) {
+            console.error('[Renderer] VRM表情取得エラー:', error);
+            console.error('[Renderer] エラースタック:', error.stack);
+            return [];
+          }
+        })()
+      `);
+      
+      console.log('[Main] レンダラーから取得された表情数:', expressions.length);
+      return expressions;
+    } catch (error) {
+      console.error('利用可能表情の取得エラー:', error);
+      return [];
+    }
+  });
+
+  ipcMain.handle('get-expression-settings', async () => {
+    try {
+      return settingsStore.getExpressionSettings();
+    } catch (error) {
+      console.error('表情設定の取得エラー:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('set-expression-settings', async (_event: IpcMainInvokeEvent, settings: any) => {
+    try {
+      settingsStore.setExpressionSettings(settings);
+      return { success: true };
+    } catch (error) {
+      console.error('表情設定の保存エラー:', error);
+      return { success: false, error: error instanceof Error ? error.message : '不明なエラー' };
+    }
+  });
+
+  ipcMain.handle('update-expression-setting', async (_event: IpcMainInvokeEvent, expressionName: string, enabled: boolean, defaultWeight: number) => {
+    try {
+      settingsStore.updateExpressionSetting(expressionName, enabled, defaultWeight);
+      return { success: true };
+    } catch (error) {
+      console.error('表情設定の更新エラー:', error);
+      return { success: false, error: error instanceof Error ? error.message : '不明なエラー' };
+    }
+  });
+
+  ipcMain.handle('reset-expression-settings', async () => {
+    try {
+      settingsStore.resetExpressionSettings();
+      return { success: true };
+    } catch (error) {
+      console.error('表情設定のリセットエラー:', error);
+      return { success: false, error: error instanceof Error ? error.message : '不明なエラー' };
+    }
+  });
+
+  ipcMain.handle('preview-expression', async (_event: IpcMainInvokeEvent, expressionName: string, intensity?: number) => {
+    try {
+      console.log('[Main] 表情プレビュー:', expressionName, intensity);
+      
+      // メインウィンドウ（レンダラープロセス）で直接表情を適用
+      const mainWindow = windowManager.getWindow('main');
+      if (!mainWindow) {
+        console.warn('[Main] メインウィンドウが見つかりません');
+        return { success: false, error: 'メインウィンドウが見つかりません' };
+      }
+      
+      // レンダラープロセスで表情を適用するJavaScriptを実行
+      const success = await mainWindow.webContents.executeJavaScript(`
+        (() => {
+          try {
+            if (window.vrmExpression && typeof window.vrmExpression.applyExpression === 'function') {
+              const result = window.vrmExpression.applyExpression('${expressionName}', ${intensity || 1.0});
+              console.log('[Renderer] グローバル表情適用結果:', result);
+              return result;
+            } else {
+              console.error('[Renderer] グローバルvrmExpression.applyExpression関数が見つかりません');
+              return false;
+            }
+          } catch (error) {
+            console.error('[Renderer] 表情適用エラー:', error);
+            return false;
+          }
+        })()
+      `);
+      
+      console.log('[Main] レンダラーでの表情適用結果:', success);
+      return { success };
+    } catch (error) {
+      console.error('表情プレビューエラー:', error);
+      return { success: false, error: error instanceof Error ? error.message : '不明なエラー' };
+    }
+  });
+
+  ipcMain.handle('update-tools-and-reinitialize-gemini', async () => {
+    try {
+      console.log('[Main] tools.json更新とGeminiService再初期化を開始');
+      
+      // 動的tools.json生成
+      await generateDynamicToolsJson();
+      
+      // GeminiServiceを再初期化（APIキーを取得して渡す）
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error('Gemini API キーが環境変数に設定されていません (.env ファイルの GEMINI_API_KEY を確認してください)');
+      }
+      await reinitializeGemini(apiKey);
+      
+      console.log('[Main] tools.json更新とGeminiService再初期化が完了');
+      return { success: true };
+    } catch (error) {
+      console.error('[Main] tools.json更新エラー:', error);
+      return { success: false, error: error instanceof Error ? error.message : '不明なエラー' };
+    }
+  });
+
+  // デフォルト表情関連のIPCハンドラー
+  ipcMain.handle(IPC_CHANNELS.EXPRESSION.GET_DEFAULT_EXPRESSION, async () => {
+    try {
+      return settingsStore.getDefaultExpression();
+    } catch (error) {
+      console.error('デフォルト表情の取得エラー:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.EXPRESSION.SET_DEFAULT_EXPRESSION, async (_event: IpcMainInvokeEvent, expressionName: string) => {
+    try {
+      settingsStore.setDefaultExpression(expressionName);
+      return { success: true };
+    } catch (error) {
+      console.error('デフォルト表情の設定エラー:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.EXPRESSION.RESET_TO_DEFAULT, async () => {
+    try {
+      const mainWindow = windowManager.getWindow('main');
+      SpeechBubbleManager.resetToDefaultExpression(mainWindow);
+      return { success: true };
+    } catch (error) {
+      console.error('デフォルト表情リセットエラー:', error);
+      return { success: false, error: error instanceof Error ? error.message : '不明なエラー' };
+    }
+  });
+}
+
+/**
+ * 有効な表情に基づいてtools.jsonを動的生成
+ */
+async function generateDynamicToolsJson(): Promise<void> {
+  try {
+    console.log('[Main] 動的tools.json生成を開始');
+    
+    // メインウィンドウから利用可能な表情を取得
+    const mainWindow = windowManager.getWindow('main');
+    if (!mainWindow) {
+      throw new Error('メインウィンドウが見つかりません');
+    }
+    
+    const availableExpressions = await mainWindow.webContents.executeJavaScript(`
+      (() => {
+        if (window.vrmExpression && typeof window.vrmExpression.getAvailableExpressions === 'function') {
+          return window.vrmExpression.getAvailableExpressions();
+        }
+        return [];
+      })()
+    `);
+    
+    // 現在の表情設定を取得
+    const expressionSettings = settingsStore.getExpressionSettings();
+    
+    // 表情名の重複と大文字小文字の問題を解決
+    const uniqueExpressions = availableExpressions.reduce((acc: any[], expr: any) => {
+      const existingIndex = acc.findIndex((e: any) => e.name.toLowerCase() === expr.name.toLowerCase());
+      if (existingIndex === -1) {
+        acc.push(expr);
+      } else {
+        // 既存のものと比較して、より適切な名前を選択（小文字を優先）
+        const existing = acc[existingIndex];
+        if (expr.name.toLowerCase() === expr.name && existing.name !== existing.name.toLowerCase()) {
+          acc[existingIndex] = expr; // 小文字版を優先
+        }
+      }
+      return acc;
+    }, []);
+    
+    // 有効な表情のみをフィルタ（詳細デバッグ）
+    console.log('[Main] 表情フィルタリング詳細:');
+    console.log('  - 利用可能表情（重複除去後):', uniqueExpressions.map((e: any) => e.name));
+    console.log('  - 表情設定:', expressionSettings);
+    
+    const enabledExpressions = uniqueExpressions.filter((expr: any) => {
+      const setting = expressionSettings[expr.name];
+      const isEnabled = setting && setting.enabled;
+      console.log(`  - ${expr.name}: 設定=${JSON.stringify(setting)}, 有効=${isEnabled}`);
+      return isEnabled;
+    });
+    
+    // 有効な表情がない場合、利用可能な全表情を自動的に有効化
+    if (enabledExpressions.length === 0 && uniqueExpressions.length > 0) {
+      console.log('[Main] 有効な表情がないため、利用可能な全表情を自動有効化します');
+      for (const expr of uniqueExpressions) {
+        settingsStore.updateExpressionSetting(expr.name, true, 1.0);
+        enabledExpressions.push(expr);
+        console.log(`[Main] 自動有効化: ${expr.name}`);
+      }
+    }
+    
+    console.log('[Main] 有効な表情数:', enabledExpressions.length);
+    console.log('[Main] 有効な表情名:', enabledExpressions.map((e: any) => e.name));
+    
+    // ToolsServiceを使用してtools.jsonを読み込み
+    const toolsService = ToolsService.getInstance();
+    if (!toolsService.isToolsLoaded()) {
+      await toolsService.loadTools();
+    }
+    const originalTools = toolsService.getTools();
+    
+    // set_expression関数の説明を動的更新
+    const setExpressionTool = originalTools.find((tool: any) => tool.name === 'set_expression');
+    if (setExpressionTool && enabledExpressions.length > 0) {
+      const expressionNames = enabledExpressions.map((expr: any) => expr.name).join(', ');
+      setExpressionTool.description = `VRMマスコットの表情を設定します。利用可能な表情: ${expressionNames}`;
+      
+      // enumに有効な表情名を追加
+      setExpressionTool.parameters.properties.expression_name.enum = enabledExpressions.map((expr: any) => expr.name);
+    }
+    
+    // 動的tools.jsonを保存（複数の場所に保存して確実にアクセス可能にする）
+    const appPath = app.getAppPath();
+    
+    const dynamicToolsPaths = [
+      path.join(__dirname, 'tools.json'),
+      path.join(appPath, 'tools.json'),
+      path.join(process.cwd(), 'tools.json')
+    ];
+    
+    for (const dynamicPath of dynamicToolsPaths) {
+      try {
+        fs.writeFileSync(dynamicPath, JSON.stringify(originalTools, null, 2));
+        console.log('[Main] 動的tools.json保存完了:', dynamicPath);
+      } catch (error) {
+        console.warn('[Main] 動的tools.json保存失敗:', dynamicPath, error.message);
+      }
+    }
+    
+    // ToolsServiceに動的更新されたツールを再読み込みさせる
+    await toolsService.reloadTools();
+    console.log('[Main] ToolsService再読み込み完了');
+  } catch (error) {
+    console.error('[Main] 動的tools.json生成エラー:', error);
+    throw error;
+  }
 }
 
 /**
@@ -1005,7 +1341,7 @@ function setupErrorHandlers(): void {
 // アプリケーションの初期化
 app.whenReady().then(async () => {
   setupErrorHandlers();
-  initializeAPI();
+  await initializeAPI();
   setupIPCHandlers();
   
   createMainWindow();

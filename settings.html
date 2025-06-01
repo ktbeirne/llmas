@@ -13,6 +13,7 @@
             <div class="tab-header">
                 <button class="tab-button active" data-tab="display">画面表示設定</button>
                 <button class="tab-button" data-tab="chat">会話設定</button>
+                <button class="tab-button" data-tab="expressions">表情・アニメーション設定</button>
             </div>
             
             <main class="tab-content">
@@ -186,6 +187,12 @@
                             <button id="select-vrm-model" type="button">モデルファイルを選択</button>
                         </div>
                     </section>
+                    
+                    <!-- 画面表示設定タブ専用ボタン -->
+                    <div class="tab-button-group">
+                        <button id="apply-display-settings" type="button" class="primary">画面表示設定を適用</button>
+                        <button id="reset-display-settings" type="button" class="secondary">画面表示設定をリセット</button>
+                    </div>
                 </div>
                 
                 <div class="tab-pane" id="chat-tab">
@@ -237,14 +244,72 @@
                             <small class="button-description">この操作は元に戻せません</small>
                         </div>
                     </section>
+                    
+                    <!-- 会話設定タブ専用ボタン -->
+                    <div class="tab-button-group">
+                        <button id="apply-chat-settings" type="button" class="primary">会話設定を適用</button>
+                        <button id="reset-chat-settings" type="button" class="secondary">会話設定をリセット</button>
+                    </div>
+                </div>
+                
+                <div class="tab-pane" id="expressions-tab">
+                    <section id="expression-settings-section">
+                        <h2>🎭 表情制御設定</h2>
+                        <p class="section-description">AIが表情を変更する際に使用する表情と、その強度を設定してください</p>
+                        
+                        <div class="setting-group">
+                            <div id="expression-loading" class="loading-message">
+                                <span>VRMモデルから表情情報を読み込み中...</span>
+                            </div>
+                            
+                            <div id="expression-list" class="expression-list" style="display: none;">
+                                <!-- 表情リストがJavaScriptで動的に生成されます -->
+                            </div>
+                            
+                            <div id="expression-error" class="error-message" style="display: none;">
+                                <span>表情情報の読み込みに失敗しました。VRMモデルが正しく読み込まれているか確認してください。</span>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <h3>プレビュー</h3>
+                            <p class="subsection-description">設定した表情をリアルタイムで確認できます</p>
+                            <div class="preview-controls">
+                                <select id="preview-expression-select">
+                                    <option value="">表情を選択...</option>
+                                </select>
+                                <div class="slider-group">
+                                    <label for="preview-intensity">強度:</label>
+                                    <input type="range" id="preview-intensity" min="0" max="1" step="0.1" value="1">
+                                    <span id="preview-intensity-value">1.0</span>
+                                </div>
+                                <button id="preview-expression-btn" type="button" class="secondary">プレビュー</button>
+                                <button id="reset-expression-btn" type="button" class="secondary">リセット</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 表情・アニメーション設定タブ専用ボタン -->
+                        <div class="tab-button-group">
+                            <button id="apply-expression-settings" type="button" class="primary">適用</button>
+                            <button id="reset-expression-settings" type="button" class="secondary">リセット</button>
+                        </div>
+                        
+                        <div class="setting-info">
+                            <h4>💡 使い方</h4>
+                            <ul>
+                                <li>チェックを入れた表情のみがAIによって使用されます</li>
+                                <li>スライダーで各表情のデフォルト強度を調整できます</li>
+                                <li>プレビュー機能で設定した表情を即座に確認できます</li>
+                                <li>AIがintensity（強度）を指定した場合は、そちらが優先されます</li>
+                            </ul>
+                        </div>
+                    </section>
                 </div>
             </main>
         </div>
         
         <footer>
             <div class="button-group">
-                <button id="apply-settings" type="button" class="primary">適用</button>
-                <button id="reset-settings" type="button" class="secondary">リセット</button>
                 <button id="close-settings" type="button" class="secondary">閉じる</button>
             </div>
         </footer>

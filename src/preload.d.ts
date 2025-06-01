@@ -55,6 +55,19 @@ declare global {
             onThemeChanged: (callback: (theme: string) => void) => void;
             // 設定ウィンドウ状態変更通知
             onSettingsWindowStateChanged: (callback: (isOpen: boolean) => void) => void;
+            // 表情関連のAPI
+            getAvailableExpressions: () => Promise<any[]>;
+            getExpressionSettings: () => Promise<any>;
+            setExpressionSettings: (settings: any) => Promise<{ success: boolean }>;
+            updateExpressionSetting: (expressionName: string, enabled: boolean, defaultWeight: number) => Promise<{ success: boolean }>;
+            resetExpressionSettings: () => Promise<{ success: boolean }>;
+            previewExpression: (expressionName: string, intensity?: number) => Promise<{ success: boolean }>;
+            updateToolsAndReinitializeGemini: () => Promise<{ success: boolean; error?: string }>;
+            
+            // デフォルト表情関連
+            getDefaultExpression: () => Promise<string>;
+            setDefaultExpression: (expressionName: string) => Promise<{ success: boolean }>;
+            resetToDefaultExpression: () => Promise<{ success: boolean }>;
         };
     }
 }

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { VRMUtils, VRMLoaderPlugin, VRM, VRMHumanBoneName } from '@pixiv/three-vrm'; 
 import { createVRMAnimationClip, VRMAnimationLoaderPlugin, VRMAnimation } from '@pixiv/three-vrm-animation';
+import { VRMExpressionInfo } from './types/tools';
 
 /**
  * VRMモデルとアニメーションの管理クラス
@@ -227,6 +228,144 @@ export class VRMController {
   getCurrentVRM(): VRM | null {
     return this.currentVRM;
   }
+
+  /**
+   * 利用可能な表情リストを取得
+   */
+  getAvailableExpressions(): VRMExpressionInfo[] {
+    console.log('[VRMController] getAvailableExpressions 呼び出し');
+    console.log('[VRMController] currentVRM状態:', !!this.currentVRM);
+    console.log('[VRMController] expressionManager状態:', !!this.currentVRM?.expressionManager);
+    
+    if (!this.currentVRM) {
+      console.warn('[VRMController] VRMモデルが読み込まれていません');
+      return [];
+    }
+    
+    if (!this.currentVRM.expressionManager) {
+      console.warn('[VRMController] ExpressionManagerが利用できません');
+      return [];
+    }
+
+    const expressions: VRMExpressionInfo[] = [];
+    
+    // すべての表情（プリセット + カスタム）を取得
+    const allExpressions = this.currentVRM.expressionManager.expressionMap;
+    const customExpressions = this.currentVRM.expressionManager.customExpressionMap;
+    
+    Object.keys(allExpressions).forEach(name => {
+      const isPreset = !customExpressions.hasOwnProperty(name);
+      expressions.push({
+        name,
+        displayName: this.getExpressionDisplayName(name),
+        isPreset
+      });
+    });
+
+    console.log(`[VRMController] 利用可能な表情: ${expressions.length}個`, expressions.map(e => e.name));
+    return expressions;
+  }
+
+  /**
+   * 表情の表示名を取得（日本語名があれば使用）
+   */
+  private getExpressionDisplayName(name: string): string {
+    const displayNames: { [key: string]: string } = {
+      'happy': '喜び',
+      'sad': '悲しみ',
+      'angry': '怒り',
+      'surprised': '驚き',
+      'relaxed': 'リラックス',
+      'neutral': 'ニュートラル',
+      'blink': 'まばたき',
+      'blinkLeft': '左まばたき',
+      'blinkRight': '右まばたき',
+      'lookUp': '上を見る',
+      'lookDown': '下を見る',
+      'lookLeft': '左を見る',
+      'lookRight': '右を見る'
+    };
+    
+    return displayNames[name] || name;
+  }
+
+  /**
+   * 表情を適用
+   */
+  applyExpression(expressionName: string, intensity?: number): boolean {
+    if (!this.currentVRM?.expressionManager) {
+      console.error('[VRMController] VRMモデルまたはExpressionManagerが利用できません');
+      return false;
+    }
+
+    const expression = this.currentVRM.expressionManager.getExpression(expressionName);
+    if (!expression) {
+      console.error(`[VRMController] 表情 '${expressionName}' が見つかりません`);
+      return false;
+    }
+
+    // デフォルト強度は1.0
+    const weight = intensity !== undefined ? Math.max(0, Math.min(1, intensity)) : 1.0;
+
+    try {
+      // 他の表情をリセット（blinkとlook系以外）
+      if (!expressionName.startsWith('blink') && !expressionName.startsWith('look')) {
+        this.resetNonBasicExpressions();
+      }
+
+      // 指定された表情を適用
+      this.currentVRM.expressionManager.setValue(expressionName, weight);
+      
+      console.log(`[VRMController] 表情 '${expressionName}' を強度 ${weight} で適用しました`);
+      return true;
+    } catch (error) {
+      console.error(`[VRMController] 表情適用エラー:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * 基本的でない表情（happy, sad, angry等）をリセット
+   */
+  private resetNonBasicExpressions(): void {
+    if (!this.currentVRM?.expressionManager) return;
+
+    const basicExpressions = ['blink', 'blinkLeft', 'blinkRight', 'lookUp', 'lookDown', 'lookLeft', 'lookRight'];
+    const allExpressions = this.currentVRM.expressionManager.expressionMap;
+    
+    Object.keys(allExpressions).forEach(name => {
+      if (!basicExpressions.includes(name)) {
+        this.currentVRM!.expressionManager.setValue(name, 0.0);
+      }
+    });
+  }
+
+  /**
+   * 現在の表情の値を取得
+   */
+  getExpressionValue(expressionName: string): number | null {
+    if (!this.currentVRM?.expressionManager) {
+      return null;
+    }
+    
+    return this.currentVRM.expressionManager.getValue(expressionName);
+  }
+
+  /**
+   * すべての表情をリセット（まばたきを除く）
+   */
+  resetAllExpressions(): void {
+    if (!this.currentVRM?.expressionManager) return;
+
+    const allExpressions = this.currentVRM.expressionManager.expressionMap;
+    Object.keys(allExpressions).forEach(name => {
+      if (!name.startsWith('blink')) {
+        this.currentVRM!.expressionManager.setValue(name, 0.0);
+      }
+    });
+    
+    console.log('[VRMController] すべての表情をリセットしました（まばたきを除く）');
+  }
 }
 
 // 後方互換性のための関数（既存のコードとの互換性を保つ）
@@ -272,4 +411,20 @@ export function getHeadScreenPosition(
   rendererDomElement: HTMLCanvasElement
 ): { x: number; y: number; isInFront: boolean } | null {
   return vrmController.getHeadScreenPosition(camera, rendererDomElement);
+}
+
+export function getAvailableExpressions(): VRMExpressionInfo[] {
+  return vrmController.getAvailableExpressions();
+}
+
+export function applyExpression(expressionName: string, intensity?: number): boolean {
+  return vrmController.applyExpression(expressionName, intensity);
+}
+
+export function getExpressionValue(expressionName: string): number | null {
+  return vrmController.getExpressionValue(expressionName);
+}
+
+export function resetAllExpressions(): void {
+  vrmController.resetAllExpressions();
 }
