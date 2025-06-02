@@ -193,7 +193,7 @@ export class WindowManager {
       if (htmlPath === 'chat.html') {
         filePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/../chat.html`);
       } else if (htmlPath === 'speech_bubble/index.html') {
-        filePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/../renderer/speech_bubble/index.html`);
+        filePath = path.join(__dirname, `../renderer/speech_bubble/index.html`);
       } else if (htmlPath === 'settings.html') {
         filePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/../settings.html`);
       } else {
