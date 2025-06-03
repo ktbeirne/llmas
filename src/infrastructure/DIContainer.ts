@@ -6,7 +6,6 @@
 import { ApplicationService, ApplicationConfig } from '../application/ApplicationService';
 
 // ゲートウェイのインフラ実装
-import { GeminiServiceGateway } from './gateways/GeminiServiceGateway';
 // import { ElectronWindowManagerGateway } from './gateways/ElectronWindowManagerGateway';
 // import { NodeFileSystemGateway } from './gateways/NodeFileSystemGateway';
 
@@ -21,6 +20,8 @@ import { SettingsStore } from '../utils/settingsStore';
 import { ChatHistoryStore } from '../utils/chatHistoryStore';
 import { ToolsService } from '../services/toolsService';
 import { WindowManager } from '../utils/WindowManager';
+
+import { GeminiServiceGateway } from './gateways/GeminiServiceGateway';
 
 // アダプタークラス（既存クラスをインターフェースに合わせる）
 import { SettingsStoreAdapter } from './adapters/SettingsStoreAdapter';

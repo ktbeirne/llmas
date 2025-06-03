@@ -1,0 +1,353 @@
+/**
+ * App.tsx - React設定画面のメインコンポーネント
+ * 
+ * Phase 3.1.5: 基本的なReactアプリケーション構成
+ * ElectronAPIアクセス確認とHot Reload動作確認用
+ */
+
+import { useState, useEffect } from 'react';
+
+import './App.css';
+import { ReactElectronAPITester } from './reactApiTest';
+import { HMRTester } from './hmrTest';
+
+interface AppProps {
+  className?: string;
+}
+
+/**
+ * React版設定画面のメインアプリケーション
+ */
+const App: React.FC<AppProps> = ({ className = '' }) => {
+  // 基本状態管理
+  const [isLoading, setIsLoading] = useState(true);
+  const [electronAPIStatus, setElectronAPIStatus] = useState<'checking' | 'available' | 'unavailable'>('checking');
+  const [appInfo, setAppInfo] = useState<{
+    version?: string;
+    platform?: string;
+    arch?: string;
+  }>({});
+  const [testResults, setTestResults] = useState<any[]>([]);
+  const [isTestRunning, setIsTestRunning] = useState(false);
+  const [hmrResults, setHmrResults] = useState<any[]>([]);
+  const [isHmrTestRunning, setIsHmrTestRunning] = useState(false);
+
+  // ElectronAPI動作確認
+  useEffect(() => {
+    const checkElectronAPI = async () => {
+      try {
+        // ElectronAPIの存在確認
+        if (!window.electronAPI) {
+          setElectronAPIStatus('unavailable');
+          setIsLoading(false);
+          return;
+        }
+
+        console.log('[React App] ElectronAPI detected, checking methods...');
+        
+        // 基本的なAPI動作確認
+        const apiMethods = [
+          'getWindowSettings',
+          'getChatSettings', 
+          'getTheme',
+          'getExpressionSettings'
+        ];
+
+        const availableMethods = apiMethods.filter(method => 
+          typeof window.electronAPI[method] === 'function'
+        );
+
+        console.log(`[React App] Available API methods: ${availableMethods.length}/${apiMethods.length}`);
+        console.log('[React App] Available methods:', availableMethods);
+
+        // アプリ情報取得試行
+        if (typeof window.electronAPI.getAppInfo === 'function') {
+          try {
+            const info = await window.electronAPI.getAppInfo();
+            setAppInfo(info || {});
+            console.log('[React App] App info retrieved:', info);
+          } catch (error) {
+            console.warn('[React App] Failed to get app info:', error);
+          }
+        }
+
+        setElectronAPIStatus('available');
+        setIsLoading(false);
+        
+        console.log('[React App] ElectronAPI check completed successfully');
+      } catch (error) {
+        console.error('[React App] ElectronAPI check failed:', error);
+        setElectronAPIStatus('unavailable');
+        setIsLoading(false);
+      }
+    };
+
+    checkElectronAPI();
+  }, []);
+
+  // Hot Reload検証用の時刻表示
+  const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
+  
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date().toLocaleTimeString());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // レンダリング
+  if (isLoading) {
+    return (
+      <div className={`react-app loading ${className}`}>
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>React設定画面を初期化中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`react-app ${className}`} data-testid="react-app">
+      {/* ヘッダー */}
+      <header className="app-header">
+        <h1>🚀 React設定画面 (Phase 3) - HMR テスト</h1>
+        <p className="subtitle">LLM Desktop Mascot - React移行版 (Hot Reload検証中)</p>
+      </header>
+
+      {/* メインコンテンツ */}
+      <main className="app-main">
+        {/* ElectronAPI状態表示 */}
+        <section className="api-status-section">
+          <h2>📡 ElectronAPI状態</h2>
+          <div className={`api-status ${electronAPIStatus}`}>
+            <div className="status-indicator">
+              {electronAPIStatus === 'available' && '✅ 正常'}
+              {electronAPIStatus === 'unavailable' && '❌ 利用不可'}
+              {electronAPIStatus === 'checking' && '🔄 確認中'}
+            </div>
+            <div className="status-details">
+              <p><strong>状態:</strong> {
+                electronAPIStatus === 'available' ? 'ElectronAPI利用可能' :
+                electronAPIStatus === 'unavailable' ? 'ElectronAPI利用不可' :
+                'ElectronAPI確認中'
+              }</p>
+              {appInfo.version && (
+                <>
+                  <p><strong>Version:</strong> {appInfo.version}</p>
+                  <p><strong>Platform:</strong> {appInfo.platform}</p>
+                  <p><strong>Architecture:</strong> {appInfo.arch}</p>
+                </>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* Hot Reload確認セクション */}
+        <section className="hot-reload-section">
+          <h2>🔥 Hot Reload状態</h2>
+          <div className="hot-reload-status">
+            <p><strong>現在時刻:</strong> {currentTime}</p>
+            <p className="hot-reload-note">
+              ※ このファイルを編集して保存すると、Hot Reloadが動作することを確認できます
+            </p>
+          </div>
+        </section>
+
+        {/* 次期実装予告 */}
+        <section className="roadmap-section">
+          <h2>🗺️ Phase 3実装ロードマップ</h2>
+          <div className="roadmap-grid">
+            <div className="roadmap-item completed">
+              <h3>✅ Phase 3.1: React基盤構築 - 完了済み</h3>
+              <ul>
+                <li>✅ React 19環境セットアップ</li>
+                <li>✅ TypeScript JSX設定</li>
+                <li>✅ 基本App.tsx作成</li>
+                <li>✅ ElectronAPI統合確認</li>
+                <li>✅ HMR動作確認 (Phase 3.1.7-3.1.8)</li>
+              </ul>
+            </div>
+            <div className="roadmap-item pending">
+              <h3>🔄 Phase 3.2: 状態管理・Hook基盤</h3>
+              <ul>
+                <li>Zustand Store実装</li>
+                <li>Custom Hooks作成</li>
+                <li>ReactUIAdapter実装</li>
+                <li>型安全IPC Bridge</li>
+              </ul>
+            </div>
+            <div className="roadmap-item pending">
+              <h3>⏳ Phase 3.3: コンポーネント移行</h3>
+              <ul>
+                <li>WindowSettingsComponent React化</li>
+                <li>ThemeSettingsComponent React化</li>
+                <li>ChatSettingsComponent React化</li>
+                <li>ExpressionSettingsComponent React化</li>
+              </ul>
+            </div>
+            <div className="roadmap-item pending">
+              <h3>⏳ Phase 3.4: 統合・最適化</h3>
+              <ul>
+                <li>全体統合・テスト</li>
+                <li>パフォーマンス最適化</li>
+                <li>アクセシビリティ改善</li>
+                <li>本番環境準備</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* ElectronAPI テストセクション */}
+        <section className="api-test-section">
+          <h2>🧪 ElectronAPI統合テスト (Phase 3.1.7)</h2>
+          <div className="api-test-controls">
+            <button 
+              onClick={async () => {
+                setIsTestRunning(true);
+                try {
+                  const tester = new ReactElectronAPITester();
+                  const results = await tester.runAllTests();
+                  setTestResults(results);
+                } catch (error) {
+                  console.error('API test failed:', error);
+                } finally {
+                  setIsTestRunning(false);
+                }
+              }}
+              disabled={isTestRunning || electronAPIStatus !== 'available'}
+              className={electronAPIStatus === 'available' ? 'primary' : 'secondary'}
+            >
+              {isTestRunning ? '🔄 テスト実行中...' : '🚀 ElectronAPI テスト実行'}
+            </button>
+            {testResults.length > 0 && (
+              <div className="test-results">
+                <h3>テスト結果:</h3>
+                <div className="test-summary">
+                  <span className="success-count">✅ 成功: {testResults.filter(r => r.success).length}</span>
+                  <span className="fail-count">❌ 失敗: {testResults.filter(r => !r.success).length}</span>
+                </div>
+                <details>
+                  <summary>詳細結果</summary>
+                  <div className="test-details">
+                    {testResults.map((result, index) => (
+                      <div key={index} className={`test-item ${result.success ? 'success' : 'fail'}`}>
+                        <h4>{result.success ? '✅' : '❌'} {result.name}</h4>
+                        {result.error && <p className="error-msg">エラー: {result.error}</p>}
+                        {result.data && (
+                          <pre className="test-data">{JSON.stringify(result.data, null, 2)}</pre>
+                        )}
+                        <p className="duration">実行時間: {result.duration?.toFixed(2)}ms</p>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* HMRテストセクション */}
+        <section className="hmr-test-section">
+          <h2>🔥 Hot Module Replacement テスト (Phase 3.1.8)</h2>
+          <div className="hmr-test-controls">
+            <button 
+              onClick={async () => {
+                setIsHmrTestRunning(true);
+                try {
+                  const tester = new HMRTester();
+                  const results = await tester.runHMRTests();
+                  setHmrResults(results);
+                  
+                  // HMR監視開始
+                  tester.startHMRMonitoring();
+                } catch (error) {
+                  console.error('HMR test failed:', error);
+                } finally {
+                  setIsHmrTestRunning(false);
+                }
+              }}
+              disabled={isHmrTestRunning}
+              className="primary"
+            >
+              {isHmrTestRunning ? '🔄 HMRテスト実行中...' : '🚀 HMR機能テスト実行'}
+            </button>
+            
+            {hmrResults.length > 0 && (
+              <div className="test-results">
+                <h3>HMRテスト結果:</h3>
+                <div className="test-summary">
+                  <span className="success-count">✅ 動作中: {hmrResults.filter(r => r.status === 'working').length}</span>
+                  <span className="fail-count">❌ 非動作: {hmrResults.filter(r => r.status === 'not-working').length}</span>
+                  <span className="unknown-count">❓ 不明: {hmrResults.filter(r => r.status === 'unknown').length}</span>
+                </div>
+                <details>
+                  <summary>HMR詳細結果</summary>
+                  <div className="test-details">
+                    {hmrResults.map((result, index) => (
+                      <div key={index} className={`test-item ${result.status}`}>
+                        <h4>
+                          {result.status === 'working' && '✅'}
+                          {result.status === 'not-working' && '❌'}
+                          {result.status === 'unknown' && '❓'}
+                          {' '}{result.feature}
+                        </h4>
+                        <p className="test-details-text">{result.details}</p>
+                        <p className="timestamp">時刻: {new Date(result.timestamp).toLocaleString()}</p>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              </div>
+            )}
+            
+            <div className="hmr-live-test">
+              <h3>🔥 リアルタイムHMRテスト</h3>
+              <p>
+                <strong>動作確認:</strong> このファイル (App.tsx) を編集して保存すると、
+                ページの再読み込みなしで変更が反映されることを確認してください。
+              </p>
+              <div className="hmr-indicator">
+                <span className="hmr-status-dot"></span>
+                <span>現在時刻: {currentTime}</span>
+                {import.meta.hot && <span className="hmr-active"> (HMR有効)</span>}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* デバッグ情報 */}
+        <section className="debug-section">
+          <h2>🐛 デバッグ情報</h2>
+          <details>
+            <summary>技術詳細を表示</summary>
+            <div className="debug-info">
+              <p><strong>React Version:</strong> {React.version}</p>
+              <p><strong>Build Time:</strong> {new Date().toISOString()}</p>
+              <p><strong>Environment:</strong> {process.env.NODE_ENV || 'development'}</p>
+              <p><strong>User Agent:</strong> {navigator.userAgent}</p>
+              <pre className="electron-api-dump">
+                <strong>Available ElectronAPI Methods:</strong>
+                {electronAPIStatus === 'available' && window.electronAPI ? 
+                  JSON.stringify(Object.keys(window.electronAPI), null, 2) :
+                  'ElectronAPI not available'
+                }
+              </pre>
+            </div>
+          </details>
+        </section>
+      </main>
+
+      {/* フッター */}
+      <footer className="app-footer">
+        <p>Phase 3: React移行実装 - Think Harder Approach</p>
+        <p className="build-info">
+          Generated with Claude Code - {new Date().toLocaleDateString()}
+        </p>
+      </footer>
+    </div>
+  );
+};
+
+export default App;

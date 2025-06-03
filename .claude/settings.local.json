@@ -41,7 +41,14 @@
       "Bash(npm outdated)",
       "Bash(npm update:*)",
       "Bash(sed:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(sudo apt:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(chmod:*)",
+      "Bash(DISPLAY=:99 xvfb-run -a -s \"-screen 0 1920x1080x24 -ac +extension GLX +render -noreset\" npm run test:e2e -- --grep \"正常な起動と終了\" --timeout 600000)",
+      "Bash(DISPLAY=:99 xvfb-run -a timeout 10s node_modules/electron/dist/electron --version)",
+      "Bash(DISPLAY=:99 xvfb-run -a timeout 10s node_modules/electron/dist/electron . --no-sandbox --disable-gpu --headless)"
     ],
     "deny": []
   }

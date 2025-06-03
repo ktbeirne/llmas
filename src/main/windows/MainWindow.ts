@@ -19,6 +19,10 @@ export class MainWindowController {
   private moveTimeout: NodeJS.Timeout | null = null;
   private resizeTimeout: NodeJS.Timeout | null = null;
   private monitorInterval: NodeJS.Timeout | null = null;
+  private lastTitleCheckTime: number = 0;
+  private isWindowActive: boolean = false;
+  private isDragging: boolean = false;
+  private titleBarEventHandlers: Map<string, Function> = new Map();
   
   // イベントコールバック
   private boundsChangedCallbacks: BoundsChangedCallback[] = [];
@@ -160,82 +164,134 @@ export class MainWindowController {
   }
 
   /**
-   * タイトルバー継続監視（軽量版）
+   * タイトルバー継続監視（最適化版 - 動的頻度調整）
    */
   private startTitleBarMonitoring(): void {
     if (!this.window) return;
     
-    console.log('[MainWindow] Starting lightweight titlebar monitoring for main window...');
+    console.log('[MainWindow] Starting optimized titlebar monitoring for main window...');
     
-    let isDragging = false;
-    let dragStartTime = 0;
-    
-    // 軽量な監視（1秒間隔）- ドラッグ中は停止
-    this.monitorInterval = setInterval(() => {
-      if (!this.window || this.window.isDestroyed()) {
-        this.stopTitleBarMonitoring();
-        return;
+    // 動的間隔調整：通常5秒、アクティブ2秒、ドラッグ中は停止
+    const updateMonitoringInterval = () => {
+      if (this.monitorInterval) {
+        clearInterval(this.monitorInterval);
       }
       
-      // ドラッグ中は監視を一時停止
-      if (isDragging && Date.now() - dragStartTime < 500) {
+      let interval: number;
+      if (this.isDragging) {
+        // ドラッグ中は監視停止
         return;
+      } else if (this.isWindowActive) {
+        // アクティブ時は短間隔（2秒）
+        interval = 2000;
+      } else {
+        // 非アクティブ時は長間隔（5秒）
+        interval = 5000;
       }
       
-      // タイトルが設定されていれば強制的に空にする
-      if (this.window.getTitle() !== '') {
-        this.window.setTitle('');
-      }
-    }, 1000); // 1秒間隔
-    
-    // フォーカス・ブラーイベントでリセット（ドラッグに影響しない）
-    this.window.on('focus', () => {
-      if (this.window && !this.window.isDestroyed()) {
-        setTimeout(() => this.window?.setTitle(''), 100); // 少し遅延
-      }
-    });
-    
-    this.window.on('blur', () => {
-      if (this.window && !this.window.isDestroyed()) {
-        setTimeout(() => this.window?.setTitle(''), 100); // 少し遅延
-      }
-    });
-    
-    // ドラッグ開始検出
-    this.window.on('will-move', () => {
-      isDragging = true;
-      dragStartTime = Date.now();
-    });
-    
-    // ドラッグ終了検出（moved イベント後にドラッグ完了と判定）
-    this.window.on('moved', () => {
-      // ドラッグ終了後にタイトルをリセット（遅延付き）
-      setTimeout(() => {
-        if (this.window && !this.window.isDestroyed()) {
-          this.window.setTitle('');
-          isDragging = false;
+      this.monitorInterval = setInterval(() => {
+        if (!this.window || this.window.isDestroyed()) {
+          this.stopTitleBarMonitoring();
+          return;
         }
-      }, 200);
-    });
+        
+        this.checkAndClearTitle();
+      }, interval);
+    };
     
-    // リサイズ後にタイトルリセット（遅延付き）
-    this.window.on('resized', () => {
+    // 初期監視開始
+    updateMonitoringInterval();
+    
+    // イベントハンドラーを定義し、Map で管理（メモリリーク防止）
+    const focusHandler = () => {
+      this.isWindowActive = true;
+      this.checkAndClearTitle();
+      updateMonitoringInterval(); // 監視頻度を動的調整
+    };
+    
+    const blurHandler = () => {
+      this.isWindowActive = false;
+      this.checkAndClearTitle();
+      updateMonitoringInterval(); // 監視頻度を動的調整
+    };
+    
+    const willMoveHandler = () => {
+      this.isDragging = true;
+      updateMonitoringInterval(); // 監視停止
+    };
+    
+    const movedHandler = () => {
       setTimeout(() => {
         if (this.window && !this.window.isDestroyed()) {
-          this.window.setTitle('');
+          this.isDragging = false;
+          this.checkAndClearTitle();
+          updateMonitoringInterval(); // 監視再開
         }
       }, 100);
-    });
+    };
+    
+    const resizedHandler = () => {
+      setTimeout(() => {
+        this.checkAndClearTitle();
+      }, 50);
+    };
+    
+    // イベントリスナーを登録し、Map で管理
+    this.window.on('focus', focusHandler);
+    this.window.on('blur', blurHandler);
+    this.window.on('will-move', willMoveHandler);
+    this.window.on('moved', movedHandler);
+    this.window.on('resized', resizedHandler);
+    
+    // クリーンアップ用にハンドラーを保存
+    this.titleBarEventHandlers.set('focus', focusHandler);
+    this.titleBarEventHandlers.set('blur', blurHandler);
+    this.titleBarEventHandlers.set('will-move', willMoveHandler);
+    this.titleBarEventHandlers.set('moved', movedHandler);
+    this.titleBarEventHandlers.set('resized', resizedHandler);
   }
 
   /**
-   * タイトルバー監視を停止
+   * タイトルバー監視を停止（メモリリーク防止のためイベントリスナーも削除）
    */
   private stopTitleBarMonitoring(): void {
     if (this.monitorInterval) {
       clearInterval(this.monitorInterval);
       this.monitorInterval = null;
       console.log('[MainWindow] Titlebar monitoring stopped');
+    }
+    
+    // イベントリスナーの適切なクリーンアップ
+    if (this.window && !this.window.isDestroyed()) {
+      this.titleBarEventHandlers.forEach((handler, eventName) => {
+        this.window?.removeListener(eventName, handler);
+      });
+    }
+    
+    // ハンドラーMapをクリア
+    this.titleBarEventHandlers.clear();
+    console.log('[MainWindow] Titlebar event listeners cleaned up');
+  }
+
+  /**
+   * タイトルチェックとクリア（頻度制限付き）
+   */
+  private checkAndClearTitle(): void {
+    if (!this.window || this.window.isDestroyed()) return;
+    
+    const now = Date.now();
+    // 最短100ms間隔でのみ実行（高頻度実行の防止）
+    if (now - this.lastTitleCheckTime < 100) {
+      return;
+    }
+    
+    this.lastTitleCheckTime = now;
+    
+    // タイトルが設定されていれば強制的に空にする
+    const currentTitle = this.window.getTitle();
+    if (currentTitle !== '') {
+      this.window.setTitle('');
+      console.log('[MainWindow] Title cleared:', currentTitle);
     }
   }
 
@@ -254,6 +310,14 @@ export class MainWindowController {
       clearTimeout(this.resizeTimeout);
       this.resizeTimeout = null;
     }
+    
+    // フラグをリセット
+    this.isWindowActive = false;
+    this.isDragging = false;
+    this.lastTitleCheckTime = 0;
+    
+    // イベントハンドラーMapもクリア（念のため）
+    this.titleBarEventHandlers.clear();
     
     this.window = null;
     console.log('[MainWindow] リソースのクリーンアップが完了しました');

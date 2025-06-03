@@ -319,7 +319,16 @@ interface ColorSystem {
   npm run test:e2e              # Run all E2E tests
   npm run test:e2e:headed       # Run with visible browser
   npm run test:e2e:debug        # Run in debug mode
+  npm run test:e2e:headless     # Run WSL-specific headless tests
+  npm run test:e2e:xvfb         # Run with Xvfb virtual display (WSL)
   ```
+
+* **WSL Environment Considerations**:
+  - **Headless Testing Required**: WSL environments should use headless testing due to GUI limitations
+  - **Virtual Display**: Use Xvfb for WSL-compatible E2E testing when GUI rendering is needed
+  - **Recommended Approach**: Use `npm run test:e2e:headless` for WSL environments
+  - **Test Coverage**: Headless tests cover IPC communication, settings management, and core functionality without requiring GUI rendering
+  - **Performance**: Headless tests execute faster and more reliably in WSL containers
 
 * **Best Practices**:
   - Use data-testid attributes for reliable element selection

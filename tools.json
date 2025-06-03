@@ -1,21 +1,13 @@
 [
   {
     "name": "set_expression",
-    "description": "VRMマスコットの表情を設定します。利用可能な表情: neutral, angry, relaxed, happy, sad, Surprised",
+    "description": "VRMマスコットの表情を設定します。表情を変えることで、マスコットの感情表現を豊かにできます。",
     "parameters": {
       "type": "object",
       "properties": {
         "expression_name": {
           "type": "string",
-          "description": "設定する表情名（例: happy, sad, surprised, angry, relaxed, neutral）。利用可能な表情はVRMモデルに依存します。",
-          "enum": [
-            "neutral",
-            "angry",
-            "relaxed",
-            "happy",
-            "sad",
-            "Surprised"
-          ]
+          "description": "設定する表情名（例: happy, sad, surprised, angry, relaxed, neutral）。利用可能な表情はVRMモデルに依存します。"
         },
         "intensity": {
           "type": "number",

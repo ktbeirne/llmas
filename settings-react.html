@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>設定 (React版) - LLM Desktop Mascot</title>
+    
+    <!-- Phase 2.5デザインシステム継承 -->
+    <link rel="stylesheet" href="src/styles/design-system.css">
+    <link rel="stylesheet" href="src/styles/components.css">
+    
+    <!-- React版専用スタイル -->
+    <style>
+        /* React root container */
+        #react-settings-root {
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        /* フォールバック表示 */
+        .react-fallback {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #BFECFF 0%, #CDC1FF 100%);
+            flex-direction: column;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .react-fallback h1 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+        
+        .react-fallback p {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .react-fallback .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #BFECFF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .react-fallback .error {
+            background: #fee2e2;
+            border: 2px solid #ef4444;
+            border-radius: 8px;
+            padding: 1rem;
+            color: #991b1b;
+            max-width: 500px;
+            margin-top: 1rem;
+        }
+        
+        /* Dev Tools表示 */
+        .dev-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            z-index: 9999;
+            display: none;
+        }
+        
+        .dev-info.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- React マウントポイント -->
+    <div id="react-settings-root">
+        <!-- フォールバック表示（React読み込み前・エラー時） -->
+        <div class="react-fallback" id="react-fallback">
+            <h1>🚀 React設定画面</h1>
+            <p>React アプリケーションを読み込み中...</p>
+            <div class="spinner"></div>
+            
+            <!-- JavaScript無効時の表示 -->
+            <noscript>
+                <div class="error">
+                    <h2>❌ JavaScript が無効です</h2>
+                    <p>この設定画面はJavaScriptが必要です。ブラウザの設定でJavaScriptを有効にしてください。</p>
+                    <p>または、従来版の設定画面をご利用ください: <a href="settings.html">settings.html</a></p>
+                </div>
+            </noscript>
+        </div>
+    </div>
+    
+    <!-- 開発者情報表示 -->
+    <div class="dev-info" id="dev-info">
+        <div>Mode: <span id="dev-mode">development</span></div>
+        <div>React: <span id="react-status">loading</span></div>
+        <div>ElectronAPI: <span id="api-status">checking</span></div>
+    </div>
+    
+    <!-- React Entry Point -->
+    <script type="module" src="/src/renderer/main.tsx"></script>
+    
+    <!-- エラーハンドリング -->
+    <script>
+        // グローバルエラーハンドリング
+        window.addEventListener('error', (event) => {
+            console.error('React Settings Error:', event.error);
+            showReactError(event.error);
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('React Settings Unhandled Promise:', event.reason);
+            showReactError(new Error(`Promise rejection: ${event.reason}`));
+        });
+        
+        function showReactError(error) {
+            const fallback = document.getElementById('react-fallback');
+            if (fallback) {
+                fallback.innerHTML = `
+                    <h1>❌ React読み込みエラー</h1>
+                    <p>React設定画面の読み込みに失敗しました</p>
+                    <div class="error">
+                        <h3>エラー詳細:</h3>
+                        <pre>${error.message}</pre>
+                        <p style="margin-top: 1rem;">
+                            <strong>解決方法:</strong><br>
+                            1. ページを再読み込みしてください<br>
+                            2. 問題が続く場合は、従来版をご利用ください: 
+                            <a href="settings.html" style="color: #0066cc;">settings.html</a>
+                        </p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 開発者情報の更新
+        function updateDevInfo() {
+            const devInfo = document.getElementById('dev-info');
+            const devMode = document.getElementById('dev-mode');
+            const reactStatus = document.getElementById('react-status');
+            const apiStatus = document.getElementById('api-status');
+            
+            if (devMode) devMode.textContent = process?.env?.NODE_ENV || 'unknown';
+            
+            // ElectronAPI状態確認
+            if (apiStatus) {
+                if (window.electronAPI) {
+                    apiStatus.textContent = 'available';
+                    apiStatus.style.color = '#10b981';
+                } else {
+                    apiStatus.textContent = 'unavailable';
+                    apiStatus.style.color = '#ef4444';
+                }
+            }
+            
+            // 開発モードでのみ表示
+            if (process?.env?.NODE_ENV === 'development') {
+                devInfo?.classList.add('show');
+            }
+        }
+        
+        // React読み込み成功時のコールバック
+        window.onReactReady = function() {
+            const reactStatus = document.getElementById('react-status');
+            const fallback = document.getElementById('react-fallback');
+            
+            if (reactStatus) {
+                reactStatus.textContent = 'ready';
+                reactStatus.style.color = '#10b981';
+            }
+            
+            // フォールバック表示を隠す
+            if (fallback) {
+                fallback.style.display = 'none';
+            }
+            
+            console.log('✅ React Settings App ready');
+        };
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDevInfo();
+            
+            // 5秒経ってもReactが読み込まれない場合はタイムアウト
+            setTimeout(() => {
+                const fallback = document.getElementById('react-fallback');
+                if (fallback && fallback.style.display !== 'none') {
+                    showReactError(new Error('React読み込みタイムアウト（5秒）'));
+                }
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

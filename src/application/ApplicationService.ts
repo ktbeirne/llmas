@@ -9,12 +9,10 @@ import { CameraSettings } from '../domain/entities/CameraSettings';
 import { ExpressionSettings } from '../domain/entities/ExpressionSettings';
 import { WindowBounds } from '../domain/value-objects/WindowBounds';
 import { WindowSettings } from '../domain/entities/WindowSettings';
-
 import { SystemPromptBuilder } from '../domain/services/SystemPromptBuilder';
 import { SettingsValidator, ValidationResult } from '../domain/services/SettingsValidator';
 import { ChatHistoryManager } from '../domain/services/ChatHistoryManager';
 import { FunctionCallOrchestrator } from '../domain/services/FunctionCallOrchestrator';
-
 import { IAIServiceGateway, AIResponse, AIServiceConfig } from '../domain/gateways/IAIServiceGateway';
 import { IWindowManagerGateway } from '../domain/gateways/IWindowManagerGateway';
 import { IFileSystemGateway } from '../domain/gateways/IFileSystemGateway';
