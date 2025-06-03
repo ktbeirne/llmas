@@ -18,6 +18,7 @@ export class VRMController {
   // まばたきのタイミング管理
   private blinkTimer = 0;
   private nextBlinkTime = 0;
+  private blinkTimeoutId: number | null = null; // メモリリーク修正: タイマーID保存
 
   private constructor() {
     this.loader = new GLTFLoader();
@@ -156,11 +157,17 @@ export class VRMController {
       // まばたきを実行
       this.currentVRM.expressionManager.setValue('blink', 1.0);
       
-      // 100ms後に目を開く
-      setTimeout(() => {
+      // 既存のタイマーをクリア（メモリリーク修正）
+      if (this.blinkTimeoutId !== null) {
+        clearTimeout(this.blinkTimeoutId);
+      }
+      
+      // 100ms後に目を開く（メモリリーク修正: タイマーIDを保存）
+      this.blinkTimeoutId = window.setTimeout(() => {
         if (this.currentVRM?.expressionManager) {
           this.currentVRM.expressionManager.setValue('blink', 0.0);
         }
+        this.blinkTimeoutId = null; // タイマー完了後にクリア
       }, 100);
       
       // 次のまばたきタイミングを設定
@@ -369,6 +376,88 @@ export class VRMController {
     
     console.log('[VRMController] すべての表情をリセットしました（まばたきを除く）');
   }
+
+  /**
+   * メモリリーク修正: 完全なクリーンアップ処理
+   */
+  cleanup(): void {
+    console.log('[VRMController] Starting cleanup...');
+    
+    // まばたきタイマーをクリア
+    if (this.blinkTimeoutId !== null) {
+      clearTimeout(this.blinkTimeoutId);
+      this.blinkTimeoutId = null;
+    }
+    
+    // AnimationMixerのクリーンアップ
+    if (this.animationMixer) {
+      this.animationMixer.stopAllAction();
+      this.animationMixer.uncacheRoot(this.animationMixer.getRoot());
+      this.animationMixer.dispose();
+      this.animationMixer = null;
+      console.log('[VRMController] AnimationMixer disposed');
+    }
+    
+    // VRMモデルのクリーンアップ
+    if (this.currentVRM) {
+      // VRMの表情管理をクリア
+      if (this.currentVRM.expressionManager) {
+        this.currentVRM.expressionManager.destroy();
+      }
+      
+      // VRMのLookAtをクリア
+      if (this.currentVRM.lookAt) {
+        this.currentVRM.lookAt.destroy();
+      }
+      
+      // VRMシーンを parent から削除
+      if (this.currentVRM.scene.parent) {
+        this.currentVRM.scene.parent.remove(this.currentVRM.scene);
+      }
+      
+      // VRMシーン内のリソースを再帰的に破棄
+      this.currentVRM.scene.traverse((object) => {
+        if (object instanceof THREE.Mesh) {
+          if (object.geometry) {
+            object.geometry.dispose();
+          }
+          if (object.material) {
+            if (Array.isArray(object.material)) {
+              object.material.forEach(material => material.dispose());
+            } else {
+              object.material.dispose();
+            }
+          }
+        }
+      });
+      
+      this.currentVRM = null;
+      console.log('[VRMController] VRM model resources disposed');
+    }
+    
+    // VRMアニメーションのクリーンアップ
+    if (this.currentVRMAnimation) {
+      this.currentVRMAnimation = null;
+      console.log('[VRMController] VRM animation cleared');
+    }
+    
+    // タイマー状態をリセット
+    this.blinkTimer = 0;
+    this.nextBlinkTime = 0;
+    
+    console.log('[VRMController] Cleanup completed');
+  }
+
+  /**
+   * シングルトンインスタンスの破棄（メモリリーク修正）
+   */
+  static destroyInstance(): void {
+    if (VRMController.instance) {
+      VRMController.instance.cleanup();
+      VRMController.instance = null;
+      console.log('[VRMController] Singleton instance destroyed');
+    }
+  }
 }
 
 // 後方互換性のための関数（既存のコードとの互換性を保つ）
@@ -430,4 +519,11 @@ export function getExpressionValue(expressionName: string): number | null {
 
 export function resetAllExpressions(): void {
   vrmController.resetAllExpressions();
+}
+
+/**
+ * メモリリーク修正: VRMControllerのクリーンアップ関数
+ */
+export function cleanupVRMController(): void {
+  VRMController.destroyInstance();
 }

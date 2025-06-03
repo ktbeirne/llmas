@@ -22,35 +22,25 @@ import { ChatHandler } from './main/ipc/handlers/ChatHandler';
 import { VRMHandler } from './main/ipc/handlers/VRMHandler';
 import { IPCErrorHandler } from './main/ipc/IPCErrorHandler';
 
+// 起動最適化
+import { StartupManager } from './main/services/StartupManager';
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
 }
 
-// ウィンドウマネージャーのインスタンス
-const windowManager = new WindowManager();
+// 起動マネージャーのインスタンス
+const startupManager = new StartupManager();
 
-// 設定ストアのインスタンス
-const settingsStore = new SettingsStore();
-
-// スピーチバブルマネージャーのインスタンス
-const speechBubbleManager = new SpeechBubbleManager();
-
-// 新しいウィンドウ管理システム
-const windowManagerController = new WindowManagerController(
-  windowManager,
-  settingsStore,
-  speechBubbleManager
-);
-
-// 新しいIPCハンドラーシステム
-const settingsHandler = new SettingsHandler(settingsStore, windowManagerController);
-const chatHandler = new ChatHandler(settingsStore, windowManagerController);
-const vrmHandler = new VRMHandler(windowManagerController);
-
-// FunctionCallHandlerにWindowManagerを注入
-const functionCallHandler = FunctionCallHandler.getInstance();
-functionCallHandler.setWindowManager(windowManager);
+// グローバルな参照用
+let windowManager: WindowManager;
+let settingsStore: SettingsStore;
+let speechBubbleManager: SpeechBubbleManager;
+let windowManagerController: WindowManagerController;
+let settingsHandler: SettingsHandler;
+let chatHandler: ChatHandler;
+let vrmHandler: VRMHandler;
 
 
 
@@ -134,19 +124,179 @@ function setupErrorHandlers(): void {
   });
 }
 
+/**
+ * 最適化された起動シーケンス設定
+ */
+async function setupOptimizedStartup(): Promise<void> {
+  console.log('🚀 [Main] Starting optimized startup sequence...');
+  
+  // システム情報の検出
+  const systemInfo = await StartupManager.detectSystemInfo();
+  startupManager.setSystemInfo(systemInfo);
+  
+  // コンポーネントの登録（優先度付き）
+  await registerStartupComponents();
+  
+  // 最適化された初期化実行
+  const metrics = await startupManager.initialize();
+  
+  // 起動メトリクスをログ出力
+  console.log('📊 [Main] Startup metrics:', {
+    totalTime: `${metrics.totalStartupTime.toFixed(2)}ms`,
+    components: Object.keys(metrics.componentInitTimes).length,
+    errors: metrics.errors.length
+  });
+  
+  // 最適化提案を生成
+  const suggestions = startupManager.generateOptimizationSuggestions(metrics);
+  if (suggestions.length > 0) {
+    console.log('💡 [Main] Optimization suggestions:', suggestions);
+  }
+}
+
+/**
+ * 起動コンポーネントの登録
+ */
+async function registerStartupComponents(): Promise<void> {
+  // Critical: エラーハンドラーと設定ストア
+  startupManager.registerComponent({
+    name: 'error-handlers',
+    priority: 'critical',
+    initFunction: async () => {
+      setupErrorHandlers();
+    },
+    timeout: 5000
+  });
+  
+  startupManager.registerComponent({
+    name: 'settings-store',
+    priority: 'critical',
+    initFunction: async () => {
+      settingsStore = new SettingsStore();
+    },
+    timeout: 5000
+  });
+  
+  // High: コアマネージャー
+  startupManager.registerComponent({
+    name: 'window-manager',
+    priority: 'high',
+    dependencies: ['settings-store'],
+    initFunction: async () => {
+      windowManager = new WindowManager();
+    },
+    timeout: 10000
+  });
+  
+  startupManager.registerComponent({
+    name: 'speech-bubble-manager',
+    priority: 'high',
+    dependencies: ['settings-store'],
+    initFunction: async () => {
+      speechBubbleManager = new SpeechBubbleManager();
+    },
+    timeout: 10000
+  });
+  
+  startupManager.registerComponent({
+    name: 'window-controller',
+    priority: 'high',
+    dependencies: ['window-manager', 'settings-store', 'speech-bubble-manager'],
+    initFunction: async () => {
+      windowManagerController = new WindowManagerController(
+        windowManager,
+        settingsStore,
+        speechBubbleManager
+      );
+    },
+    timeout: 15000
+  });
+  
+  // Normal: API初期化とIPCハンドラー
+  startupManager.registerComponent({
+    name: 'gemini-api',
+    priority: 'normal',
+    dependencies: ['error-handlers'],
+    initFunction: async () => {
+      await initializeAPI();
+    },
+    timeout: 30000,
+    retryAttempts: 2
+  });
+  
+  startupManager.registerComponent({
+    name: 'ipc-handlers',
+    priority: 'normal',
+    dependencies: ['window-controller'],
+    initFunction: async () => {
+      // IPCハンドラーの初期化
+      settingsHandler = new SettingsHandler(settingsStore, windowManagerController);
+      chatHandler = new ChatHandler(settingsStore, windowManagerController);
+      vrmHandler = new VRMHandler(windowManagerController);
+      
+      setupIPCHandlers();
+    },
+    timeout: 15000
+  });
+  
+  startupManager.registerComponent({
+    name: 'function-call-handler',
+    priority: 'normal',
+    dependencies: ['window-manager'],
+    initFunction: async () => {
+      const functionCallHandler = FunctionCallHandler.getInstance();
+      functionCallHandler.setWindowManager(windowManager);
+    },
+    timeout: 10000
+  });
+  
+  // Low: ウィンドウ初期化
+  startupManager.registerComponent({
+    name: 'main-windows',
+    priority: 'low',
+    dependencies: ['window-controller', 'ipc-handlers'],
+    initFunction: async () => {
+      await windowManagerController.initializeWindows();
+    },
+    timeout: 20000
+  });
+}
+
 // アプリケーションの初期化
 app.whenReady().then(async () => {
-  setupErrorHandlers();
-  await initializeAPI();
-  setupIPCHandlers();
-  
-  await windowManagerController.initializeWindows();
-
-  app.on('activate', async () => {
-    if (!windowManagerController.hasAnyWindow()) {
-      await windowManagerController.initializeWindows();
-    }
-  });
+  try {
+    // 一時的に従来の起動方式を使用
+    setupErrorHandlers();
+    settingsStore = new SettingsStore();
+    windowManager = new WindowManager();
+    speechBubbleManager = new SpeechBubbleManager();
+    windowManagerController = new WindowManagerController(
+      windowManager,
+      settingsStore,
+      speechBubbleManager
+    );
+    
+    // IPCハンドラーの初期化
+    settingsHandler = new SettingsHandler(settingsStore, windowManagerController);
+    chatHandler = new ChatHandler(settingsStore, windowManagerController);
+    vrmHandler = new VRMHandler(windowManagerController);
+    
+    const functionCallHandler = FunctionCallHandler.getInstance();
+    functionCallHandler.setWindowManager(windowManager);
+    
+    await initializeAPI();
+    setupIPCHandlers();
+    await windowManagerController.initializeWindows();
+    
+    app.on('activate', async () => {
+      if (!windowManagerController.hasAnyWindow()) {
+        await windowManagerController.initializeWindows();
+      }
+    });
+  } catch (error) {
+    console.error('❌ [Main] Startup failed:', error);
+    ErrorHandler.handle(error as Error, true);
+  }
 });
 
 // すべてのウィンドウが閉じられた時の処理

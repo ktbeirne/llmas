@@ -19,10 +19,24 @@
     "baseUrl": ".",
     "outDir": "dist",
     "moduleResolution": "node",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    // React JSX support
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    // Path mapping for aliases
+    "paths": {
+      "@/*": ["src/*"],
+      "@components/*": ["src/components/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@stores/*": ["src/stores/*"],
+      "@utils/*": ["src/utils/*"],
+      "@services/*": ["src/services/*"],
+      "@types/*": ["src/types/*"]
+    }
   },
   "include": [
     "src/**/*.ts", // srcフォルダとそのサブフォルダ内の全ての.tsファイル
+    "src/**/*.tsx", // srcフォルダとそのサブフォルダ内の全ての.tsxファイル (React components)
     "src/**/*.d.ts", // srcフォルダとそのサブフォルダ内の全ての.d.tsファイル (src/preload.d.ts を含む)
     "*.d.ts" // ★プロジェクトルート直下にある全ての.d.tsファイルも見るように追加
     // (もし vite-env.d.ts などがルートにあれば、これで認識されるはずです)
