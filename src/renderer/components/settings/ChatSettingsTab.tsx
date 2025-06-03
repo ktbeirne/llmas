@@ -159,9 +159,6 @@ export const ChatSettingsTab: React.FC<ChatSettingsTabProps> = ({
       console.error('Failed to reset chat settings:', error);
     }
   }, [chatSettings]);
-    setShowPerformanceWarning(false);
-    console.log('会話設定をリセット');
-  }, []);
   
   // Validation
   const getUserNameError = () => {

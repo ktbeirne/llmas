@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { safeElectronAPICall, safeDOMOperation } from './serviceErrorEnhancer';
-import { logger, LogMethod } from './logger';
+import { logger } from './logger';
 import { errorHandler, ErrorCategory } from './errorHandler';
 
 export interface CameraSettings {
@@ -26,6 +26,13 @@ export class CameraManager {
     private camera: THREE.PerspectiveCamera;
     private controls: OrbitControls;
     private saveTimeout: number | null = null;
+    
+    // デフォルトのカメラ設定
+    private static readonly DEFAULT_SETTINGS: CameraSettings = {
+        position: { x: 0.3, y: 1.0, z: 1.5 },
+        target: { x: 0, y: 0.8, z: 0 },
+        zoom: 1.0
+    };
 
     constructor(camera: THREE.PerspectiveCamera, controls: OrbitControls) {
         this.camera = camera;
@@ -40,21 +47,52 @@ export class CameraManager {
         });
     }
 
-    @LogMethod('CameraManager')
     async restoreCameraSettings(): Promise<void> {
+        console.log('[CameraManager] Starting camera settings restoration...');
+        
         const settings = await safeElectronAPICall(
             'CameraManager',
             'getCameraSettings',
             async () => {
                 if (window.electronAPI?.getCameraSettings) {
-                    return await window.electronAPI.getCameraSettings();
+                    console.log('[CameraManager] Calling electronAPI.getCameraSettings...');
+                    const result = await window.electronAPI.getCameraSettings();
+                    console.log('[CameraManager] Raw API result:', result);
+                    return result;
                 }
+                console.log('[CameraManager] electronAPI.getCameraSettings not available');
                 return null;
             }
         );
+        
+        console.log('[CameraManager] Processed settings:', settings);
 
         if (settings) {
             safeDOMOperation('CameraManager', 'applyCameraSettings', () => {
+                // デバッグログを追加
+                logger.info('CameraManager', 'applyCameraSettings', 'Attempting to apply settings', settings);
+                
+                // settingsオブジェクトの構造を検証
+                if (!settings.position || typeof settings.position.x !== 'number' || 
+                    typeof settings.position.y !== 'number' || typeof settings.position.z !== 'number') {
+                    logger.warn('CameraManager', 'applyCameraSettings', 'Invalid camera position in settings, using defaults', settings);
+                    this.applyDefaultSettings();
+                    return;
+                }
+                
+                if (!settings.target || typeof settings.target.x !== 'number' || 
+                    typeof settings.target.y !== 'number' || typeof settings.target.z !== 'number') {
+                    logger.warn('CameraManager', 'applyCameraSettings', 'Invalid camera target in settings, using defaults', settings);
+                    this.applyDefaultSettings();
+                    return;
+                }
+                
+                if (typeof settings.zoom !== 'number' || settings.zoom <= 0) {
+                    logger.warn('CameraManager', 'applyCameraSettings', 'Invalid camera zoom in settings, using defaults', settings);
+                    this.applyDefaultSettings();
+                    return;
+                }
+                
                 // カメラ位置を復元
                 this.camera.position.set(settings.position.x, settings.position.y, settings.position.z);
                 
@@ -71,8 +109,32 @@ export class CameraManager {
                 logger.info('CameraManager', 'restoreCameraSettings', 'Camera settings restored successfully', settings);
             });
         } else {
-            logger.info('CameraManager', 'restoreCameraSettings', 'No camera settings found to restore');
+            logger.info('CameraManager', 'restoreCameraSettings', 'No camera settings found, using defaults');
+            this.applyDefaultSettings();
         }
+    }
+    
+    private applyDefaultSettings(): void {
+        safeDOMOperation('CameraManager', 'applyDefaultSettings', () => {
+            // デフォルト設定を適用
+            this.camera.position.set(
+                CameraManager.DEFAULT_SETTINGS.position.x,
+                CameraManager.DEFAULT_SETTINGS.position.y,
+                CameraManager.DEFAULT_SETTINGS.position.z
+            );
+            
+            this.controls.target.set(
+                CameraManager.DEFAULT_SETTINGS.target.x,
+                CameraManager.DEFAULT_SETTINGS.target.y,
+                CameraManager.DEFAULT_SETTINGS.target.z
+            );
+            
+            this.camera.zoom = CameraManager.DEFAULT_SETTINGS.zoom;
+            this.camera.updateProjectionMatrix();
+            this.controls.update();
+            
+            logger.info('CameraManager', 'applyDefaultSettings', 'Default camera settings applied');
+        });
     }
 
     async saveCameraSettings() {

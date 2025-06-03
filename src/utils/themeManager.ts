@@ -54,10 +54,10 @@ export const AVAILABLE_THEMES: Theme[] = [
     name: 'オーシャン',
     description: '海の爽やかさを表現した、清々しいテーマ',
     preview: {
-      primary: '#0D7377',
-      secondary: '#1E40AF',
-      accent: '#DC7633',
-      background: '#F0FDFA'
+      primary: '#0077BE',
+      secondary: '#06AED5',
+      accent: '#FFC947',
+      background: '#F0FEFF'
     }
   },
   {
@@ -104,6 +104,11 @@ export class ThemeManager {
 
     // システムの色設定変更を監視
     this.watchSystemColorScheme();
+    
+    // 初期化時にキャンバス透明性を強制
+    setTimeout(() => {
+      this.ensureCanvasTransparency();
+    }, 100);
   }
 
   /**
@@ -184,7 +189,85 @@ export class ThemeManager {
     // テーマの切り替えアニメーション
     this.animateThemeTransition();
 
+    // VRMキャンバスエリアの透明性を強制的に維持
+    this.ensureCanvasTransparency();
+
     console.log(`テーマが適用されました: ${themeId}`);
+  }
+
+  /**
+   * VRMキャンバスエリアの透明性を確保し、アイコンバーの表示を保証
+   */
+  public ensureCanvasTransparency(): void {
+    const canvasArea = document.getElementById('canvas-area');
+    const vrmCanvas = document.getElementById('vrm-canvas');
+    const mainBody = document.querySelector('body.main-window');
+    const iconBar = document.getElementById('icon-bar');
+
+    console.log('[ThemeManager] Ensuring canvas transparency and icon visibility:', {
+      canvasArea: !!canvasArea,
+      vrmCanvas: !!vrmCanvas,
+      mainBody: !!mainBody,
+      iconBar: !!iconBar
+    });
+
+    if (canvasArea) {
+      const originalBg = getComputedStyle(canvasArea).backgroundColor;
+      canvasArea.style.backgroundColor = 'transparent';
+      canvasArea.style.background = 'transparent';
+      console.log('[ThemeManager] Canvas area background changed:', originalBg, '→ transparent');
+    }
+
+    if (vrmCanvas) {
+      const originalBg = getComputedStyle(vrmCanvas).backgroundColor;
+      vrmCanvas.style.backgroundColor = 'transparent';
+      vrmCanvas.style.background = 'transparent';
+      console.log('[ThemeManager] VRM canvas background changed:', originalBg, '→ transparent');
+    }
+
+    if (mainBody) {
+      const originalBg = getComputedStyle(mainBody).backgroundColor;
+      mainBody.style.backgroundColor = 'transparent';
+      mainBody.style.background = 'transparent';
+      console.log('[ThemeManager] Main body background changed:', originalBg, '→ transparent');
+    }
+
+    // アイコンバーの表示を保証と背景色設定
+    if (iconBar) {
+      iconBar.style.display = 'flex';
+      iconBar.style.visibility = 'visible';
+      iconBar.style.opacity = '1';
+      iconBar.style.zIndex = '10';
+      
+      // 背景色をCSS変数から動的に取得して適用
+      const surfaceColor = getComputedStyle(document.documentElement)
+        .getPropertyValue('--color-surface').trim();
+      
+      if (surfaceColor && surfaceColor !== '') {
+        iconBar.style.backgroundColor = surfaceColor;
+        iconBar.style.background = surfaceColor;
+        console.log('[ThemeManager] Icon bar background set to:', surfaceColor);
+      } else {
+        // フォールバック: デフォルトの白背景
+        iconBar.style.backgroundColor = '#FFFFFF';
+        iconBar.style.background = '#FFFFFF';
+        console.warn('[ThemeManager] CSS variable --color-surface not found, using fallback white');
+      }
+      
+      console.log('[ThemeManager] Icon bar visibility ensured');
+
+      // 各アイコンの表示も保証
+      const icons = ['toggle-chat-icon', 'settings-icon', 'quit-app-icon'];
+      icons.forEach(iconId => {
+        const icon = document.getElementById(iconId);
+        if (icon) {
+          icon.style.display = 'inline-flex';
+          icon.style.visibility = 'visible';
+          icon.style.opacity = '1';
+          icon.style.zIndex = '11';
+        }
+      });
+    }
   }
 
   /**

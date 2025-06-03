@@ -31,22 +31,22 @@ export type {
   SelectVariant,
 } from './Select';
 
-// FormField コンポーネント
-export { default as FormField } from './FormField';
-export type {
-  FormFieldProps,
-  FormFieldType,
-  FormFieldLayout,
-  FormFieldSize,
-  BaseFormFieldProps,
-  InputFormFieldProps,
-  SelectFormFieldProps,
-  TextareaFormFieldProps,
-  CheckboxFormFieldProps,
-  RadioFormFieldProps,
-  ButtonFormFieldProps,
-  CustomFormFieldProps,
-} from './FormField';
+// FormField コンポーネント (一時的にコメントアウト)
+// export { default as FormField } from './FormField';
+// export type {
+//   FormFieldProps,
+//   FormFieldType,
+//   FormFieldLayout,
+//   FormFieldSize,
+//   BaseFormFieldProps,
+//   InputFormFieldProps,
+//   SelectFormFieldProps,
+//   TextareaFormFieldProps,
+//   CheckboxFormFieldProps,
+//   RadioFormFieldProps,
+//   ButtonFormFieldProps,
+//   CustomFormFieldProps,
+// } from './FormField';
 
 // Card コンポーネント
 export { default as Card } from './Card';
@@ -130,7 +130,7 @@ export interface ComponentSizeMap {
   button: ButtonSize;
   input: InputSize;
   select: SelectSize;
-  formField: FormFieldSize;
+  // formField: FormFieldSize;
   card: CardSize;
 }
 
@@ -149,7 +149,7 @@ export type ComponentType =
   | 'button'
   | 'input' 
   | 'select'
-  | 'formField'
+  // | 'formField'
   | 'card';
 
 /**
@@ -160,7 +160,7 @@ export type ComponentPropsMap = {
   button: ButtonProps;
   input: InputProps;
   select: SelectProps;
-  formField: FormFieldProps;
+  // formField: FormFieldProps;
   card: CardProps;
 };
 
@@ -190,7 +190,7 @@ const CommonComponents = {
   Button,
   Input,
   Select,
-  FormField,
+  // FormField,
   Card,
   LazyComponent,
   LazySettingsWindow,

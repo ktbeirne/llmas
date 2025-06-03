@@ -1,5 +1,5 @@
 /**
- * ExpressionSettingsTab.tsx - 表情・アニメーション設定タブ
+ * ExpressionSettingsTab.tsx - 表情・アニメ設定タブ
  * 
  * Phase 3.5.2.2 Task 4: 表情設定実装
  * 表情制御、アニメーション設定、プレビュー機能

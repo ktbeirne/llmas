@@ -95,9 +95,8 @@ export interface ExpressionSettingsData {
 export interface ThemeInfo {
   id: string;
   name: string;
-  displayName: string;
-  description: string;
-  colors: {
+  description?: string;
+  preview?: {
     primary: string;
     secondary: string;
     accent: string;

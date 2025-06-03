@@ -41,7 +41,12 @@ export interface ThemeInfo {
   id: string;
   name: string;
   description?: string;
-  preview?: string[];
+  preview?: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+  };
 }
 
 /**

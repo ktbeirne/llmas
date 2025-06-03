@@ -90,10 +90,10 @@ const THEME_CONFIGS: ThemeConfig[] = [
     title: 'オーシャン',
     description: '海の静けさをイメージした爽やかなテーマ',
     colors: {
-      primary: '#0D7377',
-      secondary: '#1E40AF',
-      accent: '#DC7633',
-      background: '#F0FDFA'
+      primary: '#0077BE',
+      secondary: '#06AED5',
+      accent: '#FFC947',
+      background: '#F0FEFF'
     },
     labels: ['メイン', 'サブ', 'アクセント', '背景']
   },
@@ -210,6 +210,27 @@ export const DisplaySettingsTab: React.FC<DisplaySettingsTabProps> = ({
     return themeSettings.data?.currentTheme || 'default';
   }, [themeSettings.data?.currentTheme]);
   
+  // Available themes from ElectronAPI (not hardcoded)
+  const availableThemes = useMemo(() => {
+    return themeSettings.data?.availableThemes || [];
+  }, [themeSettings.data?.availableThemes]);
+  
+  // Convert ElectronAPI themes to component format
+  const themeConfigs = useMemo(() => {
+    return availableThemes.map(theme => ({
+      id: theme.id,
+      title: theme.name,
+      description: theme.description || '',
+      colors: theme.preview || {
+        primary: '#5082C4',
+        secondary: '#8E7CC3', 
+        accent: '#E91E63',
+        background: '#FDFBF7'
+      },
+      labels: ['メイン', 'サブ', 'アクセント', '背景']
+    }));
+  }, [availableThemes]);
+  
   const windowSizePreset = useMemo(() => {
     const size = windowSettings.data?.windowSize;
     if (!size) return 'medium';
@@ -232,6 +253,21 @@ export const DisplaySettingsTab: React.FC<DisplaySettingsTabProps> = ({
         currentTheme: themeId,
         availableThemes: themeSettings.data?.availableThemes || []
       });
+      
+      // ElectronAPIでテーマを保存し、メインウィンドウに通知
+      if (window.electronAPI && window.electronAPI.setTheme) {
+        const result = await window.electronAPI.setTheme(themeId);
+        if (result.success) {
+          console.log(`テーマ ${themeId} を適用しました`);
+        } else {
+          console.error('テーマの適用に失敗しました:', result.error);
+        }
+      }
+      
+      // 設定画面自体のプレビューも更新
+      if (window.themeManager) {
+        window.themeManager.setTheme(themeId);
+      }
     } catch (error) {
       console.error('Failed to update theme:', error);
     }
@@ -337,16 +373,27 @@ export const DisplaySettingsTab: React.FC<DisplaySettingsTabProps> = ({
       >
         <div className="space-y-4">
           {/* テーマ選択グリッド */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {THEME_CONFIGS.map((theme) => (
-              <ThemeCard
-                key={theme.id}
-                theme={theme}
-                isSelected={selectedTheme === theme.id}
-                onSelect={handleThemeSelect}
-              />
-            ))}
-          </div>
+          {themeConfigs.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {themeConfigs.map((theme) => (
+                <ThemeCard
+                  key={theme.id}
+                  theme={theme}
+                  isSelected={selectedTheme === theme.id}
+                  onSelect={handleThemeSelect}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <p>テーマを読み込み中...</p>
+              {themeSettings.error && (
+                <p className="text-red-500 mt-2">
+                  エラー: {themeSettings.error.message}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </Card>
       

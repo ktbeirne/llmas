@@ -5,7 +5,8 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: transparent;
+  background: transparent !important;
+  background-color: transparent !important;
   -webkit-app-region: drag;
   font-family: var(--font-family-base);
   color: var(--color-text-primary);
@@ -42,6 +43,9 @@ html {
   position: relative;
   overflow: hidden;
   background: transparent !important;
+  background-color: transparent !important;
+  /* テーマの背景色を無効化 */
+  --color-background: transparent !important;
 }
 
 
@@ -61,17 +65,21 @@ html {
 #icon-bar {
   flex: 0 0 60px;
   width: 100%;
-  background-color: var(--color-surface);
-  display: flex;
+  background-color: var(--color-surface) !important; /* 背景色を強制 */
+  background: var(--color-surface) !important; /* 背景を強制 */
+  display: flex !important; /* 強制表示 */
   align-items: center;
   justify-content: space-around;
   padding: 0 var(--spacing-md);
   box-sizing: border-box;
   -webkit-app-region: drag;
-  z-index: 1;
+  z-index: 10; /* より高いz-index */
   transition: background-color var(--transition-duration) var(--transition-timing);
   border-top: 1px solid var(--color-border);
   position: relative;
+  /* テーマ変更時の保護 */
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* アイコンエリアの背景部分に十分なドラッグ領域を確保 */
@@ -92,12 +100,16 @@ html {
   border: 1px solid var(--color-border);
   border-radius: 50%;
   box-shadow: var(--shadow-sm);
-  display: inline-flex;
+  display: inline-flex !important; /* 強制表示 */
   align-items: center;
   justify-content: center;
   background-color: var(--color-background);
   transition: all var(--transition-duration) var(--transition-timing);
   -webkit-app-region: no-drag;
+  /* アイコン表示の保護 */
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 11;
 }
 
 /* マウスホバー時のスタイル (任意) */
@@ -147,12 +159,16 @@ html {
   border: 1px solid var(--color-border);
   border-radius: 50%;
   box-shadow: var(--shadow-sm);
-  display: inline-flex;
+  display: inline-flex !important; /* 強制表示 */
   align-items: center;
   justify-content: center;
   background-color: var(--color-background);
   transition: all var(--transition-duration) var(--transition-timing);
   -webkit-app-region: no-drag;
+  /* アイコン表示の保護 */
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 11;
 }
 
 #quit-app-icon:hover {
@@ -184,12 +200,16 @@ html {
   border: 1px solid var(--color-border);
   border-radius: 50%;
   box-shadow: var(--shadow-sm);
-  display: inline-flex;
+  display: inline-flex !important; /* 強制表示 */
   align-items: center;
   justify-content: center;
   background-color: var(--color-background);
   transition: all var(--transition-duration) var(--transition-timing);
   -webkit-app-region: no-drag;
+  /* アイコン表示の保護 */
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 11;
 }
 
 #settings-icon:hover {

@@ -76,10 +76,10 @@ export function setupThemeHandlers(
           name: 'オーシャン',
           description: '海の爽やかさを表現した、清々しいテーマ',
           preview: {
-            primary: '#0D7377',
-            secondary: '#1E40AF',
-            accent: '#DC7633',
-            background: '#F0FDFA'
+            primary: '#0077BE',
+            secondary: '#06AED5',
+            accent: '#FFC947',
+            background: '#F0FEFF'
           }
         },
         {

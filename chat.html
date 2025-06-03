@@ -103,6 +103,23 @@
             }
         }
 
+        // --- 入力欄をクリアし、高さをリセットする関数 ---
+        function clearAndResetInput() {
+            // 一時的にdisabledを解除してクリア処理を確実に実行
+            const wasDisabled = promptInput.disabled;
+            promptInput.disabled = false;
+            
+            promptInput.value = '';
+            promptInput.style.height = 'auto';
+            promptInput.style.overflowY = 'hidden';
+            
+            // inputイベントをトリガーして高さ調整を実行
+            promptInput.dispatchEvent(new Event('input'));
+            
+            // 元の状態に戻す
+            promptInput.disabled = wasDisabled;
+        }
+
         // --- メッセージを応答エリアに追加する関数 ---
         function addMessageToResponseArea(messageText, senderType) { // senderType は 'user' または 'mascot'
             const messageContainer = document.createElement('div');
@@ -128,15 +145,15 @@
         }
 
         // --- Enterキーでも送信できるように ---
-            promptInput.addEventListener('keydown', function (event) { // 'keypress' から 'keydown' に変更するとShiftキーの状態をより確実に拾えます
-                if (event.key === 'Enter') {
-                    if (!event.shiftKey) { // Shiftキーが押されていない時だけ送信
-                        event.preventDefault(); // textareaでのデフォルトの改行を防ぐ
-                        sendButton.click();     // 送信ボタンのクリックイベントを発火
-                    }
-                    // Shiftキーが押されている時は、通常の改行が行われます
+        promptInput.addEventListener('keydown', function (event) { // 'keypress' から 'keydown' に変更するとShiftキーの状態をより確実に拾えます
+            if (event.key === 'Enter') {
+                if (!event.shiftKey && !sendButton.disabled) { // Shiftキーが押されておらず、送信ボタンが有効な時だけ送信
+                    event.preventDefault(); // textareaでのデフォルトの改行を防ぐ
+                    sendMessage();          // 送信処理を直接呼び出し
                 }
-            });
+                // Shiftキーが押されている時は、通常の改行が行われます
+            }
+        });
 
         // --- 履歴の読み込みと表示 ---
         async function loadChatHistory() {
@@ -162,13 +179,18 @@
             loadChatHistory(); // その後履歴を読み込み
         });
 
-        // --- 送信ボタンのクリック処理（履歴機能付き） ---
-        sendButton.addEventListener('click', async () => {
+        // --- 送信処理の共通関数 ---
+        async function sendMessage() {
             const prompt = promptInput.value;
             if (!prompt.trim()) return;
 
+            // 送信中は入力を無効化
+            sendButton.disabled = true;
+            promptInput.disabled = true;
+            sendButton.textContent = '送信中...';
+
             addMessageToResponseArea(prompt, 'user'); // ★メッセージ本文とタイプ 'user' を渡す
-            promptInput.value = ''; // 入力欄クリア
+            clearAndResetInput(); // 入力欄をクリアし、高さをリセット
 
             if (window.electronAPI && window.electronAPI.sendChatMessage) {
                 try {
@@ -183,7 +205,16 @@
                 console.error('electronAPI or sendChatMessage is not available.');
                 addMessageToResponseArea('エラー: メインプロセスに接続できません。', 'mascot');
             }
-        });
+
+            // 送信完了後に入力を再有効化
+            sendButton.disabled = false;
+            promptInput.disabled = false;
+            sendButton.textContent = '送信';
+            promptInput.focus(); // フォーカスを戻す
+        }
+
+        // --- 送信ボタンのクリック処理（履歴機能付き） ---
+        sendButton.addEventListener('click', sendMessage);
 
     </script>
     <script type="module">

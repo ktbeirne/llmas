@@ -120,6 +120,7 @@ export class WindowManagerController {
    * スピーチバブルのサイズを更新
    */
   public updateSpeechBubbleSize(size: { width: number; height: number }): void {
+    console.log('[WindowManagerController] updateSpeechBubbleSize called with:', size);
     this.speechBubbleWindowController.updateSize(size);
   }
 

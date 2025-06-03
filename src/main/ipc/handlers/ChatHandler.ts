@@ -100,16 +100,17 @@ export class ChatHandler {
    */
   private showMessageInSpeechBubble(message: string): void {
     try {
-      const windowManager = this.windowManagerController.getWindowManager();
-      const speechBubbleWindow = windowManager.getWindow('speechBubble');
+      this.log('info', 'showMessageInSpeechBubble', 'SpeechBubble表示を開始', { 
+        messageLength: message.length,
+        messagePreview: message.substring(0, 50) + '...'
+      });
       
-      if (speechBubbleWindow && !speechBubbleWindow.isDestroyed()) {
-        // SpeechBubbleManagerを使用して表示
-        const { SpeechBubbleManager } = require('../../../utils/speechBubbleManager');
-        SpeechBubbleManager.showWithText(speechBubbleWindow, message);
-      }
+      // 新しいアーキテクチャでのSpeechBubble表示
+      this.windowManagerController.toggleSpeechBubble(message);
+      
+      this.log('info', 'showMessageInSpeechBubble', 'SpeechBubble表示処理が完了');
     } catch (error) {
-      this.log('warn', 'showMessageInSpeechBubble', 'スピーチバブル表示でエラー', error);
+      this.log('error', 'showMessageInSpeechBubble', 'スピーチバブル表示でエラー', error);
     }
   }
 

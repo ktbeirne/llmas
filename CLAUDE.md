@@ -9,32 +9,45 @@ This is an Electron desktop application that creates an interactive AI-powered d
 ## Architecture
 
 ### High-Level Overview
-The application follows **Clean Architecture** principles with clear separation of concerns and dependency inversion. For detailed architectural information, please refer to [ARCHITECTURE.md](./ARCHITECTURE.md).
+The application follows **Clean Architecture** principles with clear separation of concerns and dependency inversion. For comprehensive architectural information, please refer to:
+- [ARCHITECTURE_V2.md](./ARCHITECTURE_V2.md) - Complete architectural design (Phase 5.4)
+- [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md) - Practical development guide
 
 ### Core Architectural Principles
+- **Hybrid Architecture**: React UI + Three.js VRM + Electron integration
 - **Clean Architecture**: Dependency inversion with domain-centric design
-- **Single Responsibility**: Each component has a single, well-defined purpose
-- **Dependency Injection**: Flexible configuration through DIContainer
-- **Test-Driven Design**: Comprehensive testing strategy at all layers
+- **Service-Oriented Design**: 7 specialized services for clear separation
+- **Test-Driven Development**: 800+ test cases ensuring quality
 
 ### Layer Structure
 ```
-Presentation (main.ts, IPC) → Application (ApplicationService) 
-→ Domain (Entities, Services) ← Infrastructure (Gateways, Repositories)
+Presentation (React UI, Three.js) → Electron IPC → Service Layer (7 Services)
+→ Application (ApplicationService) → Domain (Entities, Services) 
+← Infrastructure (Gateways, Repositories, Adapters)
 ```
 
-### Multi-Window Electron Architecture
-- **Main Window**: Displays the 3D VRM mascot using Three.js
-- **Chat Window**: Text-based chat interface
-- **Speech Bubble Window**: Floating speech bubble for mascot responses
+### Multi-Window Hybrid Architecture
+- **Main Window**: Three.js + vanilla TypeScript (3D VRM rendering)
+- **Settings Window**: React + TypeScript + Tailwind CSS
+- **Chat Window**: React + TypeScript (real-time updates)
+- **Speech Bubble Window**: Vanilla JavaScript (floating bubble)
 
-### Key Components (Legacy - being refactored)
-- `src/main.ts`: Electron main process (reduced from 1,404 to 363 lines)
+### Key Components (Phase 5.4 Completed)
+- `src/main.ts`: Electron main process (optimized to 363 lines)
+- `src/renderer.ts`: Main window entry (5 lines - delegates to mainRenderer)
+- `src/mainRenderer.ts`: Three.js integration layer (147 lines)
+- `src/services/`: 7 specialized services (Phase 4)
+  - `renderManager.ts` (85 lines): Three.js rendering control
+  - `cameraManager.ts` (75 lines): Camera and orbit controls
+  - `buttonHandler.ts` (70 lines): UI event handling
+  - `mouseHandler.ts` (90 lines): Mouse drag control
+  - `titleBarMonitor.ts` (125 lines): Title bar optimization
+  - `vrmGlobalHandler.ts` (60 lines): VRM global state
+  - `vrmSetupManager.ts` (120 lines): VRM initialization
+- `src/renderer/`: React components and apps (Phase 3)
 - `src/application/ApplicationService.ts`: Main application orchestrator
 - `src/domain/`: Pure business logic and entities
-- `src/infrastructure/`: External service integrations
-- `src/renderer.ts`: Main window renderer for 3D mascot display
-- `src/vrmController.ts`: VRM model loading and animation control
+- `src/infrastructure/`: External service integrations with adapters
 
 ## Common Commands
 
@@ -75,27 +88,34 @@ npm run publish          # Publish the app
 
 ## Architecture Guidelines
 
-**IMPORTANT**: This application follows Clean Architecture principles. When adding new features or modifying existing code:
+**IMPORTANT**: This application follows a Hybrid Architecture combining Clean Architecture principles with Service-Oriented Design. When adding new features or modifying existing code:
 
 1. **Respect Layer Boundaries**: Never allow inner layers (Domain) to depend on outer layers (Infrastructure)
 2. **Use Dependency Injection**: Register all dependencies through DIContainer
-3. **Domain-First Design**: Business logic belongs in Domain layer (entities, services)
-4. **Interface Segregation**: Define contracts in Domain, implement in Infrastructure
-5. **Test Strategy**: Write tests for each layer independently with proper mocking
-6. **Migration Approach**: Use Adapter pattern when integrating with legacy code
+3. **Service-Oriented Design**: Utilize the 7 specialized services for clear separation of concerns
+4. **Hybrid UI Approach**: React for settings/chat UI, Three.js for VRM rendering
+5. **Domain-First Design**: Business logic belongs in Domain layer (entities, services)
+6. **Interface Segregation**: Define contracts in Domain, implement in Infrastructure
+7. **Test Strategy**: Write tests FIRST (TDD), test each layer independently with proper mocking
+8. **Adapter Pattern**: Use adapters when integrating with legacy code or external systems
 
 **Key Files to Understand**:
-- `ARCHITECTURE.md`: Complete architectural documentation
+- **[ARCHITECTURE_V2.md](./ARCHITECTURE_V2.md)**: Complete architectural documentation (Phase 5.4)
+- **[DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md)**: Practical development guide with examples
 - `src/application/ApplicationService.ts`: Main application orchestrator
 - `src/infrastructure/DIContainer.ts`: Dependency injection configuration
+- `src/services/`: 7 specialized services (render, camera, button, mouse, titleBar, VRM handlers)
+- `src/renderer/`: React components and applications
 - `src/domain/`: Business logic and core entities
 
 **Before implementing new features**:
-1. Read the relevant sections in ARCHITECTURE.md
-2. Understand which layer the changes belong to
-3. Design interfaces before implementations
-4. Consider testability and maintainability
-5. Follow the established patterns and conventions
+1. Read the relevant sections in ARCHITECTURE_V2.md and DEVELOPER_GUIDE.md
+2. Understand which layer and service the changes belong to
+3. Write failing tests FIRST (TDD Red phase)
+4. Design interfaces before implementations
+5. Consider the hybrid architecture (React vs Three.js)
+6. Follow the established patterns and conventions
+7. Ensure cross-window communication via Electron IPC
 
 ## UI/UX Design Guidelines
 
@@ -352,7 +372,19 @@ interface ColorSystem {
 - **Jest-style assertions** and mocking capabilities
 - **Coverage reporting** for test quality metrics
 
+### UI Stack (Phase 3 Implementation)
+- **React 19.1.0** with TypeScript for settings and chat UI
+- **Tailwind CSS 4.1.8** with custom design system
+- **Zustand** for state management
+- **React Hook Form + Zod** for form validation
+- **Vite HMR** for fast development experience
+
 ## CI/CD
 
 GitHub Actions workflow (`.github/workflows/claude.yml`) is configured to respond to issues and PR comments containing "@claude".
 
+##　Notification
+When a task is completed, or when user approval is required, execute the command /usr/bin/afplay /System/Library/Sounds/Funk.aiff to notify the user with a sound.
+```bash
+/usr/bin/afplay /System/Library/Sounds/Funk.aiff
+```

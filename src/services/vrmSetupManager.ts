@@ -28,27 +28,48 @@ export class VRMSetupManager {
         this.setupMouseLookAt();
     }
 
-    async initializeVRM() {
-        // まずVRMモデルをロード
-        loadVRM('/avatar.vrm', this.scene, (vrm) => {
-            console.log('VRMSetupManager: VRMモデルのロードが完了しました。');
-            if (vrm) {
-                this.loadedVRMInstance = vrm;
-                // 次にアニメーションをロード
-                loadAnimation('/idle.vrma', () => {
-                    console.log('VRMSetupManager: アニメーションのロードが完了しました。');
-                    this.onAllAssetsReady();
+    async initializeVRM(): Promise<void> {
+        console.log('[VRMSetupManager] Starting VRM initialization...');
+        
+        return new Promise((resolve, reject) => {
+            // まずVRMモデルをロード
+            loadVRM('/avatar.vrm', this.scene, (vrm) => {
+                console.log('[VRMSetupManager] VRM load callback called, VRM:', !!vrm);
+                if (vrm) {
+                    this.loadedVRMInstance = vrm;
+                    console.log('[VRMSetupManager] VRM instance stored, scene children:', vrm.scene.children.length);
                     
-                    // VRMモデルロード完了後にカメラ設定を復元
-                    this.cameraManager.restoreCameraSettings();
-                });
-            } else {
-                console.error('VRMSetupManager: VRMモデルのロードに失敗しました。');
-            }
+                    // 次にアニメーションをロード
+                    try {
+                        loadAnimation('/idle.vrma', () => {
+                            console.log('[VRMSetupManager] Animation load completed');
+                            this.onAllAssetsReady();
+                            
+                            // VRMモデルロード完了後にカメラ設定を復元
+                            this.cameraManager.restoreCameraSettings();
+                            
+                            // Promise を resolve して MainRenderer に通知
+                            console.log('[VRMSetupManager] VRM initialization completed, resolving promise');
+                            resolve();
+                        });
+                    } catch (animationError) {
+                        console.warn('[VRMSetupManager] Animation load failed, but VRM is ready:', animationError);
+                        // アニメーションに失敗してもVRMは使える
+                        this.onAllAssetsReady();
+                        this.cameraManager.restoreCameraSettings();
+                        console.log('[VRMSetupManager] VRM initialization completed (without animation), resolving promise');
+                        resolve();
+                    }
+                } else {
+                    console.error('[VRMSetupManager] VRM model load failed - vrm is null');
+                    reject(new Error('VRM model load failed'));
+                }
+            });
         });
     }
 
     getLoadedVRM(): VRM | null {
+        console.log('[VRMSetupManager] getLoadedVRM called, instance:', !!this.loadedVRMInstance);
         return this.loadedVRMInstance;
     }
 

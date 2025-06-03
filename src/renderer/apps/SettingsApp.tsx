@@ -169,7 +169,7 @@ const SettingsApp: React.FC<SettingsAppProps> = ({ className = '' }) => {
                 <div className="setting-status">準備中...</div>
               </div>
               <div className="setting-category">
-                <h3>🎭 表情・アニメーション設定</h3>
+                <h3>🎭 表情・アニメ設定</h3>
                 <p>表情制御、アニメーション設定</p>
                 <div className="setting-status">準備中...</div>
               </div>

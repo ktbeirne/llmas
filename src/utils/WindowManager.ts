@@ -330,8 +330,8 @@ export class WindowManager {
       height: WINDOW_CONFIG.SETTINGS.HEIGHT,
       minWidth: WINDOW_CONFIG.SETTINGS.MIN_WIDTH,
       minHeight: WINDOW_CONFIG.SETTINGS.MIN_HEIGHT,
-      frame: false,
-      titleBarStyle: 'hidden',
+      frame: false, // フレームを完全に削除
+      titleBarStyle: 'hidden', // タイトルバーを完全に非表示
       transparent: false,
       show: true,
       resizable: true,

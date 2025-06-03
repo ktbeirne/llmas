@@ -38,6 +38,7 @@ export default defineConfig({
     tsconfigPaths(), // TypeScript path mapping support
   ],
   root: '.',
+  publicDir: 'public',
   
   // TypeScript設定と開発支援
   resolve: {

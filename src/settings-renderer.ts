@@ -562,25 +562,67 @@ class SettingsRenderer {
                         id: 'default',
                         name: 'ソフト＆ドリーミー',
                         description: '明るく親しみやすい、やわらかな印象のテーマ',
-                        preview: ['#6B9BD2', '#A594F9', '#FF9FB2', '#FDFBF7']
+                        preview: {
+                            primary: '#5082C4',
+                            secondary: '#8E7CC3',
+                            accent: '#E91E63',
+                            background: '#FDFBF7'
+                        }
                     },
                     {
                         id: 'dark',
                         name: 'ダークモード',
                         description: '目に優しく洗練された暗めのテーマ',
-                        preview: ['#4A90E2', '#8E7CC3', '#FF6B9D', '#1A1D23']
+                        preview: {
+                            primary: '#60A5FA',
+                            secondary: '#A78BFA',
+                            accent: '#FCD34D',
+                            background: '#0F172A'
+                        }
                     },
                     {
                         id: 'sakura',
                         name: '桜',
                         description: '日本の春をイメージした温かみのあるテーマ',
-                        preview: ['#FF69B4', '#DDA0DD', '#FFB6C1', '#FFF0F5']
+                        preview: {
+                            primary: '#D1477A',
+                            secondary: '#C485C7',
+                            accent: '#FF5722',
+                            background: '#FDF2F8'
+                        }
                     },
                     {
                         id: 'ocean',
                         name: 'オーシャン',
                         description: '海の静けさをイメージした爽やかなテーマ',
-                        preview: ['#20B2AA', '#87CEEB', '#40E0D0', '#F0F8FF']
+                        preview: {
+                            primary: '#0077BE',
+                            secondary: '#06AED5',
+                            accent: '#FFC947',
+                            background: '#F0FEFF'
+                        }
+                    },
+                    {
+                        id: 'forest',
+                        name: 'フォレスト',
+                        description: '森の静寂をイメージした、落ち着いた自然派テーマ',
+                        preview: {
+                            primary: '#6B7280',
+                            secondary: '#8B7355',
+                            accent: '#2D8659',
+                            background: '#F9FAFB'
+                        }
+                    },
+                    {
+                        id: 'wonderland',
+                        name: 'ワンダーランド',
+                        description: '不思議の国のアリスの幻想世界をイメージした魔法的なテーマ',
+                        preview: {
+                            primary: '#7C3AED',
+                            secondary: '#EC4899',
+                            accent: '#10B981',
+                            background: '#FAF5FF'
+                        }
                     }
                 ];
                 console.log('フォールバックテーマを使用:', this.availableThemes);
@@ -635,9 +677,15 @@ class SettingsRenderer {
             const themePreview = document.createElement('div');
             themePreview.className = 'theme-preview';
 
-            // preview が配列であることを確認
-            const previewColors = theme.preview || [];
-            previewColors.forEach((color: string, _index: number) => {
+            // preview がオブジェクトであることを確認
+            const previewColors = theme.preview || {
+                primary: '#5082C4',
+                secondary: '#8E7CC3',
+                accent: '#E91E63',
+                background: '#FDFBF7'
+            };
+            
+            Object.values(previewColors).forEach((color: string) => {
                 const colorDiv = document.createElement('div');
                 colorDiv.className = 'theme-color';
                 colorDiv.style.backgroundColor = color;
@@ -648,13 +696,11 @@ class SettingsRenderer {
             themeLabels.className = 'theme-labels';
             
             const labels = ['メイン', 'サブ', 'アクセント', '背景'];
-            labels.forEach((label, labelIndex) => {
-                if (previewColors[labelIndex]) {
-                    const labelSpan = document.createElement('span');
-                    labelSpan.className = 'theme-label';
-                    labelSpan.textContent = label;
-                    themeLabels.appendChild(labelSpan);
-                }
+            labels.forEach((label) => {
+                const labelSpan = document.createElement('span');
+                labelSpan.className = 'theme-label';
+                labelSpan.textContent = label;
+                themeLabels.appendChild(labelSpan);
             });
 
             themeHeader.appendChild(themeTitle);
@@ -678,13 +724,27 @@ class SettingsRenderer {
         this.updateThemeSelection();
     }
 
-    private selectTheme(themeId: string): void {
+    private async selectTheme(themeId: string): Promise<void> {
         this.selectedTheme = themeId;
         this.updateThemeSelection();
         
-        // ThemeManagerを直接呼び出してテーマを即座にプレビュー
-        if (window.themeManager) {
-            window.themeManager.setTheme(themeId);
+        try {
+            // ElectronAPIでテーマを保存し、メインウィンドウに通知
+            if (window.electronAPI && window.electronAPI.setTheme) {
+                const result = await window.electronAPI.setTheme(themeId);
+                if (result.success) {
+                    console.log(`テーマ ${themeId} を適用しました`);
+                } else {
+                    console.error('テーマの適用に失敗しました:', result.error);
+                }
+            }
+            
+            // 設定画面自体のプレビューも更新
+            if (window.themeManager) {
+                window.themeManager.setTheme(themeId);
+            }
+        } catch (error) {
+            console.error('テーマ設定でエラーが発生しました:', error);
         }
     }
 

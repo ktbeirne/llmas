@@ -223,74 +223,8 @@ function getTextWidth(text: string, style: CSSStyleDeclaration): number {
     return width;
 }
 
-if (window.electronAPI && window.electronAPI.onSetSpeechBubbleText) {
-    console.log('[SpeechBubbleRenderer] Setting up onSetSpeechBubbleText listener');
-    
-    window.electronAPI.onSetSpeechBubbleText((text) => {
-        console.log('[SpeechBubbleRenderer] Received text:', text ? text.substring(0, 30) + '...' : 'null or empty');
-        
-        if (window.electronAPI && window.electronAPI.logRendererMessage) {
-            window.electronAPI.logRendererMessage(`onSetSpeechBubbleText called with text: "${text ? text.substring(0, 30) + '...' : 'null or empty'}"`);
-        }
-
-        if (bubbleContent) {
-            // 既存のタイマーとタイプライター処理があればクリア
-            if (hideTimeout) {
-                clearTimeout(hideTimeout);
-                hideTimeout = null;
-            }
-            cancelTypewriter();
-
-            if (text && text.trim() !== "") {
-                // 即座にサイズを計算してウィンドウを表示（完全なテキストから計算）
-                calculateAndNotifySize(text, true);
-                
-                // タイプライターエフェクトでテキストを表示
-                displayTextWithTypewriter(text, true, () => {
-                    // タイプライター完了後の処理
-                    if (window.electronAPI && window.electronAPI.logRendererMessage) {
-                        window.electronAPI.logRendererMessage('Typewriter effect completed. Checking for auto-scroll and setting hide timeout.');
-                    }
-                    
-                    if (bubbleContent) {
-                        // スクロールが必要な場合は自動で下にスクロール
-                        scrollToBottomIfNeeded();
-                        
-                        // しっぽの位置を最終調整
-                        updateTailPosition();
-                        
-                        scheduleHideTimeout(text);
-                    }
-                });
-            } else { // テキストが空またはトリムして空の場合
-                if (window.electronAPI && window.electronAPI.logRendererMessage) {
-                    window.electronAPI.logRendererMessage('Text is empty or whitespace. Clearing text and requesting hide.');
-                }
-                if (bubbleContent) setSpeechBubbleContent('', false);
-                if (window.electronAPI && window.electronAPI.hideSpeechBubble) {
-                    window.electronAPI.hideSpeechBubble();
-                }
-            }
-        } else { // bubbleContent が null だった場合
-            if (window.electronAPI && window.electronAPI.logRendererMessage) {
-                window.electronAPI.logRendererMessage('Error: bubbleContent element not found in onSetSpeechBubbleText.');
-            }
-        }
-    });
-    
-    console.log('[SpeechBubbleRenderer] onSetSpeechBubbleText listener setup complete');
-} else {
-    console.error('[SpeechBubbleRenderer] electronAPI or onSetSpeechBubbleText is not available.');
-    console.error('[SpeechBubbleRenderer] window.electronAPI:', window.electronAPI);
-    if (window.electronAPI) {
-        console.error('[SpeechBubbleRenderer] window.electronAPI.onSetSpeechBubbleText:', window.electronAPI.onSetSpeechBubbleText);
-    }
-    
-    if (window.electronAPI && window.electronAPI.logRendererMessage) { // メインプロセスにログを送るAPIが使えるなら
-        window.electronAPI.logRendererMessage('Error: electronAPI or onSetSpeechBubbleText is not available in speechBubbleRenderer.ts.');
-    }
-    if (bubbleContent) setSpeechBubbleContent("API接続エラーです…", false);
-}
+// IPC リスナーは DOMContentLoaded で設定するため、ここでは設定しない
+// 重複を避けるため、この部分を削除
 
 // ✨ 完全なテキストを隠し要素でレンダリングしてサイズ計算
 function calculateSizeFromFullText(text: string, enableMarkdown = true): { width: number; height: number } {
@@ -467,8 +401,18 @@ function calculateAndNotifySize(text: string, enableMarkdown = true) {
     
     // ウィンドウサイズを通知
     const size = { width: windowWidth, height: windowHeight };
+    
+    console.log('[SpeechBubbleRenderer] Calculated size to notify:', size);
+    console.log('[SpeechBubbleRenderer] Content size breakdown:', {
+        actualContentWidth,
+        actualContentHeight,
+        shadowHorizontal: SHADOW_HORIZONTAL,
+        shadowVertical: SHADOW_VERTICAL,
+        tailHeight: TAIL_HEIGHT
+    });
 
     if (window.electronAPI && window.electronAPI.notifyBubbleSize) {
+        console.log('[SpeechBubbleRenderer] Calling notifyBubbleSize...');
         window.electronAPI.notifyBubbleSize(size);
         
         // サイズ設定後にしっぽの位置を更新
@@ -564,4 +508,75 @@ function scheduleHideTimeout(text: string) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('[SpeechBubbleRenderer] DOMContentLoaded fired');
     console.log('[SpeechBubbleRenderer] window.electronAPI exists (after DOM):', !!window.electronAPI);
+    
+    // IPCリスナーの設定 - DOMContentLoadedで一度だけ設定
+    if (window.electronAPI && window.electronAPI.onSetSpeechBubbleText) {
+        console.log('[SpeechBubbleRenderer] Setting up IPC listener for set-speech-bubble-text');
+        window.electronAPI.onSetSpeechBubbleText((text: string) => {
+            console.log('[SpeechBubbleRenderer] Received text via IPC:', text ? text.substring(0, 50) + '...' : 'null or empty');
+            
+            if (window.electronAPI && window.electronAPI.logRendererMessage) {
+                window.electronAPI.logRendererMessage(`onSetSpeechBubbleText called with text: "${text ? text.substring(0, 30) + '...' : 'null or empty'}"`);
+            }
+
+            if (bubbleContent) {
+                // 既存のタイマーとタイプライター処理があればクリア
+                if (hideTimeout) {
+                    clearTimeout(hideTimeout);
+                    hideTimeout = null;
+                }
+                cancelTypewriter();
+
+                if (text && text.trim() !== "") {
+                    console.log('[SpeechBubbleRenderer] Processing text:', {
+                        length: text.length,
+                        lines: text.split('\n').length,
+                        preview: text.substring(0, 100) + (text.length > 100 ? '...' : '')
+                    });
+                    
+                    // 即座にサイズを計算してウィンドウを表示（完全なテキストから計算）
+                    calculateAndNotifySize(text, true);
+                    
+                    // タイプライターエフェクトでテキストを表示
+                    displayTextWithTypewriter(text, true, () => {
+                        // タイプライター完了後の処理
+                        if (window.electronAPI && window.electronAPI.logRendererMessage) {
+                            window.electronAPI.logRendererMessage('Typewriter effect completed. Checking for auto-scroll and setting hide timeout.');
+                        }
+                        
+                        if (bubbleContent) {
+                            // スクロールが必要な場合は自動で下にスクロール
+                            scrollToBottomIfNeeded();
+                            
+                            // しっぽの位置を最終調整
+                            updateTailPosition();
+                            
+                            scheduleHideTimeout(text);
+                        }
+                    });
+                } else { // テキストが空またはトリムして空の場合
+                    if (window.electronAPI && window.electronAPI.logRendererMessage) {
+                        window.electronAPI.logRendererMessage('Text is empty or whitespace. Clearing text and requesting hide.');
+                    }
+                    if (bubbleContent) setSpeechBubbleContent('', false);
+                    if (window.electronAPI && window.electronAPI.hideSpeechBubble) {
+                        window.electronAPI.hideSpeechBubble();
+                    }
+                }
+            } else { // bubbleContent が null だった場合
+                if (window.electronAPI && window.electronAPI.logRendererMessage) {
+                    window.electronAPI.logRendererMessage('Error: bubbleContent element not found in onSetSpeechBubbleText.');
+                }
+            }
+        });
+    } else {
+        console.error('[SpeechBubbleRenderer] window.electronAPI.onSetSpeechBubbleText is not available');
+        if (window.electronAPI && window.electronAPI.logRendererMessage) {
+            window.electronAPI.logRendererMessage('Error: electronAPI or onSetSpeechBubbleText is not available in speechBubbleRenderer.ts.');
+        }
+        if (bubbleContent) setSpeechBubbleContent("API接続エラーです…", false);
+    }
+    
+    // テーマシステムの初期化
+    initializeTheme();
 });

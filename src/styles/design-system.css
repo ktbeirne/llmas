@@ -7,6 +7,31 @@
    🌈 DEFAULT THEME & BASE VARIABLES
 ======================================== */
 
+/* VRM Canvas透明性の強制 - すべてのテーマに適用 */
+#canvas-area,
+#vrm-canvas {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* body.main-windowの透明設定はアイコンバーを除外 */
+body.main-window {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+body.main-window > *:not(#icon-bar) {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* テーマ適用時も透明性を維持（アイコンバーは除外） */
+[data-theme] #canvas-area,
+[data-theme] #vrm-canvas {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
 :root {
   /* 🎯 Default Theme: Soft & Dreamy - アクセシビリティ重視パレット */
   --theme-primary: #5082C4;          /* プライマリ：濃い青（コントラスト比4.5:1以上） */
@@ -65,9 +90,22 @@
   --transition-timing: ease;
 }
 
+/* アイコンバーの表示を保証 - Default Theme */
+#icon-bar {
+  background-color: var(--color-surface) !important;
+  background: var(--color-surface) !important;
+}
+
 /* ========================================
    🎨 THEME VARIATIONS
 ======================================== */
+
+/* VRMキャンバスの透明性維持 */
+[data-theme] #canvas-area,
+[data-theme] #vrm-canvas {
+  background: transparent !important;
+  background-color: transparent !important;
+}
 
 /* 🌙 Dark Theme - 改良されたアクセシビリティ重視パレット */
 [data-theme="dark"] {
@@ -99,6 +137,12 @@
   --color-text-primary: #FFFFFF;     /* プライマリテキスト（純白で最高コントラスト） */
   --color-text-secondary: #E2E8F0;   /* セカンダリテキスト（高コントラスト） */
   --color-text-inverse: #0F172A;     /* 逆色テキスト */
+}
+
+/* アイコンバーの表示を保証 - Dark Theme */
+[data-theme="dark"] #icon-bar {
+  background-color: var(--color-surface) !important;
+  background: var(--color-surface) !important;
 }
 
 /* 🌸 Sakura Theme - アクセシビリティ考慮拡張パレット */
@@ -133,19 +177,25 @@
   --color-text-inverse: #FFFFFF;
 }
 
+/* アイコンバーの表示を保証 - Sakura Theme */
+[data-theme="sakura"] #icon-bar {
+  background-color: var(--color-surface) !important;
+  background: var(--color-surface) !important;
+}
+
 /* 🌊 Ocean Theme - アクセシビリティ考慮拡張パレット */
 [data-theme="ocean"] {
-  --theme-primary: #0D7377;          /* 深いティール（高コントラスト） */
-  --theme-primary-light: #14A085;    /* 中間ティール */
-  --theme-primary-dark: #0F5C5F;     /* より深いティール */
+  --theme-primary: #0077BE;          /* 鮮やかな海のブルー（高コントラスト） */
+  --theme-primary-light: #40A9FF;    /* 明るい海のブルー */
+  --theme-primary-dark: #005A94;     /* 深い海のブルー */
   
-  --theme-secondary: #1E40AF;        /* 深いブルー（高コントラスト） */
-  --theme-secondary-light: #3B82F6;  /* 中間ブルー */
-  --theme-secondary-dark: #1E3A8A;   /* より深いブルー */
+  --theme-secondary: #06AED5;        /* ターコイズブルー（波の色） */
+  --theme-secondary-light: #52E5E7;  /* 明るいターコイズ */
+  --theme-secondary-dark: #0492AA;   /* 深いターコイズ */
   
-  --theme-accent: #DC7633;           /* オレンジアクセント（ティールと対照的） */
-  --theme-accent-light: #EB984E;     /* ライトオレンジ */
-  --theme-accent-dark: #CA6F1E;      /* ダークオレンジ */
+  --theme-accent: #FFC947;           /* 太陽のゴールド（海と対照的） */
+  --theme-accent-light: #FFD770;     /* 明るいゴールド */
+  --theme-accent-dark: #FFB400;      /* 深いゴールド */
   
   --color-primary: var(--theme-primary);
   --color-primary-hover: var(--theme-primary-dark);
@@ -154,14 +204,14 @@
   --color-accent: var(--theme-accent);
   --color-accent-hover: var(--theme-accent-dark);
   
-  --color-background: #F0FDFA;       /* 海の背景 */
+  --color-background: #F0FEFF;       /* 非常に薄い水色の背景 */
   --color-surface: #FFFFFF;          /* カード背景 */
-  --color-surface-secondary: #ECFEFF;/* セカンダリ背景 */
-  --color-border: #A7F3D0;           /* 境界線 */
+  --color-surface-secondary: #E6F7FF;/* 薄い水色のセカンダリ背景 */
+  --color-border: #B5E3FF;           /* 水色の境界線 */
   
   /* テキストカラー：2色システム（海背景用高コントラスト） */
-  --color-text-primary: #0F2A44;     /* プライマリテキスト（コントラスト比9:1） */
-  --color-text-secondary: #1E3A55;   /* セカンダリテキスト（コントラスト比6:1） */
+  --color-text-primary: #003D5B;     /* 深い海のテキスト（コントラスト比9:1） */
+  --color-text-secondary: #00618E;   /* 中間の海色テキスト（コントラスト比6:1） */
   --color-text-inverse: #FFFFFF;
 }
 
@@ -227,4 +277,26 @@
   --color-text-primary: #1F2937;     /* プライマリテキスト（コントラスト比8:1） */
   --color-text-secondary: #4B5563;   /* セカンダリテキスト（コントラスト比6:1） */
   --color-text-inverse: #FFFFFF;
+}
+
+/* ========================================
+   🛡️ アイコンバー表示保証（全テーマ対応）
+======================================== */
+
+/* アイコンバーの表示を保証 - Ocean Theme */
+[data-theme="ocean"] #icon-bar {
+  background-color: var(--color-surface) !important;
+  background: var(--color-surface) !important;
+}
+
+/* アイコンバーの表示を保証 - Forest Theme */
+[data-theme="forest"] #icon-bar {
+  background-color: var(--color-surface) !important;
+  background: var(--color-surface) !important;
+}
+
+/* アイコンバーの表示を保証 - Wonderland Theme */
+[data-theme="wonderland"] #icon-bar {
+  background-color: var(--color-surface) !important;
+  background: var(--color-surface) !important;
 }

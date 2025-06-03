@@ -24,7 +24,7 @@ export interface ElectronAPI {
     setSystemPrompt: (prompt: string) => Promise<{ success: boolean }>;
     resetSystemPrompt: () => Promise<{ success: boolean }>;
     // カメラ設定関連のAPI
-    getCameraSettings: () => Promise<any>;
+    getCameraSettings: () => Promise<any | null>;
     setCameraSettings: (settings: any) => Promise<{ success: boolean }>;
     resetCameraSettings: () => Promise<{ success: boolean }>;
     // ウィンドウ位置関連のAPI

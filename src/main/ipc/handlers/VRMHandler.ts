@@ -198,94 +198,15 @@ export class VRMHandler {
       return;
     }
 
-    const success = this.safeWindowOperation('handleNotifyBubbleSize', 'speechBubble', () => {
-      const windowManager = this.windowManagerController.getWindowManager();
-      const speechBubbleWindow = windowManager.getWindow('speechBubble');
-      const mainWindow = windowManager.getWindow('main');
-      
-      if (!mainWindow || mainWindow.isDestroyed()) {
-        this.log('warn', 'handleNotifyBubbleSize', 'メインウィンドウが利用できません');
-        return;
-      }
-      
-      // ウィンドウサイズを計算
-      const windowWidth = Math.max(size.width, 80);
-      const windowHeight = Math.max(size.height, 50);
-      
-      // 位置を計算
-      const mainBounds = mainWindow.getBounds();
-      const x = mainBounds.x + Math.round((mainBounds.width - windowWidth) / 2);
-      const y = (mainBounds.y + WINDOW_CONFIG.SPEECH_BUBBLE.MIN_DISPLAY_TIME / 20) - windowHeight;
-      
-      const newBounds = {
-        x: Math.round(x),
-        y: Math.round(y),
-        width: Math.round(windowWidth),
-        height: Math.round(windowHeight)
-      };
-      
-      this.log('info', 'handleNotifyBubbleSize', 'スピーチバブルの位置とサイズを設定', newBounds);
-      
-      speechBubbleWindow.setBounds(newBounds);
-      
-      // 設定後の実際のBoundsを確認
-      setTimeout(() => {
-        this.validateBubbleBounds(speechBubbleWindow, newBounds);
-      }, 100);
-      
-      // ウィンドウを表示
-      if (!speechBubbleWindow.isVisible()) {
-        this.log('info', 'handleNotifyBubbleSize', 'スピーチバブルウィンドウを表示');
-        speechBubbleWindow.show();
-      } else {
-        this.log('info', 'handleNotifyBubbleSize', 'スピーチバブルウィンドウは既に表示されています');
-      }
-    });
-    
-    if (!success) {
-      this.log('warn', 'handleNotifyBubbleSize', 'スピーチバブルサイズ更新操作が失敗しました');
+    try {
+      // 新しいアーキテクチャでのSpeechBubbleサイズ更新
+      this.windowManagerController.updateSpeechBubbleSize(size);
+      this.log('info', 'handleNotifyBubbleSize', 'スピーチバブルサイズを正常に更新しました', size);
+    } catch (error) {
+      this.log('error', 'handleNotifyBubbleSize', 'スピーチバブルサイズ更新でエラー', error);
     }
   }
 
-  /**
-   * スピーチバブルの実際の位置・サイズを検証
-   */
-  private validateBubbleBounds(speechBubbleWindow: BrowserWindow, expectedBounds: { x: number; y: number; width: number; height: number }): void {
-    try {
-      const actualBounds = speechBubbleWindow.getBounds();
-      
-      this.log('info', 'validateBubbleBounds', '実際のスピーチバブル位置・サイズ', actualBounds);
-      this.log('info', 'validateBubbleBounds', '期待値との差異', {
-        widthDiff: actualBounds.width - expectedBounds.width,
-        heightDiff: actualBounds.height - expectedBounds.height,
-        xDiff: actualBounds.x - expectedBounds.x,
-        yDiff: actualBounds.y - expectedBounds.y
-      });
-      
-      this.log('info', 'validateBubbleBounds', 'ウィンドウ状態', {
-        visible: speechBubbleWindow.isVisible(),
-        destroyed: speechBubbleWindow.isDestroyed()
-      });
-      
-      // 内部コンテンツサイズも確認
-      speechBubbleWindow.webContents.executeJavaScript(`
-        const bubble = document.getElementById('bubble-content');
-        if (bubble) {
-          const rect = bubble.getBoundingClientRect();
-          console.log('[VRMHandler] Content actual size:', {
-            width: rect.width, 
-            height: rect.height, 
-            offsetW: bubble.offsetWidth, 
-            offsetH: bubble.offsetHeight
-          });
-        }
-      `).catch((error: Error) => {
-        this.log('warn', 'validateBubbleBounds', 'コンテンツサイズ取得でエラー', error);
-      });
-    } catch (error) {
-      this.log('error', 'validateBubbleBounds', 'バウンド検証でエラー', error);
-    }
-  }
 
   /**
    * スピーチバブルからのログ

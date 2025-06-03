@@ -1,4 +1,4 @@
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, screen } from 'electron';
 
 import { WindowManager } from '../../utils/WindowManager';
 import { SpeechBubbleManager } from '../../utils/speechBubbleManager';
@@ -23,18 +23,28 @@ export class SpeechBubbleWindowController {
    */
   public async createWindow(): Promise<BrowserWindow | null> {
     if (this.window && !this.window.isDestroyed()) {
+      console.log('[SpeechBubbleWindow] Window already exists, returning existing window');
       return this.window;
     }
 
     try {
+      console.log('[SpeechBubbleWindow] Creating new speech bubble window...');
       const config = WindowManager.getSpeechBubbleConfig();
+      console.log('[SpeechBubbleWindow] Window config:', {
+        show: config.show,
+        alwaysOnTop: config.alwaysOnTop,
+        skipTaskbar: config.skipTaskbar
+      });
+      
       this.window = this.windowManager.createWindow(config, PATHS.SPEECH_BUBBLE_HTML);
       
       this.setupEventHandlers();
       this.setupWebContentsHandlers();
       
+      console.log('[SpeechBubbleWindow] Window created successfully, visibility:', this.window.isVisible());
       return this.window;
     } catch (error) {
+      console.error('[SpeechBubbleWindow] Failed to create window:', error);
       ErrorHandler.handle(error, true);
       return null;
     }
@@ -49,6 +59,8 @@ export class SpeechBubbleWindowController {
     // ウィンドウの準備完了を待つ
     this.window.once('ready-to-show', () => {
       console.log('[SpeechBubbleWindow] ウィンドウの準備が完了しました');
+      // 初期状態では非表示を維持
+      // show: false が設定されているため、明示的なshowコールまで非表示
     });
 
     // ウィンドウが閉じられた時のクリーンアップ
@@ -99,7 +111,12 @@ export class SpeechBubbleWindowController {
    * スピーチバブルのサイズを更新し位置を再計算
    */
   public updateSize(size: { width: number; height: number }): void {
-    if (!this.window || this.window.isDestroyed()) return;
+    console.log('[SpeechBubbleWindow] updateSize called with:', size);
+    
+    if (!this.window || this.window.isDestroyed()) {
+      console.log('[SpeechBubbleWindow] ウィンドウが存在しないか破棄されています');
+      return;
+    }
 
     // メインウィンドウの位置を取得
     const mainWindow = this.windowManager.getWindow('main');
@@ -109,6 +126,7 @@ export class SpeechBubbleWindowController {
     }
 
     const mainBounds = mainWindow.getBounds();
+    console.log('[SpeechBubbleWindow] メインウィンドウ bounds:', mainBounds);
     this.updatePosition(size, mainBounds);
   }
 
@@ -122,12 +140,52 @@ export class SpeechBubbleWindowController {
     if (!this.window || this.window.isDestroyed()) return;
 
     console.log('[SpeechBubbleWindow] サイズ通知受信:', size);
+    console.log('[SpeechBubbleWindow] メインウィンドウ位置:', mainBounds);
     
     const windowWidth = Math.max(size.width, 80);
     const windowHeight = Math.max(size.height, 50);
     
+    // SpeechBubbleの配置戦略：
+    // 目標: SpeechBubbleのtailの先端がMainWindowの上端から1px上に配置
+    // つまり、SpeechBubbleの下端（ウィンドウの一番下）= MainWindowの上端 - 1px
+    
+    const TAIL_HEIGHT = 12; // CSSのborder-topと同じ値
+    const SHADOW_VERTICAL = 16; // CSSのbox-shadowの垂直オフセット概算
+    const TARGET_GAP = 1; // tailの先端からMainWindow上端までの目標距離（px）
+    
     const x = mainBounds.x + Math.round((mainBounds.width - windowWidth) / 2);
-    const y = (mainBounds.y + WINDOW_CONFIG.SPEECH_BUBBLE.MIN_DISPLAY_TIME / 20) - windowHeight;
+    
+    // 計算式: SpeechBubbleのy座標 = MainWindow上端 - SpeechBubbleの高さ - TARGET_GAP
+    // これにより、SpeechBubbleの下端（y + height）がMainWindow上端の1px上に配置される
+    let y = mainBounds.y - windowHeight - TARGET_GAP;
+    
+    console.log(`[SpeechBubbleWindow] 目標配置: SpeechBubbleの下端をMainWindow上端から${TARGET_GAP}px上に配置`);
+    
+    // 画面の上端を超えないように調整
+    try {
+      const displays = screen.getAllDisplays();
+      const primaryDisplay = screen.getPrimaryDisplay();
+      const workArea = primaryDisplay.workArea; // タスクバーなどを除いた作業領域
+      
+      console.log('[SpeechBubbleWindow] 画面情報:', {
+        primaryDisplay: primaryDisplay.bounds,
+        workArea: workArea,
+        allDisplays: displays.length
+      });
+      
+      const minY = workArea.y + 10; // 作業領域上端から最低10px余白
+      if (y < minY) {
+        console.log(`[SpeechBubbleWindow] y座標が画面上端を超えるため調整: ${y} -> ${minY}`);
+        y = minY;
+      }
+    } catch (error) {
+      console.warn('[SpeechBubbleWindow] 画面情報取得に失敗、デフォルト値使用:', error);
+      const minY = 10;
+      if (y < minY) {
+        console.log(`[SpeechBubbleWindow] y座標が画面上端を超えるため調整: ${y} -> ${minY}`);
+        y = minY;
+      }
+    }
     
     const newBounds = {
       x: Math.round(x),
@@ -135,6 +193,35 @@ export class SpeechBubbleWindowController {
       width: Math.round(windowWidth),
       height: Math.round(windowHeight)
     };
+    
+    console.log('[SpeechBubbleWindow] 位置計算詳細:', {
+      mainWindow: {
+        top: mainBounds.y,
+        bottom: mainBounds.y + mainBounds.height,
+        left: mainBounds.x,
+        right: mainBounds.x + mainBounds.width,
+        center: mainBounds.x + mainBounds.width / 2
+      },
+      speechBubble: {
+        top: newBounds.y,
+        bottom: newBounds.y + newBounds.height,
+        left: newBounds.x,
+        right: newBounds.x + newBounds.width,
+        center: newBounds.x + newBounds.width / 2
+      },
+      calculation: {
+        windowWidth,
+        windowHeight,
+        TAIL_HEIGHT,
+        SHADOW_VERTICAL,
+        TARGET_GAP,
+        formula: `${mainBounds.y} - ${windowHeight} - ${TARGET_GAP} = ${y}`,
+        speechBubbleBottom: y + windowHeight,
+        mainWindowTop: mainBounds.y,
+        actualGap: mainBounds.y - (y + windowHeight),
+        targetGap: TARGET_GAP
+      }
+    });
     
     console.log('[SpeechBubbleWindow] スピーチバブル位置設定:', newBounds);
     
@@ -178,12 +265,8 @@ export class SpeechBubbleWindowController {
       });
     }, 100);
     
-    if (!this.window.isVisible()) {
-      console.log('[SpeechBubbleWindow] スピーチバブルウィンドウを表示');
-      this.window.show();
-    } else {
-      console.log('[SpeechBubbleWindow] スピーチバブルウィンドウは既に表示中');
-    }
+    // 位置更新では表示状態を変更しない
+    // show() は明示的なテキスト表示時のみ実行
   }
 
   /**

@@ -99,7 +99,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // カメラ設定関連のAPI
     getCameraSettings: async (): Promise<CameraSettings> => {
-        return await ipcRenderer.invoke('get-camera-settings');
+        const response = await ipcRenderer.invoke('get-camera-settings');
+        if (response.success && response.data) {
+            return response.data.settings;
+        }
+        return null;
     },
 
     setCameraSettings: async (settings: CameraSettings): Promise<{ success: boolean }> => {
