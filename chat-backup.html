@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chat with Mascot</title>
+    <link rel="stylesheet" href="src/styles/design-system.css">
+    <link rel="stylesheet" href="src/styles/components.css">
+    <link rel="stylesheet" href="chat.css">
+</head>
+
+<body>
+    <div id="response-area">
+    </div>
+    <div id="input-area">
+        <textarea id="prompt-input" placeholder="メッセージを入力..." rows="1"></textarea>
+        <button id="send-button">送信</button>
+        <button id="collapse-button" title="会話履歴の表示/非表示">▲</button>
+    </div>
+
+    <script>
+        const promptInput = document.getElementById('prompt-input');
+        const sendButton = document.getElementById('send-button');
+        const responseArea = document.getElementById('response-area');
+        const promptInputStyle = getComputedStyle(promptInput);
+        const promptInputPaddingTop = parseFloat(promptInputStyle.paddingTop);
+        const promptInputPaddingBottom = parseFloat(promptInputStyle.paddingBottom);
+        // CSSで設定したmax-heightを数値で取得 (例: '100px' -> 100)
+        // もしCSSでmax-heightを設定していない場合は、ここで適切な最大ピクセル値を設定
+        const cssMaxHeight = promptInputStyle.maxHeight;
+        let maxTextareaHeightPx = 80; // デフォルトの最大高さ (ピクセル単位) - CSSに合わせて調整
+        if (cssMaxHeight && cssMaxHeight !== 'none') {
+            maxTextareaHeightPx = parseFloat(cssMaxHeight);
+        } else {
+            // CSSにmax-heightがない場合、例えば5行分くらいの高さを設定
+            const lineHeight = parseFloat(promptInputStyle.lineHeight) || (parseFloat(promptInputStyle.fontSize) * 1.4);
+            maxTextareaHeightPx = (lineHeight * 5) + promptInputPaddingTop + promptInputPaddingBottom;
+        }
+
+
+        promptInput.addEventListener('input', () => {
+            promptInput.style.height = 'auto'; // 一旦高さを自動に戻して、内容に応じたscrollHeightを取得
+            let newScrollHeight = promptInput.scrollHeight;
+
+            // 上下のpaddingを考慮した実際のコンテンツ高
+            // let contentHeight = newScrollHeight - promptInputPaddingTop - promptInputPaddingBottom;
+            // scrollHeightはpaddingとborderを含むので、そのまま使って良いことが多いが、
+            // box-sizing: border-box; の場合は挙動が変わる。
+            // 今回はシンプルにscrollHeightを基準にします。
+
+            if (newScrollHeight > maxTextareaHeightPx) {
+                promptInput.style.height = maxTextareaHeightPx + 'px';
+                promptInput.style.overflowY = 'auto'; // 最大高さを超えたらスクロールバーを表示
+            } else {
+                promptInput.style.height = newScrollHeight + 'px';
+                promptInput.style.overflowY = 'hidden'; // 最大高さ以下の場合はスクロールバーを隠す
+            }
+        });
+
+        // 初期ロード時にも一度高さを調整 (プレースホルダーなどで高さが必要な場合のため)
+        function initialAdjustTextareaHeight() {
+            promptInput.style.height = 'auto';
+            let newScrollHeight = promptInput.scrollHeight;
+            if (newScrollHeight > maxTextareaHeightPx) {
+                promptInput.style.height = maxTextareaHeightPx + 'px';
+                promptInput.style.overflowY = 'auto';
+            } else {
+                // rows="1"やCSSのmin-heightに合わせる
+                // ここでは、CSSでmin-heightが設定されていることを期待するか、
+                // scrollHeightが初期の1行より小さければ、CSSのmin-heightが効くようにautoのままにするか、
+                // 明示的に1行分の高さを設定します。
+                // HTMLのrows="1"があるので、初期はCSSのpaddingとline-heightで決まる高さになるはずです。
+                // あえてJSで初期高さを設定しなくても良いかもしれません。
+                // もし初期表示で高さがおかしい場合は、ここを調整します。
+                // 例えば、最初の1行の高さを保つなら:
+                // promptInput.style.height = Math.max(parseFloat(promptInputStyle.minHeight) || 0, newScrollHeight) + 'px';
+                // 今回は input イベントで動的に変わるので、初期のoverflowYだけ設定しておきます。
+                if (newScrollHeight <= maxTextareaHeightPx) {
+                    promptInput.style.overflowY = 'hidden';
+                } else {
+                    promptInput.style.overflowY = 'auto';
+                }
+            }
+        }
+        initialAdjustTextareaHeight(); // 読み込み時に一度実行
+        // --- ↑ テキストエリアの高さ自動調整ここまで ↑ ---
+        // ユーザー名とマスコット名を保存するグローバル変数
+        let userName = 'User';
+        let mascotName = 'Mascot';
+
+        // --- 名前を読み込む関数 ---
+        async function loadNames() {
+            try {
+                if (window.electronAPI) {
+                    if (window.electronAPI.getUserName) {
+                        userName = await window.electronAPI.getUserName() || 'User';
+                    }
+                    if (window.electronAPI.getMascotName) {
+                        mascotName = await window.electronAPI.getMascotName() || 'Mascot';
+                    }
+                }
+            } catch (error) {
+                console.error('名前の読み込みエラー:', error);
+            }
+        }
+
+
+        // --- 入力欄をクリアし、高さをリセットする関数 ---
+        function clearAndResetInput() {
+            // 一時的にdisabledを解除してクリア処理を確実に実行
+            const wasDisabled = promptInput.disabled;
+            promptInput.disabled = false;
+            
+            promptInput.value = '';
+            promptInput.style.height = 'auto';
+            promptInput.style.overflowY = 'hidden';
+            
+            // inputイベントをトリガーして高さ調整を実行
+            promptInput.dispatchEvent(new Event('input'));
+            
+            // 元の状態に戻す
+            promptInput.disabled = wasDisabled;
+        }
+
+        // --- メッセージを応答エリアに追加する関数 ---
+        function addMessageToResponseArea(messageText, senderType) { // senderType は 'user' または 'mascot'
+            const messageContainer = document.createElement('div');
+            messageContainer.classList.add('message-container');
+            
+            const senderName = document.createElement('span');
+            senderName.classList.add('sender-name');
+            senderName.textContent = senderType === 'user' ? userName : mascotName;
+            
+            const messageContent = document.createElement('p');
+            messageContent.textContent = messageText;
+
+            if (senderType === 'user') {
+                messageContainer.classList.add('user-message');
+            } else if (senderType === 'mascot') {
+                messageContainer.classList.add('mascot-message');
+            }
+            
+            messageContainer.appendChild(senderName);
+            messageContainer.appendChild(messageContent);
+            responseArea.appendChild(messageContainer);
+            responseArea.scrollTop = responseArea.scrollHeight; // 自動スクロール
+        }
+
+        // --- Enterキーでも送信できるように ---
+        promptInput.addEventListener('keydown', function (event) { // 'keypress' から 'keydown' に変更するとShiftキーの状態をより確実に拾えます
+            if (event.key === 'Enter') {
+                if (!event.shiftKey && !sendButton.disabled) { // Shiftキーが押されておらず、送信ボタンが有効な時だけ送信
+                    event.preventDefault(); // textareaでのデフォルトの改行を防ぐ
+                    sendMessage();          // 送信処理を直接呼び出し
+                }
+                // Shiftキーが押されている時は、通常の改行が行われます
+            }
+        });
+
+        // --- 履歴の読み込みと表示 ---
+        async function loadChatHistory() {
+            try {
+                if (window.electronAPI && window.electronAPI.getChatHistory) {
+                    const history = await window.electronAPI.getChatHistory();
+                    for (const message of history) {
+                        if (message.role === 'user') {
+                            addMessageToResponseArea(message.content, 'user');
+                        } else if (message.role === 'assistant') {
+                            addMessageToResponseArea(message.content, 'mascot');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('履歴の読み込みエラー:', error);
+            }
+        }
+
+        // --- ページ読み込み時に名前と履歴を読み込み、折り畳みボタンを設定 ---
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadNames(); // 名前を最初に読み込み
+            loadChatHistory(); // その後履歴を読み込み
+            
+            // 折り畳みボタンの初期化
+            const collapseButton = document.getElementById('collapse-button');
+            const responseArea = document.getElementById('response-area');
+            
+            if (collapseButton && responseArea) {
+                let isCollapsed = false;
+                
+                // 保存された状態を読み込み
+                try {
+                    if (window.electronAPI && window.electronAPI.getChatCollapseState) {
+                        isCollapsed = await window.electronAPI.getChatCollapseState() || false;
+                    }
+                } catch (error) {
+                    console.error('折り畳み状態の読み込みエラー:', error);
+                    isCollapsed = false;
+                }
+                
+                // UIを更新する関数
+                function updateUI() {
+                    if (isCollapsed) {
+                        responseArea.style.display = 'none';
+                        collapseButton.textContent = '▼';
+                        document.body.classList.add('chat-collapsed');
+                    } else {
+                        responseArea.style.display = 'block';
+                        collapseButton.textContent = '▲';
+                        document.body.classList.remove('chat-collapsed');
+                    }
+                }
+                
+                // 初期状態を設定
+                updateUI();
+                
+                // 初期ウィンドウサイズを設定（起動時の復元）
+                try {
+                    if (window.electronAPI && window.electronAPI.setChatWindowSizeWithHeight) {
+                        // 入力エリアの高さを動的に計算
+                        const inputArea = document.getElementById('input-area');
+                        const inputAreaHeight = inputArea ? inputArea.offsetHeight : 110;
+                        
+                        console.log('初期設定時の入力エリア高さ:', inputAreaHeight);
+                        await window.electronAPI.setChatWindowSizeWithHeight(isCollapsed, inputAreaHeight);
+                    }
+                } catch (error) {
+                    console.error('初期ウィンドウサイズ設定エラー:', error);
+                }
+                
+                // クリックイベントリスナーを追加
+                collapseButton.addEventListener('click', async () => {
+                    isCollapsed = !isCollapsed;
+                    updateUI();
+                    
+                    // 状態を保存
+                    try {
+                        if (window.electronAPI && window.electronAPI.setChatCollapseState) {
+                            await window.electronAPI.setChatCollapseState(isCollapsed);
+                        }
+                    } catch (error) {
+                        console.error('折り畳み状態の保存エラー:', error);
+                    }
+
+                    // 入力エリアの実際の高さを計算してウィンドウサイズを変更
+                    try {
+                        if (window.electronAPI && window.electronAPI.setChatWindowSizeWithHeight) {
+                            // 入力エリアの高さを動的に計算
+                            const inputArea = document.getElementById('input-area');
+                            const inputAreaHeight = inputArea ? inputArea.offsetHeight : 110;
+                            
+                            console.log('入力エリアの計算された高さ:', inputAreaHeight);
+                            await window.electronAPI.setChatWindowSizeWithHeight(isCollapsed, inputAreaHeight);
+                        }
+                    } catch (error) {
+                        console.error('ウィンドウサイズ変更エラー:', error);
+                    }
+                });
+                
+                console.log('折り畳みボタンが初期化されました');
+            } else {
+                console.error('折り畳みボタンまたは応答エリアが見つかりません');
+            }
+        });
+
+        // --- 送信処理の共通関数 ---
+        async function sendMessage() {
+            const prompt = promptInput.value;
+            if (!prompt.trim()) return;
+
+            // 送信中は入力を無効化
+            sendButton.disabled = true;
+            promptInput.disabled = true;
+            sendButton.textContent = '送信中...';
+
+            addMessageToResponseArea(prompt, 'user'); // ★メッセージ本文とタイプ 'user' を渡す
+            clearAndResetInput(); // 入力欄をクリアし、高さをリセット
+
+            if (window.electronAPI && window.electronAPI.sendChatMessage) {
+                try {
+                    const response = await window.electronAPI.sendChatMessage(prompt);
+                    addMessageToResponseArea(response, 'mascot'); // ★返答本文とタイプ 'mascot' を渡す
+                } catch (error) {
+                    console.error('Error sending chat message:', error);
+                    const errorMessage = (error instanceof Error) ? error.message : String(error);
+                    addMessageToResponseArea('エラー: ' + errorMessage, 'mascot');
+                }
+            } else {
+                console.error('electronAPI or sendChatMessage is not available.');
+                addMessageToResponseArea('エラー: メインプロセスに接続できません。', 'mascot');
+            }
+
+            // 送信完了後に入力を再有効化
+            sendButton.disabled = false;
+            promptInput.disabled = false;
+            sendButton.textContent = '送信';
+            promptInput.focus(); // フォーカスを戻す
+        }
+
+        // --- 送信ボタンのクリック処理（履歴機能付き） ---
+        sendButton.addEventListener('click', sendMessage);
+
+
+    </script>
+    <script type="module">
+        import { ThemeManager } from '/src/utils/themeManager.ts';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeManager = new ThemeManager();
+            
+            // グローバルに設定
+            window.themeManager = themeManager;
+            
+            // テーマ変更通知を受信
+            if (window.electronAPI && window.electronAPI.onThemeChanged) {
+                window.electronAPI.onThemeChanged((theme) => {
+                    themeManager.setTheme(theme);
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

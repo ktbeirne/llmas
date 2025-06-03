@@ -96,10 +96,43 @@ export class VRMHandler {
     this.log('info', 'handleQuitApp', 'アプリケーション終了リクエストを受信');
     
     try {
+      // メインウィンドウにカメラ設定保存を指示してから終了処理を開始
+      const mainWindow = BrowserWindow.getAllWindows().find(window => 
+        !window.isDestroyed() && (window.getTitle() === '' || window.getTitle().includes('LLM Desktop Mascot'))
+      );
+      
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        this.log('info', 'handleQuitApp', 'メインウィンドウにカメラ設定保存を指示');
+        
+        // カメラ設定保存のためのコマンドを送信
+        mainWindow.webContents.send('app-before-quit');
+        
+        // 設定保存の時間を確保してから終了処理
+        setTimeout(() => {
+          this.performAppQuit();
+        }, 200);
+      } else {
+        // メインウィンドウが見つからない場合は即座に終了
+        this.performAppQuit();
+      }
+    } catch (error) {
+      this.log('error', 'handleQuitApp', 'アプリケーション終了でエラー', error);
+      // エラーでも終了処理は実行
+      this.performAppQuit();
+    }
+  }
+
+  /**
+   * 実際のアプリケーション終了処理
+   */
+  private performAppQuit(): void {
+    this.log('info', 'performAppQuit', '実際のアプリケーション終了処理を開始');
+    
+    try {
       // すべてのウィンドウを閉じる
       BrowserWindow.getAllWindows().forEach(window => {
         if (!window.isDestroyed()) {
-          this.log('info', 'handleQuitApp', 'ウィンドウを閉じています', { 
+          this.log('info', 'performAppQuit', 'ウィンドウを閉じています', { 
             title: window.getTitle(),
             id: window.id 
           });
@@ -111,9 +144,9 @@ export class VRMHandler {
       const { app } = require('electron');
       app.quit();
       
-      this.log('info', 'handleQuitApp', 'アプリケーション終了処理が完了');
+      this.log('info', 'performAppQuit', 'アプリケーション終了処理が完了');
     } catch (error) {
-      this.log('error', 'handleQuitApp', 'アプリケーション終了でエラー', error);
+      this.log('error', 'performAppQuit', 'アプリケーション終了でエラー', error);
     }
   }
 

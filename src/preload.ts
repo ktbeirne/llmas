@@ -84,6 +84,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
         return await ipcRenderer.invoke('clear-chat-history');
     },
 
+    // チャット折り畳み状態関連のAPI
+    getChatCollapseState: async (): Promise<boolean> => {
+        return await ipcRenderer.invoke('get-chat-collapse-state');
+    },
+
+    setChatCollapseState: async (collapsed: boolean): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('set-chat-collapse-state', collapsed);
+    },
+
+    setChatWindowSize: async (collapsed: boolean): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('set-chat-window-size', collapsed);
+    },
+
+    setChatWindowSizeWithHeight: async (collapsed: boolean, inputAreaHeight: number): Promise<{ success: boolean }> => {
+        return await ipcRenderer.invoke('set-chat-window-size-with-height', collapsed, inputAreaHeight);
+    },
+
     // システムプロンプト関連のAPI
     getSystemPrompt: async (): Promise<string> => {
         return await ipcRenderer.invoke('get-system-prompt');
@@ -194,6 +211,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // テーマ変更通知のリスナー
     onThemeChanged: (callback: (theme: string) => void) => {
         ipcRenderer.on('theme-changed', (_event, theme) => callback(theme));
+    },
+
+    // アプリケーション終了前通知のリスナー
+    onAppBeforeQuit: (callback: () => void) => {
+        ipcRenderer.on('app-before-quit', (_event) => callback());
     },
 
     // 設定ウィンドウ状態変更通知のリスナー

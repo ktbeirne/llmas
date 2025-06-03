@@ -189,8 +189,10 @@ export class ThemeManager {
     // テーマの切り替えアニメーション
     this.animateThemeTransition();
 
-    // VRMキャンバスエリアの透明性を強制的に維持
-    this.ensureCanvasTransparency();
+    // DOM更新完了後に透明性を確保
+    setTimeout(() => {
+      this.ensureCanvasTransparency();
+    }, 100);
 
     console.log(`テーマが適用されました: ${themeId}`);
   }
@@ -240,19 +242,29 @@ export class ThemeManager {
       iconBar.style.zIndex = '10';
       
       // 背景色をCSS変数から動的に取得して適用
-      const surfaceColor = getComputedStyle(document.documentElement)
-        .getPropertyValue('--color-surface').trim();
-      
-      if (surfaceColor && surfaceColor !== '') {
-        iconBar.style.backgroundColor = surfaceColor;
-        iconBar.style.background = surfaceColor;
-        console.log('[ThemeManager] Icon bar background set to:', surfaceColor);
-      } else {
-        // フォールバック: デフォルトの白背景
-        iconBar.style.backgroundColor = '#FFFFFF';
-        iconBar.style.background = '#FFFFFF';
-        console.warn('[ThemeManager] CSS variable --color-surface not found, using fallback white');
-      }
+      // 複数回試行してCSS変数の読み込みを確実にする
+      let attempts = 0;
+      const maxAttempts = 10;
+      const trySetBackground = () => {
+        attempts++;
+        const surfaceColor = getComputedStyle(document.documentElement)
+          .getPropertyValue('--color-surface').trim();
+        
+        if (surfaceColor && surfaceColor !== '' && !surfaceColor.includes('var(')) {
+          iconBar.style.backgroundColor = surfaceColor;
+          iconBar.style.background = surfaceColor;
+          console.log('[ThemeManager] Icon bar background set to:', surfaceColor, `(attempt ${attempts})`);
+        } else if (attempts < maxAttempts) {
+          // CSS変数がまだ読み込まれていない場合、少し待って再試行
+          setTimeout(trySetBackground, 50);
+        } else {
+          // 最大試行回数に達した場合、フォールバック
+          iconBar.style.backgroundColor = '#FFFFFF';
+          iconBar.style.background = '#FFFFFF';
+          console.warn('[ThemeManager] CSS variable --color-surface not loaded after max attempts, using fallback white');
+        }
+      };
+      trySetBackground();
       
       console.log('[ThemeManager] Icon bar visibility ensured');
 

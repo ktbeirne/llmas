@@ -21,10 +21,11 @@ body {
     border: 1px solid var(--color-border);
     border-radius: 8px;
     /* 角を少し丸く */
-    padding: 15px;
-    margin-bottom: 15px;
+    padding: var(--spacing-md); /* 他の要素と統一 */
+    margin-bottom: calc(45px + var(--spacing-md)); /* バランス調整 */
     line-height: 1.6;
     -webkit-app-region: no-drag;
+    transition: all var(--transition-duration) var(--transition-timing);
 }
 
 /* メッセージコンテナ */
@@ -85,43 +86,48 @@ body {
 }
 
 #input-area {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     display: flex;
     border-top: 1px solid var(--color-border);
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm); /* スペーシングを小さく */
     background-color: var(--color-surface-secondary);
-    padding: var(--spacing-md);
-    border-radius: var(--border-radius-md);
+    padding: var(--spacing-sm); /* パディングを小さく */
+    border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
     transition: all var(--transition-duration) var(--transition-timing);
+    /* ドラッグ可能に変更 - 個別要素でno-dragを指定 */
 }
 
 #prompt-input {
     flex-grow: 1;
-    padding: var(--spacing-md) var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md); /* 上下パディングを小さく */
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-md);
-    margin-right: var(--spacing-md);
-    font-size: 1em;
+    margin-right: var(--spacing-sm); /* マージンを小さく */
+    font-size: 0.9em; /* フォントサイズを小さく */
     font-family: var(--font-family-base);
-    line-height: 1.4;
+    line-height: 1.2; /* 行間を小さく */
     outline: none;
     resize: none;
     box-sizing: border-box;
     background-color: var(--color-surface);
     color: var(--color-text-primary);
     transition: all var(--transition-duration) var(--transition-timing);
+    -webkit-app-region: no-drag; /* 入力フィールドはドラッグ無効 */
     /* これは重要 */
 
     /* height: auto; /* JavaScriptで制御するのでautoに */
     /* min-height はCSSで指定しておくと初期表示の高さの目安になります */
-    min-height: calc(1em * 1.4 + 20px + 2px);
+    min-height: calc(0.9em * 1.2 + 12px + 2px); /* フォントサイズと行間に合わせて調整 */
     /* 1行のline-height + 上下padding + 上下borderくらい */
     /* max-height はCSSで指定しておき、JSでもこの値を超えないようにします */
-    max-height: 100px;
+    max-height: 80px; /* 少し小さく */
     /* 例: 約4-5行分 + padding。JSのmaxTextareaHeightPxと合わせる */
 
     overflow-y: hidden;
-    /* 初期状態ではスクロールバーを隠す (JSで必要ならautoに) */ 
-    -webkit-app-region: no-drag;
+    /* 初期状態ではスクロールバーを隠す (JSで必要ならautoに) */
 }
 
 #prompt-input:focus {
@@ -131,13 +137,13 @@ body {
 }
 
 #send-button {
-    padding: var(--spacing-md) var(--spacing-lg);
+    padding: var(--spacing-sm) var(--spacing-md); /* パディングを小さく */
     border: none;
     background-color: var(--color-primary);
     color: var(--color-text-inverse);
     border-radius: var(--border-radius-round);
     cursor: pointer;
-    font-size: 1em;
+    font-size: 0.9em; /* フォントサイズを小さく */
     font-weight: bold;
     transition: all var(--transition-duration) var(--transition-timing);
     -webkit-app-region: no-drag;
@@ -150,5 +156,38 @@ body {
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
 }
+
+/* 折り畳みボタン */
+#collapse-button {
+    padding: var(--spacing-sm); /* パディングを小さく */
+    border: none;
+    background-color: var(--color-secondary);
+    color: var(--color-text-inverse);
+    border-radius: var(--border-radius-round);
+    cursor: pointer;
+    font-size: 0.9em; /* フォントサイズを小さく */
+    font-weight: bold;
+    transition: all var(--transition-duration) var(--transition-timing);
+    -webkit-app-region: no-drag;
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    min-width: 32px; /* 最小幅を小さく */
+}
+
+#collapse-button:hover {
+    background-color: var(--color-secondary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* 折り畳み時のレイアウト調整 */
+body.chat-collapsed {
+    /* レスポンスエリアが非表示の時の調整 */
+}
+
+body.chat-collapsed #response-area {
+    display: none !important;
+}
+
 
 

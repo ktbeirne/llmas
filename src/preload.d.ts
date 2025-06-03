@@ -21,6 +21,11 @@ export interface ElectronAPI {
     sendChatMessage: IPCTypes.SendChatMessage;
     getChatHistory: IPCTypes.GetChatHistory;
     clearChatHistory: IPCTypes.ClearChatHistory;
+    // チャット折り畳み状態関連のAPI
+    getChatCollapseState: IPCTypes.GetChatCollapseState;
+    setChatCollapseState: IPCTypes.SetChatCollapseState;
+    setChatWindowSize: IPCTypes.SetChatWindowSize;
+    setChatWindowSizeWithHeight: IPCTypes.SetChatWindowSizeWithHeight;
     // システムプロンプト関連のAPI
     getSystemPrompt: IPCTypes.GetSystemPrompt;
     setSystemPrompt: IPCTypes.SetSystemPrompt;

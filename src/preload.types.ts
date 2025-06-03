@@ -51,6 +51,8 @@ export interface ElectronAPI {
     setTheme: (theme: string) => Promise<{ success: boolean }>;
     getAvailableThemes: () => Promise<any[]>;
     onThemeChanged: (callback: (theme: string) => void) => void;
+    // アプリケーション終了前通知
+    onAppBeforeQuit: (callback: () => void) => void;
     // 設定ウィンドウ状態変更通知
     onSettingsWindowStateChanged: (callback: (isOpen: boolean) => void) => void;
     // 表情関連のAPI

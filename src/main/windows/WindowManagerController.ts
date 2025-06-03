@@ -230,4 +230,18 @@ export class WindowManagerController {
   public getWindowManager(): WindowManager {
     return this.windowManager;
   }
+
+  /**
+   * チャットウィンドウのサイズを折り畳み状態に応じて変更
+   */
+  public setChatWindowCollapsedSize(collapsed: boolean): void {
+    this.chatWindowController.setChatCollapsedSize(collapsed);
+  }
+
+  /**
+   * チャットウィンドウのサイズを指定された高さで変更
+   */
+  public setChatWindowSizeWithHeight(collapsed: boolean, inputAreaHeight: number): void {
+    this.chatWindowController.setChatSizeWithHeight(collapsed, inputAreaHeight);
+  }
 }

@@ -250,7 +250,7 @@ class MainRenderer {
                 console.log('[MainRenderer] Theme change received:', theme);
                 if (themeManager) {
                     themeManager.setTheme(theme);
-                    // テーマ変更後に透明性とアイコンバーを確保
+                    // テーマ変更後に透明性を確保
                     setTimeout(() => {
                         themeManager.ensureCanvasTransparency();
                     }, 100);
@@ -263,6 +263,17 @@ class MainRenderer {
         window.addEventListener('beforeunload', () => {
             this.cleanup();
         });
+
+        // App quit listener (for save before quit)  
+        if (window.electronAPI) {
+            // app-before-quitイベントのリスナーを追加（preload経由）
+            if ((window.electronAPI as any).onAppBeforeQuit) {
+                (window.electronAPI as any).onAppBeforeQuit(() => {
+                    console.log('[MainRenderer] App before quit event received, saving camera settings...');
+                    this.cameraManager.saveCameraSettings();
+                });
+            }
+        }
     }
 
     private setupDebugFunctions() {

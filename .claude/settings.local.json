@@ -50,7 +50,9 @@
       "Bash(DISPLAY=:99 xvfb-run -a timeout 10s node_modules/electron/dist/electron --version)",
       "Bash(DISPLAY=:99 xvfb-run -a timeout 10s node_modules/electron/dist/electron . --no-sandbox --disable-gpu --headless)",
       "mcp__server-sequential-thinking__sequentialthinking",
-      "mcp__playwright-mcp__browser_navigate"
+      "mcp__playwright-mcp__browser_navigate",
+      "Bash(/usr/bin/afplay:*)",
+      "Bash(open:*)"
     ],
     "deny": []
   }

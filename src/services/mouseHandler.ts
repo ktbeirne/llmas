@@ -168,6 +168,7 @@ export class MouseHandler {
         }, duration);
     }
 
+
     cleanup() {
         // タイマーのクリア
         if (this.speechBubbleTimeout) {

@@ -106,6 +106,12 @@ export namespace IPCTypes {
   export type GetChatHistory = () => Promise<ChatMessage[]>;
   export type ClearChatHistory = () => Promise<ChatHistoryClearResult>;
   
+  // チャット折り畳み状態関連
+  export type GetChatCollapseState = () => Promise<boolean>;
+  export type SetChatCollapseState = (collapsed: boolean) => Promise<ApiResponse>;
+  export type SetChatWindowSize = (collapsed: boolean) => Promise<ApiResponse>;
+  export type SetChatWindowSizeWithHeight = (collapsed: boolean, inputAreaHeight: number) => Promise<ApiResponse>;
+  
   // システムプロンプト関連
   export type GetSystemPrompt = () => Promise<string>;
   export type SetSystemPrompt = (prompt: string) => Promise<ApiResponse>;

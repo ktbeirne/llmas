@@ -41,6 +41,12 @@ export class ChatHandler {
     ipcMain.handle(IPC_CHANNELS.CHAT.GET_HISTORY, this.handleGetChatHistory.bind(this));
     ipcMain.handle(IPC_CHANNELS.CHAT.CLEAR_HISTORY, this.handleClearChatHistory.bind(this));
 
+    // チャット折り畳み状態関連
+    ipcMain.handle('get-chat-collapse-state', this.handleGetChatCollapseState.bind(this));
+    ipcMain.handle('set-chat-collapse-state', this.handleSetChatCollapseState.bind(this));
+    ipcMain.handle('set-chat-window-size', this.handleSetChatWindowSizeCollapsed.bind(this));
+    ipcMain.handle('set-chat-window-size-with-height', this.handleSetChatWindowSizeWithHeight.bind(this));
+
     // システムプロンプト関連
     ipcMain.handle(IPC_CHANNELS.CHAT.GET_SYSTEM_PROMPT, this.handleGetSystemPrompt.bind(this));
     ipcMain.handle(IPC_CHANNELS.CHAT.SET_SYSTEM_PROMPT, this.handleSetSystemPrompt.bind(this));
@@ -474,6 +480,117 @@ export class ChatHandler {
     } catch (error) {
       const errorMessage = `システムプロンプトコアのリセット中にエラーが発生: ${error instanceof Error ? error.message : '不明なエラー'}`;
       this.log('error', 'handleResetSystemPromptCore', errorMessage, error);
+      return createErrorResponse(errorMessage);
+    }
+  }
+
+  /**
+   * チャット折り畳み状態の取得
+   */
+  private async handleGetChatCollapseState(_event: IpcMainInvokeEvent): Promise<boolean> {
+    this.log('info', 'handleGetChatCollapseState', 'チャット折り畳み状態取得リクエストを受信');
+    
+    try {
+      const collapsed = this.settingsStore.getChatCollapseState();
+      this.log('info', 'handleGetChatCollapseState', 'チャット折り畳み状態を正常に取得', { collapsed });
+      
+      return collapsed;
+    } catch (error) {
+      const errorMessage = `チャット折り畳み状態の取得中にエラーが発生: ${error instanceof Error ? error.message : '不明なエラー'}`;
+      this.log('error', 'handleGetChatCollapseState', errorMessage, error);
+      throw error;
+    }
+  }
+
+  /**
+   * チャット折り畳み状態の設定
+   */
+  private async handleSetChatCollapseState(
+    _event: IpcMainInvokeEvent, 
+    collapsed: boolean
+  ): Promise<IPCResponse> {
+    this.log('info', 'handleSetChatCollapseState', 'チャット折り畳み状態設定リクエストを受信', { collapsed });
+    
+    // バリデーション
+    if (typeof collapsed !== 'boolean') {
+      const errorMessage = 'チャット折り畳み状態は真偽値である必要があります';
+      this.log('warn', 'handleSetChatCollapseState', errorMessage, { collapsed });
+      return createErrorResponse(errorMessage);
+    }
+
+    try {
+      this.settingsStore.setChatCollapseState(collapsed);
+      this.log('info', 'handleSetChatCollapseState', 'チャット折り畳み状態を正常に設定');
+      
+      return createSuccessResponse();
+    } catch (error) {
+      const errorMessage = `チャット折り畳み状態の設定中にエラーが発生: ${error instanceof Error ? error.message : '不明なエラー'}`;
+      this.log('error', 'handleSetChatCollapseState', errorMessage, error);
+      return createErrorResponse(errorMessage);
+    }
+  }
+
+  /**
+   * チャットウィンドウサイズの設定（従来方式）
+   */
+  private async handleSetChatWindowSizeCollapsed(
+    _event: IpcMainInvokeEvent, 
+    collapsed: boolean
+  ): Promise<IPCResponse> {
+    this.log('info', 'handleSetChatWindowSizeCollapsed', 'チャットウィンドウサイズ設定リクエストを受信', { collapsed });
+    
+    // バリデーション
+    if (typeof collapsed !== 'boolean') {
+      const errorMessage = 'ウィンドウサイズ変更指示は真偽値である必要があります';
+      this.log('warn', 'handleSetChatWindowSizeCollapsed', errorMessage, { collapsed });
+      return createErrorResponse(errorMessage);
+    }
+
+    try {
+      // ウィンドウマネージャーを通じてチャットウィンドウのサイズを変更
+      this.windowManagerController.setChatWindowCollapsedSize(collapsed);
+      this.log('info', 'handleSetChatWindowSizeCollapsed', 'チャットウィンドウサイズを正常に設定');
+      
+      return createSuccessResponse();
+    } catch (error) {
+      const errorMessage = `チャットウィンドウサイズの設定中にエラーが発生: ${error instanceof Error ? error.message : '不明なエラー'}`;
+      this.log('error', 'handleSetChatWindowSizeCollapsed', errorMessage, error);
+      return createErrorResponse(errorMessage);
+    }
+  }
+
+  /**
+   * チャットウィンドウサイズの設定（高さ指定版）
+   */
+  private async handleSetChatWindowSizeWithHeight(
+    _event: IpcMainInvokeEvent, 
+    collapsed: boolean,
+    inputAreaHeight: number
+  ): Promise<IPCResponse> {
+    this.log('info', 'handleSetChatWindowSizeWithHeight', 'チャットウィンドウサイズ設定リクエストを受信', { collapsed, inputAreaHeight });
+    
+    // バリデーション
+    if (typeof collapsed !== 'boolean') {
+      const errorMessage = 'ウィンドウサイズ変更指示は真偽値である必要があります';
+      this.log('warn', 'handleSetChatWindowSizeWithHeight', errorMessage, { collapsed });
+      return createErrorResponse(errorMessage);
+    }
+
+    if (typeof inputAreaHeight !== 'number' || inputAreaHeight <= 0) {
+      const errorMessage = '入力エリアの高さは正の数値である必要があります';
+      this.log('warn', 'handleSetChatWindowSizeWithHeight', errorMessage, { inputAreaHeight });
+      return createErrorResponse(errorMessage);
+    }
+
+    try {
+      // ウィンドウマネージャーを通じてチャットウィンドウのサイズを変更
+      this.windowManagerController.setChatWindowSizeWithHeight(collapsed, inputAreaHeight);
+      this.log('info', 'handleSetChatWindowSizeWithHeight', 'チャットウィンドウサイズを正常に設定');
+      
+      return createSuccessResponse();
+    } catch (error) {
+      const errorMessage = `チャットウィンドウサイズの設定中にエラーが発生: ${error instanceof Error ? error.message : '不明なエラー'}`;
+      this.log('error', 'handleSetChatWindowSizeWithHeight', errorMessage, error);
       return createErrorResponse(errorMessage);
     }
   }

@@ -274,4 +274,132 @@ export class ChatWindowController {
   public onVisibilityChanged(callback: VisibilityChangedCallback): void {
     this.visibilityChangedCallbacks.push(callback);
   }
+
+  /**
+   * チャットウィンドウサイズを折り畳み状態に応じて変更（固定値版）
+   */
+  public setChatCollapsedSize(collapsed: boolean): void {
+    if (!this.window || this.window.isDestroyed()) {
+      console.warn('[ChatWindow] ウィンドウが利用できません');
+      return;
+    }
+
+    try {
+      const currentBounds = this.window.getBounds();
+      
+      if (collapsed) {
+        // 折り畳み時：入力エリアのみの高さ（より正確に計算）
+        // textarea(40px) + padding(16px*2) + border(2px) + gap(8px) + button(40px) = 約110px
+        const collapsedHeight = 110;
+        
+        // 入力エリアを基準にした位置調整: 下端を固定して上に縮小
+        const savedBounds = this.settingsStore.getChatWindowBounds();
+        const expandedHeight = savedBounds?.height || 500;
+        const heightDiff = expandedHeight - collapsedHeight;
+        const newY = currentBounds.y + heightDiff;
+        
+        // 最小高さ制約を一時的に無効化
+        this.window.setMinimumSize(currentBounds.width, collapsedHeight);
+        this.window.setBounds({ 
+          x: currentBounds.x, 
+          y: newY, 
+          width: currentBounds.width, 
+          height: collapsedHeight 
+        });
+        console.log('[ChatWindow] ウィンドウを折り畳みサイズに変更:', { 
+          x: currentBounds.x, 
+          y: newY, 
+          width: currentBounds.width, 
+          height: collapsedHeight 
+        });
+      } else {
+        // 展開時：保存されたサイズと位置に復元
+        const savedBounds = this.settingsStore.getChatWindowBounds();
+        const expandedHeight = savedBounds?.height || 500;
+        const expandedY = savedBounds?.y || currentBounds.y;
+        
+        // 最小高さ制約を元に戻す
+        this.window.setMinimumSize(300, 300);
+        this.window.setBounds({ 
+          x: currentBounds.x, 
+          y: expandedY, 
+          width: currentBounds.width, 
+          height: expandedHeight 
+        });
+        console.log('[ChatWindow] ウィンドウを展開サイズに変更:', { 
+          x: currentBounds.x, 
+          y: expandedY, 
+          width: currentBounds.width, 
+          height: expandedHeight 
+        });
+      }
+    } catch (error) {
+      console.error('[ChatWindow] ウィンドウサイズ変更でエラー:', error);
+    }
+  }
+
+  /**
+   * チャットウィンドウサイズを動的に計算された高さで変更
+   */
+  public setChatSizeWithHeight(collapsed: boolean, inputAreaHeight: number): void {
+    if (!this.window || this.window.isDestroyed()) {
+      console.warn('[ChatWindow] ウィンドウが利用できません');
+      return;
+    }
+
+    try {
+      const currentBounds = this.window.getBounds();
+      
+      if (collapsed) {
+        // 折り畳み時：入力エリアの実際の高さ（マージンなし）
+        const collapsedHeight = Math.ceil(inputAreaHeight);
+        
+        // 入力エリアを基準にした位置調整: 下端を固定して上に縮小
+        const heightDiff = currentBounds.height - collapsedHeight;
+        const newY = currentBounds.y + heightDiff;
+        
+        // 折り畳み前の状態を保存
+        this.settingsStore.setChatWindowBounds(currentBounds);
+        
+        // 最小高さ制約を一時的に無効化
+        this.window.setMinimumSize(currentBounds.width, collapsedHeight);
+        this.window.setBounds({ 
+          x: currentBounds.x, 
+          y: newY, 
+          width: currentBounds.width, 
+          height: collapsedHeight 
+        });
+        console.log('[ChatWindow] ウィンドウを動的折り畳みサイズに変更:', { 
+          x: currentBounds.x, 
+          y: newY, 
+          width: currentBounds.width, 
+          height: collapsedHeight,
+          inputAreaHeight,
+          originalHeight: currentBounds.height
+        });
+      } else {
+        // 展開時：保存されたサイズと位置に復元
+        const savedBounds = this.settingsStore.getChatWindowBounds();
+        const expandedHeight = savedBounds?.height || currentBounds.height;
+        const expandedY = savedBounds?.y || (currentBounds.y - (expandedHeight - currentBounds.height));
+        
+        // 最小高さ制約を元に戻す
+        this.window.setMinimumSize(300, 300);
+        this.window.setBounds({ 
+          x: currentBounds.x, 
+          y: expandedY, 
+          width: currentBounds.width, 
+          height: expandedHeight 
+        });
+        console.log('[ChatWindow] ウィンドウを展開サイズに変更:', { 
+          x: currentBounds.x, 
+          y: expandedY, 
+          width: currentBounds.width, 
+          height: expandedHeight 
+        });
+      }
+    } catch (error) {
+      console.error('[ChatWindow] ウィンドウサイズ変更でエラー:', error);
+    }
+  }
 }

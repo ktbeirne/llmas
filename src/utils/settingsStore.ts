@@ -32,6 +32,7 @@ export interface SettingsData {
     mainWindowBounds?: WindowBounds;
     chatWindowBounds?: WindowBounds;
     chatWindowVisible?: boolean;
+    chatCollapseState?: boolean;
     userName?: string;
     mascotName?: string;
     systemPromptCore?: string;
@@ -274,6 +275,15 @@ export class SettingsStore {
 
     setChatWindowVisible(visible: boolean): void {
         this.store.set('chatWindowVisible', visible);
+    }
+
+    // チャット折り畳み状態関連のメソッド
+    getChatCollapseState(): boolean {
+        return this.store.get('chatCollapseState', false) as boolean;
+    }
+
+    setChatCollapseState(collapsed: boolean): void {
+        this.store.set('chatCollapseState', collapsed);
     }
 
     // 画面表示設定をリセット
