@@ -2,9 +2,19 @@
    ウィンドウドラッグ領域の設定
 ======================================== */
 
-/* ドラッグエリアの明確化：背景部分をドラッグ可能に */
+/* body全体をドラッグ可能にする */
+body {
+    -webkit-app-region: drag;
+    user-select: none;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* コンテナ全体もドラッグ可能 */
 #settings-container {
-    -webkit-app-region: no-drag; /* macOSボタン表示を防ぐためno-dragに変更 */
+    -webkit-app-region: drag;
     width: 100%;
     height: 100vh;
     overflow: hidden;
@@ -18,61 +28,40 @@
     position: relative;
 }
 
-/* ヘッダー部分のみドラッグ可能にする */
-.tab-header {
-    -webkit-app-region: drag;
-    user-select: none;
-}
-
-/* 設定画面の背景にドラッグ領域を追加（削除） */
-/* #settings-container::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    -webkit-app-region: drag;
-    z-index: -1;
-    pointer-events: none;
-} */
-
-/* タブボタンはクリック可能にするためno-drag */
-.tab-button {
-    -webkit-app-region: no-drag;
-}
-
-/* 全てのインタラクティブ要素を明示的にno-dragに設定 */
+/* インタラクティブな要素はドラッグ不可にする */
 button,
 input,
 textarea,
 select,
-.tab-content,
-.tab-pane,
-.expression-list,
+.tab-button,
+.theme-card,
 .expression-item,
-.preview-controls,
-section,
-main,
-footer,
-#chat-tab,
-#names-section,
-.setting-group,
-#user-name,
-#mascot-name,
-#system-prompt-core,
-#system-prompt-section,
-#expressions-tab,
-#display-tab,
-.form-group,
-.input-group {
-    -webkit-app-region: no-drag !important;
+.slider-group,
+.checkbox-group,
+label,
+a {
+    -webkit-app-region: no-drag;
+    user-select: auto;
 }
 
-/* 強制的なno-drag設定 */
-.force-no-drag {
-    -webkit-app-region: no-drag !important;
-    pointer-events: auto !important;
+/* スクロール可能なエリアもドラッグ不可 */
+.tab-content,
+.tab-pane,
+.collapsible-content,
+.expression-list,
+section,
+footer,
+main,
+.button-group,
+.tab-button-group {
+    -webkit-app-region: no-drag;
+}
+
+/* テキストエリアやフォーム要素の親要素もドラッグ不可 */
+.setting-group,
+.form-group,
+.preview-controls {
+    -webkit-app-region: no-drag;
 }
 
 /* ========================================

@@ -4,6 +4,7 @@ import tsparser from '@typescript-eslint/parser';
 import importPlugin from 'eslint-plugin-import';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
+import fsdRules from './eslint.config.fsd.js';
 
 export default [
   // Global ignores (applies to all configurations)
@@ -23,9 +24,9 @@ export default [
     ]
   },
   
-  // Apply to all TypeScript files in src
+  // Apply to all TypeScript files in src (non-React)
   {
-    files: ['src/**/*.ts', 'src/**/*.tsx'],
+    files: ['src/**/*.ts'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
@@ -74,9 +75,6 @@ export default [
         requestAnimationFrame: 'readonly',
         cancelAnimationFrame: 'readonly',
         Electron: 'readonly',
-        // React globals
-        React: 'readonly',
-        JSX: 'readonly',
         // Electron globals
         require: 'readonly',
         module: 'readonly',
@@ -252,6 +250,12 @@ export default [
   // React Hooks and Context specific rules (Phase 3.5.1)
   {
     files: ['src/renderer/hooks/**/*.ts', 'src/renderer/contexts/**/*.tsx'],
+    plugins: {
+      '@typescript-eslint': tseslint,
+      'import': importPlugin,
+      'react': reactPlugin,
+      'react-hooks': reactHooksPlugin
+    },
     rules: {
       // Hook専用の厳格な規則
       '@typescript-eslint/explicit-function-return-type': 'error',
@@ -315,5 +319,8 @@ export default [
         process: 'readonly'
       }
     }
-  }
+  },
+  
+  // Feature-Sliced Design architectural rules
+  ...fsdRules
 ];

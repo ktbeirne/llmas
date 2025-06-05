@@ -58,10 +58,10 @@ export class MouseHandler {
     }
 
     private handleMouseMove(event: MouseEvent) {
-        // デバッグ: MouseHandlerが呼び出されているかを確認（たまに出力）
-        if (Math.random() < 0.05) {
-            console.log('[MouseHandler] handleMouseMove called');
-        }
+        // デバッグログを一時的に無効化
+        // if (Math.random() < 0.01) {
+        //     console.log('[MouseHandler] handleMouseMove called');
+        // }
         
         if (!this.loadedVRMInstance || !this.config.camera || !this.config.controls) {
             // デバッグ: 必要な要素が不足している場合
@@ -85,29 +85,29 @@ export class MouseHandler {
         this.config.raycaster.setFromCamera(this.config.mouse, this.config.camera);
         const intersects = this.config.raycaster.intersectObject(this.loadedVRMInstance.scene, true);
 
-        // デバッグ: 一度だけ詳細ログを出力（10回に1回程度）
-        if (Math.random() < 0.1) {
-            console.log('[MouseHandler] Raycast result:', {
-                mousePos: { x: this.config.mouse.x, y: this.config.mouse.y },
-                intersectsCount: intersects.length,
-                isMouseOverModel: this.isMouseOverModel,
-                controlsEnabled: this.config.controls.enabled
-            });
-        }
+        // デバッグログを一時的に無効化
+        // if (Math.random() < 0.01) {
+        //     console.log('[MouseHandler] Raycast result:', {
+        //         mousePos: { x: this.config.mouse.x, y: this.config.mouse.y },
+        //         intersectsCount: intersects.length,
+        //         isMouseOverModel: this.isMouseOverModel,
+        //         controlsEnabled: this.config.controls.enabled
+        //     });
+        // }
 
         if (intersects.length > 0) {
             // マウスがモデルの上に乗った
             if (!this.isMouseOverModel) {
                 this.isMouseOverModel = true;
                 this.config.controls.enabled = true; // OrbitControlsを有効
-                console.log('[MouseHandler] Mouse ON Model - Controls ENABLED');
+                // console.log('[MouseHandler] Mouse ON Model - Controls ENABLED');
             }
         } else {
             // マウスがモデルから外れた
             if (this.isMouseOverModel) {
                 this.isMouseOverModel = false;
                 this.config.controls.enabled = false; // OrbitControlsを無効
-                console.log('[MouseHandler] Mouse OFF Model - Controls DISABLED');
+                // console.log('[MouseHandler] Mouse OFF Model - Controls DISABLED');
             }
         }
     }

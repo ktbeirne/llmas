@@ -27,6 +27,7 @@ export interface WindowConfig {
   resizable?: boolean;
   hasShadow?: boolean;
   show?: boolean;
+  title?: string;
   webPreferences?: Electron.WebPreferences;
   position?: { x: number; y: number };
 }
@@ -57,7 +58,7 @@ export class WindowManager {
       titleBarStyle: config.titleBarStyle,
       titleBarOverlay: config.titleBarOverlay,
       thickFrame: config.thickFrame,
-      title: '', // 空のタイトルでタイトルバー表示を抑制
+      title: config.title || '', // 設定にタイトルがある場合は使用、なければ空
       fullscreen: config.fullscreen ?? false,
       alwaysOnTop: config.alwaysOnTop ?? false,
       skipTaskbar: config.skipTaskbar ?? false,
@@ -330,8 +331,8 @@ export class WindowManager {
       height: WINDOW_CONFIG.SETTINGS.HEIGHT,
       minWidth: WINDOW_CONFIG.SETTINGS.MIN_WIDTH,
       minHeight: WINDOW_CONFIG.SETTINGS.MIN_HEIGHT,
-      frame: false, // フレームを完全に削除
-      titleBarStyle: 'hidden', // タイトルバーを完全に非表示
+      frame: false, // フレームなし
+      titleBarStyle: 'hidden', // タイトルバーを非表示
       transparent: false,
       show: true,
       resizable: true,

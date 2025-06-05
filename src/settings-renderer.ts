@@ -219,14 +219,27 @@ class SettingsRenderer {
         console.log('テーマ初期化をスケジュールします');
         
         // DOM読み込み後に確実に実行
-        setTimeout(() => {
+        const initializeAfterDOM = () => {
             this.initializeThemes();
             this.setupStaticThemeCards();
             // 表情タブが選択されている場合のみ初期化
             if (this.activeTab === 'expressions') {
                 this.initializeExpressions();
             }
-        }, 100);
+        };
+        
+        // DOMContentLoadedまたは次のイベントループで実行
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeAfterDOM);
+        } else {
+            // 既にDOMが準備されている場合は、requestIdleCallbackで実行
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(initializeAfterDOM);
+            } else {
+                // requestIdleCallbackがサポートされていない場合はPromiseで
+                Promise.resolve().then(initializeAfterDOM);
+            }
+        }
     }
 
     private handlePresetChange(): void {
@@ -325,14 +338,13 @@ class SettingsRenderer {
                 // テーマ設定を最初に保存（最も重要）
                 await this.saveThemeSettings();
                 
-                // チャット設定も保存
-                await this.saveChatSettings();
+                // 画面表示設定のみを保存（チャット設定は保存しない）
                 
                 // 設定適用成功のフィードバック
-                this.showSuccessMessage('設定が保存されました');
+                this.showSuccessMessage('画面表示設定が保存されました');
             } catch (error) {
-                console.error('設定の保存に失敗しました:', error);
-                alert('設定の保存に失敗しました。');
+                console.error('画面表示設定の保存に失敗しました:', error);
+                alert('画面表示設定の保存に失敗しました。');
             }
         }
     }
@@ -1327,10 +1339,13 @@ class SettingsRenderer {
             // フォーム要素の状態をリセットして入力可能にする
             this.restoreFormInteractivity();
             
-            // 短時間後に再度復元を実行
-            setTimeout(() => {
-                this.restoreFormInteractivity();
-            }, 200);
+            // DOMの更新が完了してから再度確認
+            requestAnimationFrame(() => {
+                // フォーム要素がまだ無効な場合は再度有効化
+                if (this.userNameInput?.disabled || this.mascotNameInput?.disabled) {
+                    this.restoreFormInteractivity();
+                }
+            });
             
             this.showResetSuccessMessage('会話設定がリセットされました');
         } catch (error) {
@@ -1420,12 +1435,12 @@ class SettingsRenderer {
                 }
             });
             
-            // 短時間後にフォーカスを設定
-            setTimeout(() => {
+            // DOMの更新後にフォーカスを設定
+            requestAnimationFrame(() => {
                 if (this.userNameInput && !this.userNameInput.disabled) {
                     this.userNameInput.focus();
                 }
-            }, 100);
+            });
         } catch (error) {
             console.error('フォーム要素の復元でエラーが発生しました:', error);
         }

@@ -1,6 +1,6 @@
 /**
- * MainRenderer - メインレンダラー統合ファイル (Phase 4.11 Task 5)
- * 全ての機能をサービスに委譲し、最小限の統合レイヤーとして機能
+ * MainRenderer - メインレンダラー統合ファイル (Feature-Sliced Design)
+ * THREE.jsの基本機能と最小限のサービス統合のみに集中
  */
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as THREE from 'three';
@@ -16,11 +16,23 @@ import { ButtonHandler, createButtonHandler } from './services/buttonHandler';
 import { VRMGlobalHandler, createVRMGlobalHandler } from './services/vrmGlobalHandler';
 import { RenderManager, createRenderManager } from './services/renderManager';
 import { VRMSetupManager, createVRMSetupManager } from './services/vrmSetupManager';
+// FSD統合に移行したため削除
+// import { MouseFollowRendererIntegrationService, createMouseFollowRendererIntegrationService } from './services/MouseFollowRendererIntegrationService';
+import { DebugManagerService, createDebugManagerService } from './services/DebugManagerService';
+import { simpleLogger } from './services/logger';
 import { themeManager } from './utils/themeManager';
+// FSD統合
+import { MascotIntegration } from './widgets/mascot-view/model/mascot-integration';
 
 declare global {
   interface Window {
     electronAPI: ElectronAPI;
+    mascotIntegration?: MascotIntegration;
+    vrmExpression?: {
+      applyExpression: (name: string, intensity?: number) => boolean;
+      resetAllExpressions: () => void;
+      getAvailableExpressions: () => Array<{ name: string; displayName: string; isPreset: boolean }>;
+    };
   }
 }
 
@@ -38,7 +50,7 @@ class MainRenderer {
     private speechBubbleContainer: HTMLDivElement;
     private speechBubbleText: HTMLParagraphElement;
 
-    // Service Instances
+    // Core Service Instances
     private titleBarMonitor: TitleBarMonitor;
     private mouseHandler: MouseHandler;
     private cameraManager: CameraManager;
@@ -47,10 +59,22 @@ class MainRenderer {
     private renderManager: RenderManager;
     private vrmSetupManager: VRMSetupManager;
 
+    // Integration Services (Feature-Sliced Design)
+    private mascotIntegration: MascotIntegration;
+    private debugManager: DebugManagerService;
+
     constructor() {
         this.initializeDOMElements();
         this.initializeTHREEjs();
-        this.initializeServices();
+        // FSD統合
+        this.mascotIntegration = new MascotIntegration(this.scene);
+        window.mascotIntegration = this.mascotIntegration; // グローバルに公開
+        this.debugManager = createDebugManagerService();
+        this.initializeServicesAndStart();
+    }
+
+    private async initializeServicesAndStart() {
+        await this.initializeServices();
         this.startApplication();
     }
 
@@ -59,14 +83,14 @@ class MainRenderer {
         this.speechBubbleContainer = document.getElementById('speech-bubble-container') as HTMLDivElement;
         this.speechBubbleText = document.getElementById('speech-bubble-text') as HTMLParagraphElement;
         
-        // DOM要素の取得後、即座に透過性を確保
+        // Ensure transparency immediately
         this.forceTransparency();
     }
     
     private forceTransparency() {
-        console.log('[MainRenderer] Forcing transparency on critical elements...');
+        simpleLogger.debug('[MainRenderer] Forcing transparency on critical elements...');
         
-        // body要素
+        // body element
         const body = document.body;
         if (body) {
             body.style.backgroundColor = 'transparent';
@@ -74,20 +98,20 @@ class MainRenderer {
             body.classList.add('main-window');
         }
         
-        // canvas-area要素
+        // canvas-area element
         const canvasArea = document.getElementById('canvas-area');
         if (canvasArea) {
             canvasArea.style.backgroundColor = 'transparent';
             canvasArea.style.background = 'transparent';
         }
         
-        // vrm-canvas要素
+        // vrm-canvas element
         if (this.canvasElement) {
             this.canvasElement.style.backgroundColor = 'transparent';
             this.canvasElement.style.background = 'transparent';
         }
         
-        console.log('[MainRenderer] Transparency forced on DOM elements');
+        simpleLogger.debug('[MainRenderer] Transparency forced on DOM elements');
     }
 
     private initializeTHREEjs() {
@@ -118,11 +142,10 @@ class MainRenderer {
         }
         
         this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer.setClearColor(0x000000, 0.0); // 完全透明
+        this.renderer.setClearColor(0x000000, 0.0); // Complete transparency
         this.renderer.shadowMap.enabled = false;
         
-        // デバッグ: レンダラー設定を確認
-        console.log('[MainRenderer] WebGL Renderer settings:', {
+        simpleLogger.debug('[MainRenderer] WebGL Renderer settings:', {
             alpha: true,
             clearColor: '0x000000',
             clearAlpha: 0.0,
@@ -141,28 +164,26 @@ class MainRenderer {
 
         // Controls setup
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        this.controls.enabled = false; // VRMモデル上でのみ有効化する仕様
+        this.controls.enabled = false; // Enable only on VRM model
         this.controls.target.set(0.0, 1.0, 0.0);
         
-        // マウスボタンの割り当てを変更
-        // 右ボタンでパン（上下左右移動）、左ボタンで回転
+        // Mouse button assignments: left=rotate, middle=dolly, right=pan
         this.controls.mouseButtons = {
             LEFT: THREE.MOUSE.ROTATE,
             MIDDLE: THREE.MOUSE.DOLLY,
             RIGHT: THREE.MOUSE.PAN
         };
         
-        // パン速度の調整（必要に応じて）
         this.controls.panSpeed = 0.8;
         
-        // 右クリックのコンテキストメニューを無効化
+        // Disable right-click context menu
         this.renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
         
         this.controls.update();
     }
 
-    private initializeServices() {
-        // Initialize all service instances
+    private async initializeServices() {
+        // Initialize core service instances
         this.titleBarMonitor = createTitleBarMonitor();
         this.cameraManager = createCameraManager(this.camera, this.controls);
         
@@ -179,12 +200,16 @@ class MainRenderer {
         this.buttonHandler = createButtonHandler();
         this.vrmGlobalHandler = createVRMGlobalHandler();
         
+        // Initialize Mouse Follow Integration Service
+        // await this.mouseFollowIntegration.initialize();
+        
         this.renderManager = createRenderManager({
             scene: this.scene,
             camera: this.camera,
             renderer: this.renderer,
             controls: this.controls,
-            cameraManager: this.cameraManager
+            cameraManager: this.cameraManager,
+            mouseFollowService: null // this.mouseFollowIntegration.getMouseFollowIntegrationService()
         });
 
         this.vrmSetupManager = createVRMSetupManager(
@@ -192,46 +217,90 @@ class MainRenderer {
             this.controls, 
             this.cameraManager
         );
+        
+        // VRMSetupManagerをRenderManagerに設定（頭部・首の追従のため）
+        this.renderManager.setVRMSetupManager(this.vrmSetupManager);
     }
 
     private startApplication() {
-        // Start all services
+        // Start all core services
         this.titleBarMonitor.start();
         this.buttonHandler.initialize();
         this.vrmGlobalHandler.initialize();
         this.renderManager.startAnimationLoop();
         
         // Ensure canvas transparency
-        console.log('[MainRenderer] Ensuring canvas transparency...');
-        setTimeout(() => {
-            themeManager.ensureCanvasTransparency();
-        }, 100);
+        simpleLogger.debug('[MainRenderer] Ensuring canvas transparency...');
+        // DOMの準備が完了してから実行
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                themeManager.ensureCanvasTransparency();
+            });
+        } else {
+            // 既にDOMが準備されている場合は、requestAnimationFrameで次のフレームで実行
+            requestAnimationFrame(() => {
+                themeManager.ensureCanvasTransparency();
+            });
+        }
         
         // Initialize VRM
-        this.vrmSetupManager.initializeVRM().then(() => {
-            // Update mouse handler with loaded VRM
-            const loadedVRM = this.vrmSetupManager.getLoadedVRM();
-            console.log('[MainRenderer] VRM initialization completed. Loaded VRM:', !!loadedVRM);
-            if (loadedVRM) {
-                this.mouseHandler.setVRMInstance(loadedVRM);
-                console.log('[MainRenderer] VRM instance set to mouse handler');
-                
-                // VRM読み込み完了後に透過性を再確認
-                setTimeout(() => {
-                    themeManager.ensureCanvasTransparency();
-                }, 200);
-            } else {
-                console.error('[MainRenderer] VRM instance is null after initialization');
-            }
+        this.vrmSetupManager.initializeVRM().then(async () => {
+            await this.handleVRMInitialized();
         }).catch((error) => {
-            console.error('[MainRenderer] VRM initialization failed:', error);
+            simpleLogger.error('[MainRenderer] VRM initialization failed:', error);
         });
 
         // Setup event listeners
         this.setupEventListeners();
         
-        // デバッグ用グローバル関数を設定
-        this.setupDebugFunctions();
+        // Setup debug functions
+        this.setupDebugManager();
+    }
+
+    /**
+     * Handles VRM initialization completion
+     */
+    private async handleVRMInitialized(): Promise<void> {
+        const loadedVRM = this.vrmSetupManager.getLoadedVRM();
+        console.log('[MainRenderer] VRM initialization completed. Loaded VRM:', !!loadedVRM);
+        
+        if (loadedVRM) {
+            this.mouseHandler.setVRMInstance(loadedVRM);
+            console.log('[MainRenderer] VRM instance set to mouse handler');
+            
+            // Start mouse follow integration after VRM is loaded
+            // FSD統合でマウス追従を開始
+            if (this.mascotIntegration && loadedVRM) {
+                console.log('[MainRenderer] Starting mouse follow with FSD integration');
+                await this.mascotIntegration.initialize();
+                await this.mascotIntegration.startMouseTracking();
+                
+                // ExpressionManagerをグローバルに公開（レガシー互換性のため）
+                const expressionManager = this.mascotIntegration.getExpressionManager();
+                if (expressionManager) {
+                    window.vrmExpression = {
+                        applyExpression: (name: string, intensity?: number) => {
+                            return expressionManager.applyExpression(name, intensity);
+                        },
+                        resetAllExpressions: () => {
+                            expressionManager.resetAllExpressions();
+                        },
+                        getAvailableExpressions: () => {
+                            return expressionManager.getAvailableExpressions();
+                        }
+                    };
+                    console.log('[MainRenderer] ExpressionManager exposed as window.vrmExpression for legacy compatibility');
+                }
+            }
+            
+            // Ensure transparency after VRM loading
+            // VRMのレンダリングが完了してから透明性を確保
+            requestAnimationFrame(() => {
+                themeManager.ensureCanvasTransparency();
+            });
+        } else {
+            console.error('[MainRenderer] VRM instance is null after initialization');
+        }
     }
 
     private setupEventListeners() {
@@ -250,14 +319,34 @@ class MainRenderer {
                 console.log('[MainRenderer] Theme change received:', theme);
                 if (themeManager) {
                     themeManager.setTheme(theme);
-                    // テーマ変更後に透明性を確保
-                    setTimeout(() => {
-                        themeManager.ensureCanvasTransparency();
-                    }, 100);
+                    // themeManager内部でthemeAppliedイベントが発火される
+                    // イベントリスナーで処理するため、ここでは追加処理不要
                 }
             });
             console.log('[MainRenderer] Theme change listener registered');
         }
+
+        // カスタムイベント：テーマ適用完了リスナー
+        document.addEventListener('themeApplied', (event: CustomEvent) => {
+            console.log('[MainRenderer] Theme applied event received:', event.detail);
+            
+            // テーマ適用完了後の確実な処理
+            requestAnimationFrame(() => {
+                themeManager.ensureCanvasTransparency();
+                
+                // アイコンバーの表示を最終確認
+                const iconBar = document.getElementById('icon-bar');
+                if (iconBar) {
+                    iconBar.style.display = 'flex';
+                    iconBar.style.visibility = 'visible';
+                    iconBar.style.opacity = '1';
+                    console.log('[MainRenderer] Icon bar final visibility check completed');
+                }
+            });
+        });
+
+        // Setup mouse follow activity recording
+        // this.mouseFollowIntegration.setupActivityRecording();
 
         // Beforeunload
         window.addEventListener('beforeunload', () => {
@@ -276,179 +365,39 @@ class MainRenderer {
         }
     }
 
-    private setupDebugFunctions() {
-        // デバッグ用関数をグローバルに設定
-        (window as any).debugVRM = () => {
-            const loadedVRM = this.vrmSetupManager.getLoadedVRM();
-            console.log('=== VRM Debug Info ===');
-            console.log('VRM loaded:', !!loadedVRM);
-            console.log('Camera available:', !!this.camera);
-            console.log('Controls available:', !!this.controls);
-            console.log('Controls enabled:', this.controls?.enabled);
-            console.log('MouseHandler VRM instance:', !!this.mouseHandler);
-            console.log('Scene children count:', this.scene.children.length);
-            if (loadedVRM) {
-                console.log('VRM scene children:', loadedVRM.scene.children.length);
-                console.log('VRM humanoid:', !!loadedVRM.humanoid);
-            }
-            return {
-                vrmLoaded: !!loadedVRM,
-                cameraReady: !!this.camera,
-                controlsReady: !!this.controls,
-                controlsEnabled: this.controls?.enabled,
-                sceneChildren: this.scene.children.length,
-                vrmChildren: loadedVRM?.scene.children.length || 0
-            };
-        };
+    /**
+     * Sets up debug manager with all dependencies
+     */
+    private setupDebugManager(): void {
+        this.debugManager.setDependencies({
+            vrmSetupManager: this.vrmSetupManager,
+            mouseHandler: this.mouseHandler,
+            camera: this.camera,
+            scene: this.scene,
+            mouseFollowIntegration: null // FSD統合に移行
+        });
         
-        (window as any).debugMouseHandler = () => {
-            console.log('=== MouseHandler Debug Info ===');
-            const canvas = document.getElementById('vrm-canvas');
-            if (canvas) {
-                const rect = canvas.getBoundingClientRect();
-                console.log('Canvas bounds:', rect);
-                console.log('Canvas size:', {
-                    width: canvas.offsetWidth,
-                    height: canvas.offsetHeight
-                });
-                
-                // イベントリスナーのテスト
-                console.log('Testing canvas mouse events...');
-                const testHandler = (e: MouseEvent) => {
-                    console.log('Canvas mouse event triggered:', e.type, e.clientX, e.clientY);
-                };
-                canvas.addEventListener('mousemove', testHandler, { once: true });
-                console.log('Move mouse over canvas to test event listener');
-                
-                setTimeout(() => {
-                    canvas.removeEventListener('mousemove', testHandler);
-                }, 5000);
-            }
-            return {
-                canvasFound: !!canvas,
-                canvasBounds: canvas?.getBoundingClientRect()
-            };
-        };
-        
-        (window as any).testRaycast = (x: number = 0, y: number = 0) => {
-            console.log('=== Manual Raycast Test ===');
-            const loadedVRM = this.vrmSetupManager.getLoadedVRM();
-            if (!loadedVRM) {
-                console.log('No VRM loaded');
-                return false;
-            }
-            
-            const mouse = new THREE.Vector2(x, y);
-            const raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(mouse, this.camera);
-            const intersects = raycaster.intersectObject(loadedVRM.scene, true);
-            
-            console.log('Manual raycast result:', {
-                mousePos: { x, y },
-                intersectsCount: intersects.length,
-                intersects: intersects.map(i => ({
-                    distance: i.distance,
-                    objectName: i.object.name || 'unnamed',
-                    objectType: i.object.type
-                }))
-            });
-            
-            return intersects.length > 0;
-        };
-        
-        (window as any).debugSpeechBubble = () => {
-            console.log('=== SpeechBubble Debug Info ===');
-            
-            // Electron API確認
-            const hasElectronAPI = !!(window as any).electronAPI;
-            console.log('ElectronAPI available:', hasElectronAPI);
-            
-            if (hasElectronAPI) {
-                const api = (window as any).electronAPI;
-                console.log('SpeechBubble APIs:', {
-                    onSetSpeechBubbleText: !!api.onSetSpeechBubbleText,
-                    hideSpeechBubble: !!api.hideSpeechBubble,
-                    notifyBubbleSize: !!api.notifyBubbleSize
-                });
-            }
-            
-            // DOM要素確認
-            const speechElements = {
-                bubbleContent: document.getElementById('bubble-content'),
-                speechTail: document.querySelector('.speech-tail'),
-                speechTailBorder: document.querySelector('.speech-tail-border')
-            };
-            
-            console.log('Speech bubble DOM elements:', {
-                bubbleContent: !!speechElements.bubbleContent,
-                speechTail: !!speechElements.speechTail,
-                speechTailBorder: !!speechElements.speechTailBorder
-            });
-            
-            return {
-                electronAPI: hasElectronAPI,
-                domElements: speechElements
-            };
-        };
-        
-        (window as any).debugCanvasTransparency = () => {
-            console.log('=== Canvas Transparency Debug Info ===');
-            
-            const canvasArea = document.getElementById('canvas-area');
-            const vrmCanvas = document.getElementById('vrm-canvas');
-            const body = document.body;
-            
-            if (canvasArea) {
-                const styles = getComputedStyle(canvasArea);
-                console.log('Canvas Area styles:', {
-                    backgroundColor: styles.backgroundColor,
-                    background: styles.background,
-                    colorBackground: styles.getPropertyValue('--color-background')
-                });
-            }
-            
-            if (vrmCanvas) {
-                const styles = getComputedStyle(vrmCanvas);
-                console.log('VRM Canvas styles:', {
-                    backgroundColor: styles.backgroundColor,
-                    background: styles.background
-                });
-            }
-            
-            if (body) {
-                const styles = getComputedStyle(body);
-                console.log('Body styles:', {
-                    backgroundColor: styles.backgroundColor,
-                    background: styles.background,
-                    dataTheme: body.getAttribute('data-theme'),
-                    className: body.className
-                });
-            }
-            
-            // CSS変数の値も確認
-            const rootStyles = getComputedStyle(document.documentElement);
-            console.log('CSS Variables:', {
-                colorBackground: rootStyles.getPropertyValue('--color-background'),
-                colorSurface: rootStyles.getPropertyValue('--color-surface'),
-                themeBackground: rootStyles.getPropertyValue('--theme-background')
-            });
-            
-            return {
-                canvasArea: canvasArea ? getComputedStyle(canvasArea).backgroundColor : null,
-                vrmCanvas: vrmCanvas ? getComputedStyle(vrmCanvas).backgroundColor : null,
-                body: body ? getComputedStyle(body).backgroundColor : null
-            };
-        };
-        
-        console.log('Debug functions available: window.debugVRM(), window.debugMouseHandler(), window.testRaycast(x, y), window.debugSpeechBubble(), window.debugCanvasTransparency()');
+        this.debugManager.setupDebugFunctions();
     }
 
-    private cleanup() {
+    /**
+     * Cleanup method for all services
+     */
+    private async cleanup(): Promise<void> {
         this.cameraManager.saveCameraSettings();
         this.cameraManager.cleanup();
         this.mouseHandler.cleanup();
         this.renderManager.cleanup();
         this.titleBarMonitor.stop();
+        
+        // Clean up mouse follow integration service
+        // FSD統合に移行したため削除
+        // await this.mouseFollowIntegration.cleanup();
+        
+        // Clean up debug functions
+        this.debugManager.cleanup();
+        
+        console.log('[MainRenderer] All cleanup completed');
     }
 }
 

@@ -9,6 +9,14 @@ tests/
 ├── unit/          # 単体テスト - 個別の関数、クラス、コンポーネントのテスト
 ├── integration/   # 統合テスト - 複数のコンポーネント間の相互作用をテスト
 ├── e2e/          # エンドツーエンドテスト - アプリケーション全体の動作をテスト
+│   ├── accessibility/     # アクセシビリティテスト
+│   ├── app-lifecycle/     # アプリライフサイクルテスト
+│   ├── mouse-follow/      # マウス追従機能テスト
+│   ├── ui-interactions/   # UI操作テスト
+│   ├── user-workflows/    # ユーザーワークフローテスト
+│   ├── regression/        # 回帰テスト
+│   └── wsl/              # WSL環境対応テスト
+├── architecture/  # アーキテクチャテスト（FSD準拠確認）
 ├── helpers/      # テストヘルパー関数とユーティリティ
 └── mocks/        # モック定義とスタブ
 ```

@@ -81,6 +81,13 @@ export class WindowManagerController {
       // メインウィンドウを最初に作成
       await this.mainWindowController.createWindow();
       
+      // SpeechBubbleManagerにメインウィンドウの参照を設定
+      const mainWindow = this.windowManager.getWindow('main');
+      if (mainWindow) {
+        SpeechBubbleManager.setMainWindow(mainWindow);
+        console.log('[WindowManagerController] Main window reference set in SpeechBubbleManager');
+      }
+      
       // スピーチバブルウィンドウを作成（非表示状態）
       await this.speechBubbleWindowController.createWindow();
       
@@ -94,8 +101,8 @@ export class WindowManagerController {
   /**
    * チャットウィンドウの表示/非表示を切り替え
    */
-  public toggleChatWindow(): void {
-    this.chatWindowController.toggle();
+  public async toggleChatWindow(): Promise<void> {
+    await this.chatWindowController.toggle();
   }
 
   /**

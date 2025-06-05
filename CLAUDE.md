@@ -9,113 +9,171 @@ This is an Electron desktop application that creates an interactive AI-powered d
 ## Architecture
 
 ### High-Level Overview
-The application follows **Clean Architecture** principles with clear separation of concerns and dependency inversion. For comprehensive architectural information, please refer to:
-- [ARCHITECTURE_V2.md](./ARCHITECTURE_V2.md) - Complete architectural design (Phase 5.4)
-- [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md) - Practical development guide
+The application follows **Feature-Sliced Design (FSD)** principles with event-driven architecture for optimal maintainability and developer experience. 
+
+📋 **For complete architectural documentation, see [docs/README.md](./docs/README.md) - ドキュメントインデックス**
 
 ### Core Architectural Principles
-- **Hybrid Architecture**: React UI + Three.js VRM + Electron integration
-- **Clean Architecture**: Dependency inversion with domain-centric design
-- **Service-Oriented Design**: 7 specialized services for clear separation
-- **Test-Driven Development**: 800+ test cases ensuring quality
+- **Feature-Sliced Design**: Feature-first organization with clear public APIs
+- **Event-Driven Architecture**: Loose coupling through type-safe event bus
+- **Hybrid UI Approach**: React for settings/chat UI, Three.js for VRM rendering
+- **Test-Driven Development**: TDD mandatory for all implementations
 
 ### Layer Structure
 ```
-Presentation (React UI, Three.js) → Electron IPC → Service Layer (7 Services)
-→ Application (ApplicationService) → Domain (Entities, Services) 
-← Infrastructure (Gateways, Repositories, Adapters)
+App (Initialization) → Widgets (Feature Composition) → Features (Core Logic)
+↑                                                                        ↓
+Shared (Common Resources) ← Entities (Business Objects)
 ```
 
 ### Multi-Window Hybrid Architecture
-- **Main Window**: Three.js + vanilla TypeScript (3D VRM rendering)
-- **Settings Window**: React + TypeScript + Tailwind CSS
-- **Chat Window**: React + TypeScript (real-time updates)
+- **Main Window**: Three.js + MascotView Widget (3D VRM rendering)
+- **Settings Window**: React + SettingsPanel Widget
+- **Chat Window**: React + Chat Feature
 - **Speech Bubble Window**: Vanilla JavaScript (floating bubble)
 
-### Key Components (Phase 5.4 Completed)
-- `src/main.ts`: Electron main process (optimized to 363 lines)
-- `src/renderer.ts`: Main window entry (5 lines - delegates to mainRenderer)
-- `src/mainRenderer.ts`: Three.js integration layer (147 lines)
-- `src/services/`: 7 specialized services (Phase 4)
-  - `renderManager.ts` (85 lines): Three.js rendering control
-  - `cameraManager.ts` (75 lines): Camera and orbit controls
-  - `buttonHandler.ts` (70 lines): UI event handling
-  - `mouseHandler.ts` (90 lines): Mouse drag control
-  - `titleBarMonitor.ts` (125 lines): Title bar optimization
-  - `vrmGlobalHandler.ts` (60 lines): VRM global state
-  - `vrmSetupManager.ts` (120 lines): VRM initialization
-- `src/renderer/`: React components and apps (Phase 3)
-- `src/application/ApplicationService.ts`: Main application orchestrator
-- `src/domain/`: Pure business logic and entities
-- `src/infrastructure/`: External service integrations with adapters
+### Key Components (FSD Structure)
+- `src/app/`: Application initialization and global providers
+- `src/features/`: Core business features
+  - `mouse-follow/`: Mouse tracking and head orientation
+  - `vrm-control/`: VRM model control and animations
+  - `chat/`: Chat functionality with Gemini AI
+  - `settings/`: Configuration management
+  - `animation/`: Animation control and categorization
+  - `mcp-integration/`: MCP server integration
+- `src/widgets/`: Feature composition and coordination
+  - `mascot-view/`: Main 3D view with feature integration
+  - `settings-panel/`: Unified settings interface
+- `src/shared/`: Common utilities and UI components
+  - `ui/`: Reusable UI components
+  - `lib/`: Common utilities and event bus
+  - `types/`: Shared type definitions
+- `src/entities/`: Core business entities
 
 ## Common Commands
 
-### Development
+📋 **For complete command reference, see [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md)**
+
+### Key Development Commands
 ```bash
 npm start                 # Start the application in development mode
 npm run lint             # Run ESLint on TypeScript files
+npm run test             # Run all tests (TDD requirement)
 ```
 
-### Building and Packaging
-```bash
-npm run package          # Package the app without creating distributables
-npm run make             # Create platform-specific installers
-npm run publish          # Publish the app
-```
+## 行動ルール原則
+
+⚠️ **MANDATORY - 全ての実装において以下の原則を厳守すること**
+
+### 🔍 **実装前原則 (BEFORE Implementation)**
+1. **📋 ドキュメント確認必須**: 実装前に必ず以下を確認
+   - **[docs/README.md](./docs/README.md) ドキュメントインデックス**で関連文書を特定
+   - **FSD実装ルール**: インデックスの「アーキテクチャ」→「FSD開発ガイドライン」
+   - **アーキテクチャ設計**: インデックスの「アーキテクチャ」→「FSDアーキテクチャ設計」  
+   - **実装パターン**: インデックスの「実装時参考文書」→「実装パターン集」
+
+2. **🔧 設計チェックリスト実行**: **[docs/development/DESIGN_CHECKLIST.md](./docs/development/DESIGN_CHECKLIST.md)** のすべての項目を確認
+   - アーキテクチャ設計確認
+   - 依存関係設計検証
+   - エラーハンドリング設計
+   - テスタビリティ設計
+
+3. **🚨 TDD必須**: Write tests BEFORE writing implementation code ⚠️ **NON-NEGOTIABLE** ⚠️
+
+4. **📝 計画立案**: 実装計画を明確化（影響ファイル・課題・エッジケース）
+
+### ⌨️ **実装中原則 (DURING Implementation)**
+1. **🔧 実装チェックリスト実行**: **[docs/development/IMPLEMENTATION_CHECKLIST.md](./docs/development/IMPLEMENTATION_CHECKLIST.md)** のすべての項目を確認
+   - TDD実践確認（Red→Green→Refactor）
+   - コード品質基準遵守
+   - アーキテクチャ遵守確認
+   - エラーハンドリング実装
+   - 静的解析クリア
+
+2. **🧪 継続的テスト**: 実装中の各段階でテスト実行
+   - Red Phase: 失敗するテストを先に作成
+   - Green Phase: テストを通すための最小実装
+   - Refactor Phase: テスト保持しながらコード改善
+
+### 🔄 **実装後原則 (AFTER Implementation)**
+1. **📋 ドキュメント更新必須**: 実装後に必ず関連ドキュメントを更新
+   - **API変更** → インデックスの「新規開発者向け」→「API仕様書」を更新
+   - **新機能追加** → インデックスの「新規開発者向け」→「開発環境セットアップ」を更新
+   - **アーキテクチャ変更** → インデックスの「アーキテクチャ」→該当するFSD文書を更新
+   - **テスト戦略変更** → インデックスの「各モジュール固有ドキュメント」→「テスト関連」を更新
+
+2. **✅ 動作確認**: 全テスト実行とリンター確認
+
+3. **🔄 継続的品質**: コードレビュー基準遵守
 
 ## Development Requirements
 
-1. **Environment Variables**: The app uses Google Gemini AI. Ensure proper API keys are configured through dotenv.
+📋 **For setup and development guide, see [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md) and [docs/README.md](./docs/README.md)**
 
-2. **VRM Models**: The application expects VRM model files for the mascot. These should be placed in the appropriate directory and referenced in the code.
+**Additional Requirements**:
 
-3. **Window Configuration**: The app uses transparent, frameless windows. Be careful when modifying window settings in `forge.config.ts` and the main process.
+1. **User Interaction Language**: All interactions with the user (e.g., comments in code, pull request descriptions, chat responses if applicable) must be in Japanese.
 
-4. **User Interaction Language**: All interactions with the user (e.g., comments in code, pull request descriptions, chat responses if applicable) must be in Japanese.
+2. After receiving tool results, carefully reflect on their quality and determine optimal next steps before proceeding. Use your thinking to plan and iterate based on this new information, and then take the best next action.
 
-5. **🚨 MANDATORY: Test-Driven Development (TDD)** ⚠️ **NON-NEGOTIABLE** ⚠️: Employ TDD methodologies. Write tests BEFORE writing implementation code. Ensure tests cover new functionality and bug fixes. **ANY IMPLEMENTATION WITHOUT PRIOR TESTS WILL BE REJECTED**. (Refer to "Testing Guidelines" for detailed enforcement rules).
+3. For maximum efficiency, whenever you need to perform multiple independent operations, invoke all relevant tools simultaneously rather than sequentially.
 
-6. **Planning Before Implementation**: Always create a clear plan before starting any coding task. This plan should outline the steps to be taken, an estimate of affected files, and any potential challenges or edge cases.
-
-7. **Referring to Backlog items**: Our Kanban board is located at `/mnt/d/AI/Mascot/LLMDesktopMascot/.Obsidian/llmascot/Backlog/Kanban.md` and these backlog items are located at `/mnt/d/AI/Mascot/LLMDesktopMascot/.Obsidian/llmascot/Backlog/PBI/*.md` .Whenever a user asks you to implement a PBI, you must refer to these to understand the user story.
-
-8. After receiving tool results, carefully reflect on their quality and determine optimal next steps before proceeding. Use your thinking to plan and iterate based on this new information, and then take the best next action.
-
-9. For maximum efficiency, whenever you need to perform multiple independent operations, invoke all relevant tools simultaneously rather than sequentially.
-
-10. **Don't hold back. Give it your all.**
+4. **Don't hold back. Give it your all.**
 
 ## Architecture Guidelines
 
-**IMPORTANT**: This application follows a Hybrid Architecture combining Clean Architecture principles with Service-Oriented Design. When adding new features or modifying existing code:
+**IMPORTANT**: This application follows Feature-Sliced Design (FSD) with event-driven architecture. When adding new features or modifying existing code:
 
-1. **Respect Layer Boundaries**: Never allow inner layers (Domain) to depend on outer layers (Infrastructure)
-2. **Use Dependency Injection**: Register all dependencies through DIContainer
-3. **Service-Oriented Design**: Utilize the 7 specialized services for clear separation of concerns
+1. **Feature Isolation**: Each feature is self-contained with clear public API (`index.ts`)
+2. **Event-Driven Communication**: Use the type-safe event bus for cross-feature communication
+3. **Public API Only**: Never import internal feature files directly
 4. **Hybrid UI Approach**: React for settings/chat UI, Three.js for VRM rendering
-5. **Domain-First Design**: Business logic belongs in Domain layer (entities, services)
-6. **Interface Segregation**: Define contracts in Domain, implement in Infrastructure
-7. **Test Strategy**: Write tests FIRST (TDD), test each layer independently with proper mocking
-8. **Adapter Pattern**: Use adapters when integrating with legacy code or external systems
+5. **Shared Resources**: Use `src/shared/` for common utilities and UI components
+6. **Widget Composition**: Use widgets to compose multiple features
+7. **Test Strategy**: Write tests FIRST (TDD), test features in isolation with proper event mocking
+
+### ⚠️ CRITICAL ARCHITECTURE VIOLATIONS TO AVOID ⚠️
+
+**The following violations MUST NOT occur in Feature-Sliced Design:**
+
+1. **❌ NEVER import feature internals directly**
+   - Example of violation: `import { mouseStore } from '../mouse-follow/model/store'`
+   - ✅ Correct approach: `import { useMouseFollow } from '@features/mouse-follow'`
+
+2. **❌ NEVER skip TDD for "quick implementation"**
+   - Example of violation: Implementing features without tests first
+   - ✅ Correct approach: RED → GREEN → REFACTOR cycle, no exceptions
+
+3. **❌ NEVER put business logic in shared layer**
+   - Example of violation: Feature-specific logic in `src/shared/lib/`
+   - ✅ Correct approach: Business logic belongs in feature's `model/` or `lib/`
+
+4. **❌ NEVER create circular dependencies between features**
+   - Example of violation: Feature A imports Feature B, Feature B imports Feature A
+   - ✅ Correct approach: Use event bus or move shared logic to `entities/`
+
+5. **❌ NEVER implement features without reading FSD docs first**
+   - Example of violation: Implementing without understanding FSD structure
+   - ✅ Correct approach: Study FSD docs, plan feature structure, then code
+
+**Remember**: Feature-Sliced Design prioritizes maintainability and developer experience. Each feature should be independently developable and testable.
 
 **Key Files to Understand**:
-- **[ARCHITECTURE_V2.md](./ARCHITECTURE_V2.md)**: Complete architectural documentation (Phase 5.4)
-- **[DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md)**: Practical development guide with examples
-- `src/application/ApplicationService.ts`: Main application orchestrator
-- `src/infrastructure/DIContainer.ts`: Dependency injection configuration
-- `src/services/`: 7 specialized services (render, camera, button, mouse, titleBar, VRM handlers)
-- `src/renderer/`: React components and applications
-- `src/domain/`: Business logic and core entities
+📋 **See [docs/README.md](./docs/README.md) for complete documentation guide - especially the "⭐ 必読ドキュメント" section**
+
+- `src/app/`: Application initialization and global state
+- `src/shared/lib/event-bus.ts`: Type-safe event communication system
+- `src/features/*/index.ts`: Feature public APIs
+- `src/widgets/`: Feature composition and coordination
 
 **Before implementing new features**:
-1. Read the relevant sections in ARCHITECTURE_V2.md and DEVELOPER_GUIDE.md
-2. Understand which layer and service the changes belong to
+1. 📋 **Check [docs/README.md](./docs/README.md) for current documentation to read**
+2. Understand which layer the feature belongs to (app/features/shared/widgets/entities)
 3. Write failing tests FIRST (TDD Red phase)
-4. Design interfaces before implementations
-5. Consider the hybrid architecture (React vs Three.js)
-6. Follow the established patterns and conventions
-7. Ensure cross-window communication via Electron IPC
+4. Design the feature's public API (`index.ts`)
+5. Consider event-driven communication patterns
+6. Follow the established FSD naming conventions
+7. Ensure proper separation between UI and business logic
 
 ## UI/UX Design Guidelines
 
@@ -297,65 +355,19 @@ interface ColorSystem {
 * **Coverage**: While not strictly enforced with a percentage, aim for good test coverage of critical business logic and complex functions. Use `vitest run --coverage` to generate and review coverage reports periodically
 
 ### End-to-End UI Tests (Playwright)
-* **File Location**: Place Playwright E2E tests in `tests-e2e/` directory (e.g., `tests-e2e/chat-flow.spec.ts`, `tests-e2e/settings-window.spec.ts`)
-* **Test Structure**: Follow the existing pattern in `tests-e2e/` for consistency:
-  ```typescript
-  import { test, expect } from '@playwright/test';
-  import { ElectronApplication } from '@playwright/test';
-  
-  test.describe('Feature Name', () => {
-    let electronApp: ElectronApplication;
-    
-    test.beforeAll(async ({ playwright }) => {
-      electronApp = await playwright.electron.launch({ args: ['.'] });
-    });
-    
-    test.afterAll(async () => {
-      await electronApp.close();
-    });
-    
-    test('should perform user interaction', async () => {
-      // Test implementation
-    });
-  });
-  ```
+📋 **For detailed testing guidelines, see [tests/README.md](./tests/README.md) and [docs/README.md](./docs/README.md) testing section**
 
-* **Focus Areas**:
-  - **Window Management**: Multi-window interactions, window state persistence
-  - **Chat Flow**: Complete chat interaction cycles including AI responses
-  - **Settings UI**: Settings window functionality and persistence
-  - **VRM Integration**: 3D model loading and expression changes
-  - **IPC Communication**: Cross-window messaging and data flow
-  
-* **Test Requirements**:
-  - **Real User Scenarios**: Test actual user workflows, not just technical functions
-  - **Cross-Window Testing**: Verify interactions between main, chat, and settings windows
-  - **State Persistence**: Confirm settings and window positions are saved/restored
-  - **Error Handling**: Test error scenarios and recovery paths
-  - **Performance**: Verify app startup time and responsiveness
-
-* **Playwright Commands**:
+* **File Location**: Place Playwright E2E tests in `tests/e2e/` directory 
+* **Key Commands**:
   ```bash
   npm run test:e2e              # Run all E2E tests
-  npm run test:e2e:headed       # Run with visible browser
-  npm run test:e2e:debug        # Run in debug mode
   npm run test:e2e:headless     # Run WSL-specific headless tests
-  npm run test:e2e:xvfb         # Run with Xvfb virtual display (WSL)
   ```
 
-* **WSL Environment Considerations**:
-  - **Headless Testing Required**: WSL environments should use headless testing due to GUI limitations
-  - **Virtual Display**: Use Xvfb for WSL-compatible E2E testing when GUI rendering is needed
-  - **Recommended Approach**: Use `npm run test:e2e:headless` for WSL environments
-  - **Test Coverage**: Headless tests cover IPC communication, settings management, and core functionality without requiring GUI rendering
-  - **Performance**: Headless tests execute faster and more reliably in WSL containers
-
-* **Best Practices**:
+* **Critical Requirements**:
+  - Test actual user workflows, not just technical functions
   - Use data-testid attributes for reliable element selection
-  - Wait for specific conditions rather than arbitrary timeouts
   - Clean up test data and reset app state between tests
-  - Use Page Object Model for complex UI interactions
-  - Capture screenshots on test failures for debugging
 
 ## Key Technologies
 
@@ -365,6 +377,12 @@ interface ColorSystem {
 - **Three.js 0.176.0** with VRM support (@pixiv/three-vrm)
 - **Vite 5.4.19** for bundling
 - **Google Generative AI** for chat functionality
+
+### VRM Animation and Mouse Follow
+- **Idle Animation Handling**: The system uses hardcoded checks for "idle" animation names (e.g., `idle.vrma`) to prevent them from being treated as active animations that would block mouse follow functionality. This is implemented in `VRMController.ts` with `.toLowerCase().includes('idle')` checks.
+  - **⚠️ Warning**: This hardcoding approach should be replaced with configuration-based detection in the future
+  - Suggested improvements: Use animation metadata, tags, or settings.json configuration
+  - Current behavior: Animations containing "idle" in their name are not reported to MascotStateManager as active
 
 ### Testing Stack
 - **Vitest** for unit and integration testing

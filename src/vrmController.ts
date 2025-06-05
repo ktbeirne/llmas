@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { VRMUtils, VRMLoaderPlugin, VRM, VRMHumanBoneName } from '@pixiv/three-vrm'; 
-import { createVRMAnimationClip, VRMAnimationLoaderPlugin, VRMAnimation } from '@pixiv/three-vrm-animation';
+import { createVRMAnimationClip, VRMAnimationLoaderPlugin, VRMAnimation, VRMLookAtQuaternionProxy } from '@pixiv/three-vrm-animation';
 
 import { VRMExpressionInfo } from './types/tools';
+import { MascotStateManager } from './services/MascotStateManager';
 
 /**
  * VRMモデルとアニメーションの管理クラス
@@ -14,6 +15,8 @@ export class VRMController {
   private currentVRMAnimation: VRMAnimation | null = null;
   private animationMixer: THREE.AnimationMixer | null = null;
   private loader: GLTFLoader;
+  private activeAnimationClip: THREE.AnimationClip | null = null;
+  private activeAnimationAction: THREE.AnimationAction | null = null;
   
   // まばたきのタイミング管理
   private blinkTimer = 0;
@@ -57,11 +60,39 @@ export class VRMController {
     if (this.currentVRM && this.currentVRMAnimation && !this.animationMixer) {
       console.log('モデルとアニメーションが揃ったのでMixerを初期化して再生します');
       this.animationMixer = new THREE.AnimationMixer(this.currentVRM.scene);
+      
+      // VRMAnimationClip作成（警告は無害なので無視）
       const clip = createVRMAnimationClip(this.currentVRMAnimation, this.currentVRM);
       
       if (clip) {
-        this.animationMixer.clipAction(clip).play();
+        this.activeAnimationClip = clip;
+        this.activeAnimationAction = this.animationMixer.clipAction(clip);
+        this.activeAnimationAction.play();
         console.log(`アニメーションクリップ「${clip.name}」を再生開始`);
+        console.log(`[VRMController] クリップ名詳細: "${clip.name}"`);
+        console.log(`[VRMController] 'idle'を含むか: ${clip.name.toLowerCase().includes('idle')}`);
+        
+        // MascotStateManagerに通知（idleアニメーションは除く）
+        const stateManager = MascotStateManager.getInstance();
+        // idle.vrmaなどのアイドルアニメーションは常に再生されるため、アクティブとして扱わない
+        // WARNING: 'idle'というキーワードでハードコーディングしている点に注意。
+        // 将来的には設定ファイルやアニメーションメタデータから判定すべき。
+        // 例: アニメーションのタグやカテゴリ、settings.jsonの設定等
+        
+        // アニメーション名が空、または特定のパターンに一致する場合はアイドルとみなす
+        const isIdleAnimation = !clip.name || 
+                               clip.name === '' || 
+                               clip.name.toLowerCase().includes('idle') ||
+                               clip.name === 'Take 001' || // デフォルトのアニメーション名の場合
+                               clip.name === 'mixamo.com' || // Mixamoのデフォルト名の場合
+                               clip.name === 'Clip'; // idle.vrmaのデフォルトクリップ名
+        
+        if (!isIdleAnimation) {
+          console.log(`[VRMController] アクティブアニメーション「${clip.name}」をMascotStateManagerに通知`);
+          stateManager.setAnimation(clip.name);
+        } else {
+          console.log(`[VRMController] アイドルアニメーション「${clip.name}」はMascotStateManagerに通知しません`);
+        }
       } else {
         console.error('AnimationClipの生成に失敗');
       }
@@ -96,6 +127,9 @@ export class VRMController {
           scene.add(vrm.scene);
           VRMUtils.rotateVRM0(vrm);
           this.currentVRM = vrm;
+          
+          // VRMのlookAtはVRMSetupManagerで設定するため、ここでは初期化しない
+          
           console.log('VRMモデル召喚成功:', this.currentVRM);
           
           this.tryInitMixerAndPlay();
@@ -130,6 +164,12 @@ export class VRMController {
 
           this.currentVRMAnimation = vrmAnimations[0];
           console.log('VRMアニメーションロード成功:', this.currentVRMAnimation);
+          console.log('[VRMController] ロードしたアニメーションファイル:', animationURL);
+          console.log('[VRMController] VRMAnimation構造:', {
+            humanoidTracks: this.currentVRMAnimation.humanoidTracks ? Object.keys(this.currentVRMAnimation.humanoidTracks) : 'なし',
+            expressionTracks: this.currentVRMAnimation.expressionTracks ? Object.keys(this.currentVRMAnimation.expressionTracks) : 'なし',
+            lookAtTrack: this.currentVRMAnimation.lookAtTrack ? 'あり' : 'なし'
+          });
           this.tryInitMixerAndPlay();
           resolve();
         },
@@ -178,11 +218,36 @@ export class VRMController {
   /**
    * VRMの毎フレーム更新
    */
+  private allowLookAt = true; // lookAtを許可するかどうかのフラグ
+
   updateFeatures(delta: number): void {
     if (!this.currentVRM) return;
 
-    // VRMモデル自体の基本的な更新
-    this.currentVRM.update(delta);
+    // VRMモデル自体の基本的な更新（lookAtは既存のターゲットを保持）
+    try {
+      // lookAt.targetがnullの場合、VRMSetupManagerから再取得を試みる（デバッグログは削除）
+      if (this.currentVRM.lookAt && !this.currentVRM.lookAt.target) {
+        const vrmSetupManager = (window as any).vrmSetupManager;
+        if (vrmSetupManager?.lookAtTarget) {
+          this.currentVRM.lookAt.target = vrmSetupManager.lookAtTarget;
+        }
+      }
+      
+      this.currentVRM.update(delta);
+    } catch (error) {
+      // エラーが発生した場合のみlookAtをリセット
+      console.warn('[VRMController] VRM update error (suppressed):', error);
+      if (this.currentVRM.lookAt && this.currentVRM.lookAt.target) {
+        // 不正なターゲットを検出した場合のみリセット
+        try {
+          if (typeof this.currentVRM.lookAt.target.getWorldPosition !== 'function') {
+            this.currentVRM.lookAt.target = null;
+          }
+        } catch (targetError) {
+          this.currentVRM.lookAt.target = null;
+        }
+      }
+    }
     
     // 自動まばたき
     this.handleAutoBlink(delta);
@@ -190,11 +255,6 @@ export class VRMController {
     // アニメーション更新
     if (this.animationMixer) {
       this.animationMixer.update(delta);
-    }
-
-    // 視線制御の更新
-    if (this.currentVRM.lookAt) {
-      this.currentVRM.lookAt.update(delta);
     }
   }
 
@@ -207,7 +267,7 @@ export class VRMController {
   ): { x: number; y: number; isInFront: boolean } | null {
     if (!this.currentVRM?.humanoid) return null;
     
-    const headNode = this.currentVRM.humanoid.getBoneNode(VRMHumanBoneName.Head);
+    const headNode = this.currentVRM.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head);
     if (!headNode) return null;
 
     const worldPosition = new THREE.Vector3();
@@ -325,6 +385,18 @@ export class VRMController {
       this.currentVRM.expressionManager.setValue(expressionName, weight);
       
       console.log(`[VRMController] 表情 '${expressionName}' を強度 ${weight} で適用しました`);
+      console.trace('[VRMController] 表情適用のスタックトレース');
+      
+      // MascotStateManagerに通知（blink系、look系、neutralは除く）
+      if (!expressionName.startsWith('blink') && !expressionName.startsWith('look') && expressionName !== 'neutral') {
+        const stateManager = MascotStateManager.getInstance();
+        stateManager.setExpression(weight > 0.1 ? expressionName : null);
+      } else if (expressionName === 'neutral') {
+        // neutral表情の場合は非アクティブとして扱う
+        const stateManager = MascotStateManager.getInstance();
+        stateManager.setExpression(null);
+      }
+      
       return true;
     } catch (error) {
       console.error(`[VRMController] 表情適用エラー:`, error);
@@ -375,6 +447,95 @@ export class VRMController {
     });
     
     console.log('[VRMController] すべての表情をリセットしました（まばたきを除く）');
+    
+    // MascotStateManagerに通知
+    const stateManager = MascotStateManager.getInstance();
+    stateManager.setExpression(null);
+  }
+
+  /**
+   * VRMのlookAtターゲットをリセット
+   */
+  resetLookAtTarget(): void {
+    if (!this.currentVRM?.lookAt) return;
+
+    try {
+      // lookAtターゲットをnullに設定してリセット
+      this.currentVRM.lookAt.target = null;
+      console.log('[VRMController] LookAtターゲットをリセットしました');
+    } catch (error) {
+      console.error('[VRMController] LookAtターゲットリセットエラー:', error);
+    }
+  }
+
+  /**
+   * VRMのlookAtターゲットを安全に設定
+   */
+  setLookAtTarget(target: THREE.Object3D | null): boolean {
+    if (!this.currentVRM?.lookAt) return false;
+
+    try {
+      // ターゲットが有効かテスト
+      if (target && typeof target.getWorldPosition !== 'function') {
+        console.warn('[VRMController] Invalid lookAt target - missing getWorldPosition method');
+        return false;
+      }
+
+      // lookAtを有効化してターゲットを設定
+      this.allowLookAt = true;
+      this.currentVRM.lookAt.target = target;
+      console.log('[VRMController] LookAtターゲットを設定しました:', !!target);
+      return true;
+    } catch (error) {
+      console.error('[VRMController] LookAtターゲット設定エラー:', error);
+      return false;
+    }
+  }
+
+  /**
+   * lookAt機能を有効/無効にする
+   */
+  setLookAtEnabled(enabled: boolean): void {
+    this.allowLookAt = enabled;
+    if (!enabled && this.currentVRM?.lookAt) {
+      this.currentVRM.lookAt.target = null;
+    }
+    console.log('[VRMController] LookAt enabled:', enabled);
+  }
+
+  /**
+   * アニメーションの再生を停止
+   */
+  stopAnimation(): void {
+    if (this.activeAnimationAction) {
+      this.activeAnimationAction.stop();
+      this.activeAnimationAction = null;
+      
+      // MascotStateManagerに通知（idleアニメーションでない場合のみ）
+      const stateManager = MascotStateManager.getInstance();
+      if (this.activeAnimationClip) {
+        const isIdleAnimation = !this.activeAnimationClip.name || 
+                               this.activeAnimationClip.name === '' || 
+                               this.activeAnimationClip.name.toLowerCase().includes('idle') ||
+                               this.activeAnimationClip.name === 'Take 001' ||
+                               this.activeAnimationClip.name === 'mixamo.com' ||
+                               this.activeAnimationClip.name === 'Clip';
+        if (!isIdleAnimation) {
+          stateManager.setAnimation(null);
+        }
+      }
+      
+      this.activeAnimationClip = null;
+      
+      console.log('[VRMController] アニメーションを停止しました');
+    }
+  }
+
+  /**
+   * 現在のアニメーションが再生中かどうか
+   */
+  isAnimationPlaying(): boolean {
+    return this.activeAnimationAction !== null && this.activeAnimationAction.isRunning();
   }
 
   /**
@@ -394,7 +555,23 @@ export class VRMController {
       this.animationMixer.stopAllAction();
       this.animationMixer.uncacheRoot(this.animationMixer.getRoot());
       this.animationMixer.dispose();
+      // MascotStateManagerに通知（idleアニメーションでない場合のみ）
+      const stateManager = MascotStateManager.getInstance();
+      if (this.activeAnimationClip) {
+        const isIdleAnimation = !this.activeAnimationClip.name || 
+                               this.activeAnimationClip.name === '' || 
+                               this.activeAnimationClip.name.toLowerCase().includes('idle') ||
+                               this.activeAnimationClip.name === 'Take 001' ||
+                               this.activeAnimationClip.name === 'mixamo.com' ||
+                               this.activeAnimationClip.name === 'Clip';
+        if (!isIdleAnimation) {
+          stateManager.setAnimation(null);
+        }
+      }
+      
       this.animationMixer = null;
+      this.activeAnimationClip = null;
+      this.activeAnimationAction = null;
       console.log('[VRMController] AnimationMixer disposed');
     }
     
@@ -463,6 +640,7 @@ export class VRMController {
 // 後方互換性のための関数（既存のコードとの互換性を保つ）
 const vrmController = VRMController.getInstance();
 
+
 export function loadVRM(
   modelURL: string,
   scene: THREE.Scene,
@@ -496,6 +674,11 @@ export function loadAnimation(
 
 export function updateVRMFeatures(delta: number): void {
   vrmController.updateFeatures(delta);
+  
+  // FSD統合のupdate
+  if (window.mascotIntegration) {
+    window.mascotIntegration.update(delta);
+  }
 }
 
 export function getHeadScreenPosition(

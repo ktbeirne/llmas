@@ -4,6 +4,7 @@ import Store from 'electron-store';
 import { ExpressionSettings } from '../types/tools';
 
 import { ChatHistoryStore } from './chatHistoryStore';
+import { SystemPromptBuilder } from './SystemPromptBuilder';
 
 
 export interface WindowSizeSettings {
@@ -50,6 +51,7 @@ export const WINDOW_PRESETS = {
 export class SettingsStore {
     private store: any;
     private chatHistoryStore: ChatHistoryStore;
+    private systemPromptBuilder: SystemPromptBuilder;
 
     constructor() {
         this.store = new Store({
@@ -94,6 +96,7 @@ export class SettingsStore {
             }
         });
         this.chatHistoryStore = new ChatHistoryStore();
+        this.systemPromptBuilder = new SystemPromptBuilder();
         
         // デバッグ用：ストアの場所と現在のデータを出力
         console.log('[SettingsStore] 設定ファイル保存場所:', this.store.path);
@@ -324,11 +327,20 @@ export class SettingsStore {
     buildFinalSystemPrompt(): string {
         const userName = this.getUserName();
         const mascotName = this.getMascotName();
-        const corePrompt = this.getSystemPromptCore();
+        const userPrompt = this.getSystemPromptCore();
 
-        const prefixInstruction = `Your role is a desktop mascot named ${mascotName}. You operate on the desktop of a user whose name is ${userName}. In all following interactions, you must use the names ${mascotName} (for yourself) and ${userName} (for the user) correctly and appropriately.`;
+        // SystemPromptBuilderを使用して構築
+        return this.systemPromptBuilder.buildSystemPrompt({
+            userName,
+            mascotName,
+            userPrompt
+        });
+    }
 
-        return `${prefixInstruction} ${corePrompt}`;
+    // システムプロンプトテンプレートをリロード
+    reloadSystemPromptTemplate(): void {
+        this.systemPromptBuilder.reloadTemplate();
+        console.log('[SettingsStore] システムプロンプトテンプレートをリロードしました');
     }
 
     // テーマ関連のメソッド

@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { initializeGemini, reinitializeGemini } from './geminiService';
+import { simpleLogger } from './services/logger';
 import { WindowManager } from './utils/WindowManager';
 import { ErrorHandler } from './utils/errorHandler';
 import { IPC_CHANNELS } from './config/ipcChannels';
@@ -61,17 +62,17 @@ async function initializeAPI(): Promise<void> {
   }
   try {
     await initializeGemini(apiKey);
-    console.log('Gemini Service とFunction Calling が初期化されました');
+    simpleLogger.info('Gemini Service とFunction Calling が初期化されました');
     
     // 初期化後に動的tools.json生成を実行
     setTimeout(async () => {
       try {
-        console.log('[Main] 起動時動的tools.json生成を開始');
+        simpleLogger.info('[Main] 起動時動的tools.json生成を開始');
         await generateDynamicToolsJson(windowManagerController, settingsStore);
         await reinitializeGemini(apiKey);
-        console.log('[Main] 起動時動的tools.json生成完了');
+        simpleLogger.info('[Main] 起動時動的tools.json生成完了');
       } catch (dynamicError) {
-        console.error('[Main] 起動時動的tools.json生成エラー:', dynamicError);
+        simpleLogger.error('[Main] 起動時動的tools.json生成エラー:', dynamicError);
       }
     }, 2000); // VRMロード待ち
   } catch (error) {
@@ -87,7 +88,7 @@ async function initializeAPI(): Promise<void> {
  * IPCハンドラーの設定
  */
 function setupIPCHandlers(): void {
-  console.log('[Main] 新しいIPC構造でハンドラーを設定中...');
+  simpleLogger.info('[Main] 新しいIPC構造でハンドラーを設定中...');
   
   try {
     // 新しいIPCハンドラーシステムを登録
@@ -103,10 +104,22 @@ function setupIPCHandlers(): void {
     // 重複を避けるため、CommunicationHandlersの呼び出しをコメントアウト
     // setupCommunicationHandlers(windowManagerController, settingsStore);
     
-    console.log('[Main] 新しいIPC構造でのハンドラー設定が完了しました');
+    // Mouse tracking APIs for mouse follow feature
+    ipcMain.handle('get-cursor-screen-point', async () => {
+      const { screen } = require('electron');
+      return screen.getCursorScreenPoint();
+    });
+    
+    ipcMain.handle('get-screen-bounds', async () => {
+      const { screen } = require('electron');
+      const display = screen.getPrimaryDisplay();
+      return display.bounds;
+    });
+    
+    simpleLogger.info('[Main] 新しいIPC構造でのハンドラー設定が完了しました');
   } catch (error) {
     const errorResponse = IPCErrorHandler.handleError(error, 'Main', 'setupIPCHandlers');
-    console.error('[Main] IPCハンドラー設定中にエラーが発生:', errorResponse);
+    simpleLogger.error('[Main] IPCハンドラー設定中にエラーが発生:', errorResponse);
   }
 }
 
@@ -128,7 +141,7 @@ function setupErrorHandlers(): void {
  * 最適化された起動シーケンス設定
  */
 async function setupOptimizedStartup(): Promise<void> {
-  console.log('🚀 [Main] Starting optimized startup sequence...');
+  simpleLogger.info('🚀 [Main] Starting optimized startup sequence...');
   
   // システム情報の検出
   const systemInfo = await StartupManager.detectSystemInfo();
@@ -141,7 +154,7 @@ async function setupOptimizedStartup(): Promise<void> {
   const metrics = await startupManager.initialize();
   
   // 起動メトリクスをログ出力
-  console.log('📊 [Main] Startup metrics:', {
+  simpleLogger.info('📊 [Main] Startup metrics:', {
     totalTime: `${metrics.totalStartupTime.toFixed(2)}ms`,
     components: Object.keys(metrics.componentInitTimes).length,
     errors: metrics.errors.length
@@ -150,7 +163,7 @@ async function setupOptimizedStartup(): Promise<void> {
   // 最適化提案を生成
   const suggestions = startupManager.generateOptimizationSuggestions(metrics);
   if (suggestions.length > 0) {
-    console.log('💡 [Main] Optimization suggestions:', suggestions);
+    simpleLogger.info('💡 [Main] Optimization suggestions:', suggestions);
   }
 }
 
@@ -294,7 +307,7 @@ app.whenReady().then(async () => {
       }
     });
   } catch (error) {
-    console.error('❌ [Main] Startup failed:', error);
+    simpleLogger.error('❌ [Main] Startup failed:', error);
     ErrorHandler.handle(error as Error, true);
   }
 });
@@ -306,17 +319,17 @@ async function saveAllDisplaySettingsBeforeQuit() {
     // ウィンドウの位置・サイズを保存
     windowManagerController.saveWindowSettings();
   } catch (error) {
-    console.error('終了前の設定保存でエラー:', error);
+    simpleLogger.error('終了前の設定保存でエラー:', error);
   }
 }
 
 app.on('before-quit', async (_event) => {
-  console.log('アプリケーション終了前の処理を開始...');
+  simpleLogger.info('アプリケーション終了前の処理を開始...');
   
   // 設定保存を実行
   await saveAllDisplaySettingsBeforeQuit();
   
-  console.log('アプリケーション終了前の処理が完了しました');
+  simpleLogger.info('アプリケーション終了前の処理が完了しました');
 });
 
 app.on('window-all-closed', () => {

@@ -32,6 +32,16 @@ body.main-window > *:not(#icon-bar) {
   background-color: transparent !important;
 }
 
+/* アイコンバーの表示保証を最強化 */
+#icon-bar {
+  background-color: var(--color-surface, #FFFFFF) !important;
+  background: var(--color-surface, #FFFFFF) !important;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 10 !important;
+}
+
 :root {
   /* 🎯 Default Theme: Soft & Dreamy - アクセシビリティ重視パレット */
   --theme-primary: #5082C4;          /* プライマリ：濃い青（コントラスト比4.5:1以上） */

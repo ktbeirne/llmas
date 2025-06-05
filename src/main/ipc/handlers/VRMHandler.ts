@@ -78,11 +78,11 @@ export class VRMHandler {
   /**
    * チャットウィンドウの表示切り替え
    */
-  private handleToggleChatVisibility(): void {
+  private async handleToggleChatVisibility(): Promise<void> {
     this.log('info', 'handleToggleChatVisibility', 'チャットウィンドウ表示切り替えリクエストを受信');
     
     try {
-      this.windowManagerController.toggleChatWindow();
+      await this.windowManagerController.toggleChatWindow();
       this.log('info', 'handleToggleChatVisibility', 'チャットウィンドウの表示切り替えが完了');
     } catch (error) {
       this.log('error', 'handleToggleChatVisibility', 'チャットウィンドウ表示切り替えでエラー', error);

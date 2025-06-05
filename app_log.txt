@@ -4,12 +4,11 @@
 
 ❯ Checking your system
 ❯ Checking package manager version
-✔ Found npm@10.9.2
+✔ Found npm@11.3.0
 ✔ Checking your system
 [?25h❯ Locating application
 ✔ Locating application
 ❯ Loading configuration
-[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
 ✔ Loading configuration
 ❯ Preparing native dependencies
 ✔ Preparing native dependencies
@@ -18,18 +17,13 @@
 ❯ Running preStart hook
 ❯ [plugin-vite] Preparing vite bundles
 ❯ Launching dev servers for renderer process code
-Re-optimizing dependencies because vite config has changed
-  ➜  Local:   http://localhost:5173/
-  ➜  Network: use --host to expose
-Port 5173 is in use, trying another one...
-  ➜  Local:   http://localhost:5174/
-  ➜  Network: use --host to expose
+WebSocket server error: Port 3001 is already in use
 ✔ Launching dev servers for renderer process code
 ❯ Compiling main process code
-vite v5.4.19 building for development...
+vite v6.3.5 building for development...
 
 watching for file changes...
-vite v5.4.19 building for development...
+vite v6.3.5 building for development...
 
 watching for file changes...
 
@@ -41,15 +35,400 @@ transforming...
 ✓ 1 modules transformed.
 rendering chunks...
 computing gzip size...
-.vite/build/preload.js  6.31 kB │ gzip: 1.42 kB
-built in 798ms.
-✓ 598 modules transformed.
+.vite/build/preload.js  8.21 kB │ gzip: 1.75 kB
+built in 69ms.
+✓ 433 modules transformed.
 rendering chunks...
-tools.jsonをビルドディレクトリにコピーしました: /mnt/d/AI/Mascot/LLMDesktopMascot/.vite/build/tools.json
 computing gzip size...
-.vite/build/main.js  685.00 kB │ gzip: 149.80 kB
-built in 7168ms.
+.vite/build/main.js  854.95 kB │ gzip: 169.23 kB
+built in 611ms.
 ✔ Compiling main process code
 ✔ [plugin-vite] Preparing vite bundles
 ✔ Running preStart hook
 [?25h
+[SettingsStore] 設定ファイル保存場所: /Users/hirose/Library/Application Support/llmdesktopmascot/app-settings.json
+[SettingsStore] 現在保存されているデータ: [Object: null prototype] {
+  windowSize: { width: 300, height: 600, preset: 'small' },
+  vrmModelPath: '/avatar.vrm',
+  cameraSettings: {
+    position: {
+      x: -0.02129382440548161,
+      y: 1.5665969435615503,
+      z: 3.7631981484790034
+    },
+    target: {
+      x: 0.17315111897162785,
+      y: 1.1896708028047742,
+      z: -0.008463242204191456
+    },
+    zoom: 1
+  },
+  chatWindowVisible: false,
+  userName: 'はむたろう',
+  mascotName: 'アリス',
+  systemPromptCore: 'あなたは親しみやすいデスクトップマスコットです。ユーザーとの会話を楽しみ、役立つ情報を提供してください。',
+  theme: 'default',
+  defaultExpression: 'neutral',
+  expressionSettings: {
+    happy: { enabled: true, defaultWeight: 1 },
+    sad: { enabled: true, defaultWeight: 1 },
+    angry: { enabled: true, defaultWeight: 1 },
+    surprised: { enabled: true, defaultWeight: 1 },
+    relaxed: { enabled: true, defaultWeight: 1 },
+    neutral: { enabled: true, defaultWeight: 1 },
+    fun: { enabled: true, defaultWeight: 1 },
+    joy: { enabled: true, defaultWeight: 1 },
+    sorrow: { enabled: true, defaultWeight: 1 },
+    aa: { enabled: true, defaultWeight: 1 },
+    ih: { enabled: true, defaultWeight: 1 },
+    ou: { enabled: true, defaultWeight: 1 },
+    ee: { enabled: true, defaultWeight: 1 },
+    oh: { enabled: true, defaultWeight: 1 },
+    blink: { enabled: true, defaultWeight: 1 },
+    blinkL: { enabled: true, defaultWeight: 1 },
+    blinkR: { enabled: true, defaultWeight: 1 }
+  },
+  mainWindowBounds: { x: 937, y: 229, width: 300, height: 600 },
+  chatWindowBounds: { x: 472, y: 158, width: 526, height: 529 },
+  chatCollapseState: true
+}
+[SettingsStore] 既存の表情設定を使用します: [
+  'happy',   'sad',
+  'angry',   'surprised',
+  'relaxed', 'neutral',
+  'fun',     'joy',
+  'sorrow',  'aa',
+  'ih',      'ou',
+  'ee',      'oh',
+  'blink',   'blinkL',
+  'blinkR'
+]
+[SettingsStore] 設定ファイル保存場所: /Users/hirose/Library/Application Support/llmdesktopmascot/app-settings.json
+[SettingsStore] 現在保存されているデータ: [Object: null prototype] {
+  windowSize: { width: 300, height: 600, preset: 'small' },
+  vrmModelPath: '/avatar.vrm',
+  cameraSettings: {
+    position: {
+      x: -0.02129382440548161,
+      y: 1.5665969435615503,
+      z: 3.7631981484790034
+    },
+    target: {
+      x: 0.17315111897162785,
+      y: 1.1896708028047742,
+      z: -0.008463242204191456
+    },
+    zoom: 1
+  },
+  chatWindowVisible: false,
+  userName: 'はむたろう',
+  mascotName: 'アリス',
+  systemPromptCore: 'あなたは親しみやすいデスクトップマスコットです。ユーザーとの会話を楽しみ、役立つ情報を提供してください。',
+  theme: 'default',
+  defaultExpression: 'neutral',
+  expressionSettings: {
+    happy: { enabled: true, defaultWeight: 1 },
+    sad: { enabled: true, defaultWeight: 1 },
+    angry: { enabled: true, defaultWeight: 1 },
+    surprised: { enabled: true, defaultWeight: 1 },
+    relaxed: { enabled: true, defaultWeight: 1 },
+    neutral: { enabled: true, defaultWeight: 1 },
+    fun: { enabled: true, defaultWeight: 1 },
+    joy: { enabled: true, defaultWeight: 1 },
+    sorrow: { enabled: true, defaultWeight: 1 },
+    aa: { enabled: true, defaultWeight: 1 },
+    ih: { enabled: true, defaultWeight: 1 },
+    ou: { enabled: true, defaultWeight: 1 },
+    ee: { enabled: true, defaultWeight: 1 },
+    oh: { enabled: true, defaultWeight: 1 },
+    blink: { enabled: true, defaultWeight: 1 },
+    blinkL: { enabled: true, defaultWeight: 1 },
+    blinkR: { enabled: true, defaultWeight: 1 }
+  },
+  mainWindowBounds: { x: 937, y: 229, width: 300, height: 600 },
+  chatWindowBounds: { x: 472, y: 158, width: 526, height: 529 },
+  chatCollapseState: true
+}
+[SettingsStore] 既存の表情設定を使用します: [
+  'happy',   'sad',
+  'angry',   'surprised',
+  'relaxed', 'neutral',
+  'fun',     'joy',
+  'sorrow',  'aa',
+  'ih',      'ou',
+  'ee',      'oh',
+  'blink',   'blinkL',
+  'blinkR'
+]
+[SettingsStore] 設定ファイル保存場所: /Users/hirose/Library/Application Support/llmdesktopmascot/app-settings.json
+[SettingsStore] 現在保存されているデータ: [Object: null prototype] {
+  windowSize: { width: 300, height: 600, preset: 'small' },
+  vrmModelPath: '/avatar.vrm',
+  cameraSettings: {
+    position: {
+      x: -0.02129382440548161,
+      y: 1.5665969435615503,
+      z: 3.7631981484790034
+    },
+    target: {
+      x: 0.17315111897162785,
+      y: 1.1896708028047742,
+      z: -0.008463242204191456
+    },
+    zoom: 1
+  },
+  chatWindowVisible: false,
+  userName: 'はむたろう',
+  mascotName: 'アリス',
+  systemPromptCore: 'あなたは親しみやすいデスクトップマスコットです。ユーザーとの会話を楽しみ、役立つ情報を提供してください。',
+  theme: 'default',
+  defaultExpression: 'neutral',
+  expressionSettings: {
+    happy: { enabled: true, defaultWeight: 1 },
+    sad: { enabled: true, defaultWeight: 1 },
+    angry: { enabled: true, defaultWeight: 1 },
+    surprised: { enabled: true, defaultWeight: 1 },
+    relaxed: { enabled: true, defaultWeight: 1 },
+    neutral: { enabled: true, defaultWeight: 1 },
+    fun: { enabled: true, defaultWeight: 1 },
+    joy: { enabled: true, defaultWeight: 1 },
+    sorrow: { enabled: true, defaultWeight: 1 },
+    aa: { enabled: true, defaultWeight: 1 },
+    ih: { enabled: true, defaultWeight: 1 },
+    ou: { enabled: true, defaultWeight: 1 },
+    ee: { enabled: true, defaultWeight: 1 },
+    oh: { enabled: true, defaultWeight: 1 },
+    blink: { enabled: true, defaultWeight: 1 },
+    blinkL: { enabled: true, defaultWeight: 1 },
+    blinkR: { enabled: true, defaultWeight: 1 }
+  },
+  mainWindowBounds: { x: 937, y: 229, width: 300, height: 600 },
+  chatWindowBounds: { x: 472, y: 158, width: 526, height: 529 },
+  chatCollapseState: true
+}
+[SettingsStore] 既存の表情設定を使用します: [
+  'happy',   'sad',
+  'angry',   'surprised',
+  'relaxed', 'neutral',
+  'fun',     'joy',
+  'sorrow',  'aa',
+  'ih',      'ou',
+  'ee',      'oh',
+  'blink',   'blinkL',
+  'blinkR'
+]
+[SettingsStore] 設定ファイル保存場所: /Users/hirose/Library/Application Support/llmdesktopmascot/app-settings.json
+[SettingsStore] 現在保存されているデータ: [Object: null prototype] {
+  windowSize: { width: 300, height: 600, preset: 'small' },
+  vrmModelPath: '/avatar.vrm',
+  cameraSettings: {
+    position: {
+      x: -0.02129382440548161,
+      y: 1.5665969435615503,
+      z: 3.7631981484790034
+    },
+    target: {
+      x: 0.17315111897162785,
+      y: 1.1896708028047742,
+      z: -0.008463242204191456
+    },
+    zoom: 1
+  },
+  chatWindowVisible: false,
+  userName: 'はむたろう',
+  mascotName: 'アリス',
+  systemPromptCore: 'あなたは親しみやすいデスクトップマスコットです。ユーザーとの会話を楽しみ、役立つ情報を提供してください。',
+  theme: 'default',
+  defaultExpression: 'neutral',
+  expressionSettings: {
+    happy: { enabled: true, defaultWeight: 1 },
+    sad: { enabled: true, defaultWeight: 1 },
+    angry: { enabled: true, defaultWeight: 1 },
+    surprised: { enabled: true, defaultWeight: 1 },
+    relaxed: { enabled: true, defaultWeight: 1 },
+    neutral: { enabled: true, defaultWeight: 1 },
+    fun: { enabled: true, defaultWeight: 1 },
+    joy: { enabled: true, defaultWeight: 1 },
+    sorrow: { enabled: true, defaultWeight: 1 },
+    aa: { enabled: true, defaultWeight: 1 },
+    ih: { enabled: true, defaultWeight: 1 },
+    ou: { enabled: true, defaultWeight: 1 },
+    ee: { enabled: true, defaultWeight: 1 },
+    oh: { enabled: true, defaultWeight: 1 },
+    blink: { enabled: true, defaultWeight: 1 },
+    blinkL: { enabled: true, defaultWeight: 1 },
+    blinkR: { enabled: true, defaultWeight: 1 }
+  },
+  mainWindowBounds: { x: 937, y: 229, width: 300, height: 600 },
+  chatWindowBounds: { x: 472, y: 158, width: 526, height: 529 },
+  chatCollapseState: true
+}
+[SettingsStore] 既存の表情設定を使用します: [
+  'happy',   'sad',
+  'angry',   'surprised',
+  'relaxed', 'neutral',
+  'fun',     'joy',
+  'sorrow',  'aa',
+  'ih',      'ou',
+  'ee',      'oh',
+  'blink',   'blinkL',
+  'blinkR'
+]
+[ToolsService] アプリケーションパス: /Users/hirose/dev/mascot
+[ToolsService] 作業ディレクトリ: /Users/hirose/dev/mascot
+[ToolsService] リソースパス: /Users/hirose/dev/mascot/node_modules/electron/dist/Electron.app/Contents/Resources
+[ToolsService] tools.json候補パスをチェック: /Users/hirose/dev/mascot/src/config/tools.json
+[ToolsService] tools.jsonが見つかりました: /Users/hirose/dev/mascot/src/config/tools.json
+[ToolsService] ツールファイルを読み込み中: /Users/hirose/dev/mascot/src/config/tools.json
+[ToolsService] 3個のツールが正常に読み込まれました:
+  - set_expression: VRMマスコットの表情を設定します。表情を変えることで、マスコットの感情表現を豊かにできます。
+  - get_weather_forecast: 指定された都市の現在の天気予報と気温を取得します（デモ用関数）。
+  - set_reminder: 指定された時間にリマインダーを設定します（デモ用関数）。
+Function Calling用ツールを読み込み: 3 個
+構築されたシステムプロンプト: Your role is a desktop mascot named アリス. You operate on the desktop of a user whose name is はむたろう. In all following interactions, you must use the names アリス (for yourself) and はむたろう (for the user) correctly and appropriately. あなたは親しみやすいデスクトップマスコットです。ユーザーとの会話を楽しみ、役立つ情報を提供してください。
+Gemini Service が正常に初期化されました（Function Calling対応）
+Gemini Service とFunction Calling が初期化されました
+[Main] 新しいIPC構造でハンドラーを設定中...
+[SettingsHandler] 設定関連IPCハンドラーを登録中...
+[SettingsHandler] すべての設定関連IPCハンドラーが登録されました
+[ChatHandler] チャット関連IPCハンドラーを登録中...
+[ChatHandler] すべてのチャット関連IPCハンドラーが登録されました
+[VRMHandler] VRM/ウィンドウ制御関連IPCハンドラーを登録中...
+[VRMHandler] すべてのVRM/ウィンドウ制御関連IPCハンドラーが登録されました
+[Main] 新しいIPC構造でのハンドラー設定が完了しました
+[SettingsStore] メインウィンドウ位置を読み込み: { x: 937, y: 229, width: 300, height: 600 }
+[MainWindow] メインウィンドウ作成 - 保存された位置: { x: 937, y: 229, width: 300, height: 600 }
+[MainWindow] メインウィンドウ設定: {
+  name: 'main',
+  width: 300,
+  height: 600,
+  minWidth: 300,
+  minHeight: 400,
+  transparent: true,
+  frame: false,
+  titleBarStyle: 'hiddenInset',
+  titleBarOverlay: false,
+  thickFrame: false,
+  hasShadow: false,
+  show: false,
+  alwaysOnTop: true,
+  webPreferences: {
+    preload: '/Users/hirose/dev/mascot/.vite/build/preload.js',
+    contextIsolation: true,
+    nodeIntegration: false
+  },
+  position: { x: 937, y: 229 }
+}
+[WindowManager] Window created and stored: main
+[WindowManager] Current windows: [ 'main' ]
+[WindowManager] Loading URL for main: http://localhost:3000
+[SpeechBubbleWindow] Creating new speech bubble window...
+[SpeechBubbleWindow] Window config: { show: false, alwaysOnTop: true, skipTaskbar: true }
+[WindowManager] Window created and stored: speechBubble
+[WindowManager] Current windows: [ 'main', 'speechBubble' ]
+[WindowManager] Loading URL for speechBubble: http://localhost:3000/renderer/speech_bubble/
+[SpeechBubbleWindow] Window created successfully, visibility: false
+[WindowManagerController] All windows initialized successfully
+[MainWindow] メインウィンドウの準備が完了しました
+[SpeechBubbleWindow] HTMLのロードが完了しました
+[SpeechBubbleWindow] ウィンドウの準備が完了しました
+[MainWindow] Starting optimized titlebar monitoring for main window...
+2025-06-04T15:14:39.608Z [SettingsHandler:handleGetCameraSettings] カメラ設定取得リクエストを受信 
+2025-06-04T15:14:39.608Z [SettingsHandler:handleGetCameraSettings] カメラ設定を正常に取得 
+[37543:0605/001439.731312:ERROR:CONSOLE:1] "Uncaught (in promise) SyntaxError: Unexpected token 'H', "HTTP/1.1 4"... is not valid JSON", source: devtools://devtools/bundled/devtools_app.html?remoteBase=https://chrome-devtools-frontend.appspot.com/serve_file/@15b8b607f3c0c81a84c723d54ddb87411b28f2df/&can_dock=true&toolbarColor=rgba(223,223,223,1)&textColor=rgba(0,0,0,1)&experiments=true (1)
+2025-06-05 00:14:39.755 Electron[37543:1224477] +[IMKClient subclass]: chose IMKClient_Modern
+2025-06-05 00:14:39.755 Electron[37543:1224477] +[IMKInputSession subclass]: chose IMKInputSession_Modern
+2025-06-04T15:14:40.111Z [SettingsHandler:handleGetCameraSettings] カメラ設定取得リクエストを受信 
+2025-06-04T15:14:40.111Z [SettingsHandler:handleGetCameraSettings] カメラ設定を正常に取得 
+[37543:0605/001440.148736:ERROR:CONSOLE:1] "Request Autofill.enable failed. {"code":-32601,"message":"'Autofill.enable' wasn't found"}", source: devtools://devtools/bundled/core/protocol_client/protocol_client.js (1)
+[37543:0605/001440.150608:ERROR:CONSOLE:1] "Request Autofill.setAddresses failed. {"code":-32601,"message":"'Autofill.setAddresses' wasn't found"}", source: devtools://devtools/bundled/core/protocol_client/protocol_client.js (1)
+2025-06-04T15:14:41.112Z [SettingsHandler:handleSetCameraSettings] カメラ設定保存リクエストを受信 {
+  position: {
+    x: -0.02129382440548161,
+    y: 1.5665969435615503,
+    z: 3.7631981484790034
+  },
+  target: {
+    x: 0.17315111897162785,
+    y: 1.1896708028047742,
+    z: -0.008463242204191456
+  },
+  zoom: 1
+}
+2025-06-04T15:14:41.119Z [SettingsHandler:handleSetCameraSettings] カメラ設定を正常に保存 
+[Main] 起動時動的tools.json生成を開始
+[Main] 動的tools.json生成を開始
+[Main] 表情フィルタリング詳細:
+  - 利用可能表情（重複除去後): [
+  'neutral',    'aa',
+  'ih',         'ou',
+  'ee',         'oh',
+  'blink',      'blinkLeft',
+  'blinkRight', 'angry',
+  'relaxed',    'happy',
+  'sad',        'Surprised',
+  'Extra'
+]
+  - 表情設定: {
+  happy: { enabled: true, defaultWeight: 1 },
+  sad: { enabled: true, defaultWeight: 1 },
+  angry: { enabled: true, defaultWeight: 1 },
+  surprised: { enabled: true, defaultWeight: 1 },
+  relaxed: { enabled: true, defaultWeight: 1 },
+  neutral: { enabled: true, defaultWeight: 1 },
+  fun: { enabled: true, defaultWeight: 1 },
+  joy: { enabled: true, defaultWeight: 1 },
+  sorrow: { enabled: true, defaultWeight: 1 },
+  aa: { enabled: true, defaultWeight: 1 },
+  ih: { enabled: true, defaultWeight: 1 },
+  ou: { enabled: true, defaultWeight: 1 },
+  ee: { enabled: true, defaultWeight: 1 },
+  oh: { enabled: true, defaultWeight: 1 },
+  blink: { enabled: true, defaultWeight: 1 },
+  blinkL: { enabled: true, defaultWeight: 1 },
+  blinkR: { enabled: true, defaultWeight: 1 }
+}
+  - neutral: 設定={"enabled":true,"defaultWeight":1}, 有効=true
+  - aa: 設定={"enabled":true,"defaultWeight":1}, 有効=true
+  - ih: 設定={"enabled":true,"defaultWeight":1}, 有効=true
+  - ou: 設定={"enabled":true,"defaultWeight":1}, 有効=true
+  - ee: 設定={"enabled":true,"defaultWeight":1}, 有効=true
+  - oh: 設定={"enabled":true,"defaultWeight":1}, 有効=true
+  - blink: 設定={"enabled":true,"defaultWeight":1}, 有効=true
+  - blinkLeft: 設定=undefined, 有効=undefined
+  - blinkRight: 設定=undefined, 有効=undefined
+  - angry: 設定={"enabled":true,"defaultWeight":1}, 有効=true
+  - relaxed: 設定={"enabled":true,"defaultWeight":1}, 有効=true
+  - happy: 設定={"enabled":true,"defaultWeight":1}, 有効=true
+  - sad: 設定={"enabled":true,"defaultWeight":1}, 有効=true
+  - Surprised: 設定=undefined, 有効=undefined
+  - Extra: 設定=undefined, 有効=undefined
+[Main] 有効な表情数: 11
+[Main] 有効な表情名: [
+  'neutral', 'aa',
+  'ih',      'ou',
+  'ee',      'oh',
+  'blink',   'angry',
+  'relaxed', 'happy',
+  'sad'
+]
+[Main] 動的tools.json保存完了: /Users/hirose/dev/mascot/.vite/build/tools.json
+[Main] 動的tools.json保存完了: /Users/hirose/dev/mascot/tools.json
+[Main] 動的tools.json保存完了: /Users/hirose/dev/mascot/tools.json
+[ToolsService] アプリケーションパス: /Users/hirose/dev/mascot
+[ToolsService] 作業ディレクトリ: /Users/hirose/dev/mascot
+[ToolsService] リソースパス: /Users/hirose/dev/mascot/node_modules/electron/dist/Electron.app/Contents/Resources
+[ToolsService] tools.json候補パスをチェック: /Users/hirose/dev/mascot/src/config/tools.json
+[ToolsService] tools.jsonが見つかりました: /Users/hirose/dev/mascot/src/config/tools.json
+[ToolsService] ツールファイルを読み込み中: /Users/hirose/dev/mascot/src/config/tools.json
+[ToolsService] 3個のツールが正常に読み込まれました:
+  - set_expression: VRMマスコットの表情を設定します。表情を変えることで、マスコットの感情表現を豊かにできます。
+  - get_weather_forecast: 指定された都市の現在の天気予報と気温を取得します（デモ用関数）。
+  - set_reminder: 指定された時間にリマインダーを設定します（デモ用関数）。
+[Main] ToolsService再読み込み完了
+Gemini Service を強制再初期化中...
+[ToolsService] ツールは既に読み込み済みです
+Function Calling用ツールを読み込み: 3 個
+構築されたシステムプロンプト: Your role is a desktop mascot named アリス. You operate on the desktop of a user whose name is はむたろう. In all following interactions, you must use the names アリス (for yourself) and はむたろう (for the user) correctly and appropriately. あなたは親しみやすいデスクトップマスコットです。ユーザーとの会話を楽しみ、役立つ情報を提供してください。
+Gemini Service が正常に初期化されました（Function Calling対応）
+[Main] 起動時動的tools.json生成完了

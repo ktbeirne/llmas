@@ -184,17 +184,27 @@ export class ChatWindowController {
   /**
    * チャットウィンドウの表示/非表示を切り替え
    */
-  public toggle(): void {
+  public async toggle(): Promise<void> {
     if (!this.window) {
       // ウィンドウが存在しない場合は作成
-      this.createWindow();
+      await this.createWindow();
+      // ウィンドウが正常に作成されたら表示
+      if (this.window && !this.window.isDestroyed()) {
+        this.window.show();
+        this.window.focus();
+      }
       return;
     }
 
     if (this.window.isDestroyed()) {
       // ウィンドウが破棄されている場合は再作成
       this.window = null;
-      this.createWindow();
+      await this.createWindow();
+      // ウィンドウが正常に作成されたら表示
+      if (this.window && !this.window.isDestroyed()) {
+        this.window.show();
+        this.window.focus();
+      }
       return;
     }
 
@@ -209,15 +219,23 @@ export class ChatWindowController {
   /**
    * チャットウィンドウを表示
    */
-  public show(): void {
+  public async show(): Promise<void> {
     if (!this.window) {
-      this.createWindow();
+      await this.createWindow();
+      if (this.window && !this.window.isDestroyed()) {
+        this.window.show();
+        this.window.focus();
+      }
       return;
     }
 
     if (this.window.isDestroyed()) {
       this.window = null;
-      this.createWindow();
+      await this.createWindow();
+      if (this.window && !this.window.isDestroyed()) {
+        this.window.show();
+        this.window.focus();
+      }
       return;
     }
 

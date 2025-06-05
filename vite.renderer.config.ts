@@ -40,10 +40,15 @@ export default defineConfig({
   root: '.',
   publicDir: 'public',
   
-  // TypeScript設定と開発支援
+  // TypeScript設定と開発支援 (FSD-ready)
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
+      '@app': resolve(__dirname, 'src/app'),
+      '@features': resolve(__dirname, 'src/features'),
+      '@shared': resolve(__dirname, 'src/shared'),
+      '@widgets': resolve(__dirname, 'src/widgets'),
+      '@entities': resolve(__dirname, 'src/entities'),
       '@components': resolve(__dirname, 'src/components'),
       '@hooks': resolve(__dirname, 'src/hooks'),
       '@stores': resolve(__dirname, 'src/stores'),
@@ -123,7 +128,7 @@ export default defineConfig({
         settings: resolve(__dirname, 'settings.html'),
       },
       output: {
-        // コード分割によるパフォーマンス最適化
+        // FSD対応 - Feature-based コード分割によるパフォーマンス最適化
         manualChunks: (id) => {
           // React関連の依存関係
           if (id.includes('react') || id.includes('react-dom')) {
@@ -148,6 +153,47 @@ export default defineConfig({
           // Google AI関連
           if (id.includes('@google/generative-ai')) {
             return 'ai';
+          }
+          
+          // FSD Features - 各featureを独立したチャンクに分割
+          if (id.includes('src/features/chat')) {
+            return 'feature-chat';
+          }
+          if (id.includes('src/features/vrm-control')) {
+            return 'feature-vrm';
+          }
+          if (id.includes('src/features/mouse-follow')) {
+            return 'feature-mouse';
+          }
+          if (id.includes('src/features/settings')) {
+            return 'feature-settings';
+          }
+          if (id.includes('src/features/animation')) {
+            return 'feature-animation';
+          }
+          if (id.includes('src/features/mcp-integration')) {
+            return 'feature-mcp';
+          }
+          
+          // FSD Widgets - ウィジェットの遅延ロード対応
+          if (id.includes('src/widgets/mascot-view')) {
+            return 'widget-mascot';
+          }
+          if (id.includes('src/widgets/settings-panel')) {
+            return 'widget-settings';
+          }
+          
+          // FSD Shared - 共通ライブラリ
+          if (id.includes('src/shared/ui')) {
+            return 'shared-ui';
+          }
+          if (id.includes('src/shared/lib')) {
+            return 'shared-lib';
+          }
+          
+          // Legacy services（段階的削除対象）
+          if (id.includes('src/services')) {
+            return 'legacy-services';
           }
           
           // その他のnode_modules依存関係

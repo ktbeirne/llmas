@@ -189,12 +189,61 @@ export class ThemeManager {
     // テーマの切り替えアニメーション
     this.animateThemeTransition();
 
-    // DOM更新完了後に透明性を確保
-    setTimeout(() => {
+    // DOM更新とCSS再計算を確実に実行
+    // まず強制的にリフローを発生させる
+    root.offsetHeight;
+    
+    // CSS変数の再計算を促進
+    const computedStyle = getComputedStyle(root);
+    computedStyle.getPropertyValue('--color-surface');
+    
+    // CSS変数の変更を監視して確実にUIを更新
+    this.waitForCSSVariableChange('--color-surface', () => {
       this.ensureCanvasTransparency();
-    }, 100);
+    });
+    
+    // 追加の安全網として従来の方法も併用
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        this.ensureCanvasTransparency();
+      }, { once: true });
+    } else {
+      requestAnimationFrame(() => {
+        this.ensureCanvasTransparency();
+      });
+    }
 
+    // カスタムイベントでテーマ適用完了を通知
+    const themeAppliedEvent = new CustomEvent('themeApplied', {
+      detail: { themeId, timestamp: Date.now() }
+    });
+    document.dispatchEvent(themeAppliedEvent);
+    
     console.log(`テーマが適用されました: ${themeId}`);
+  }
+
+  /**
+   * CSS変数値の変更を監視してコールバックを実行
+   */
+  private waitForCSSVariableChange(variableName: string, callback: () => void, timeout = 500): void {
+    const startTime = Date.now();
+    let lastValue = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+    
+    const checkChange = () => {
+      const currentValue = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+      
+      if (currentValue !== lastValue && currentValue && !currentValue.includes('var(')) {
+        console.log(`[ThemeManager] CSS variable ${variableName} changed: ${lastValue} -> ${currentValue}`);
+        callback();
+      } else if (Date.now() - startTime < timeout) {
+        requestAnimationFrame(checkChange);
+      } else {
+        console.log(`[ThemeManager] CSS variable ${variableName} change timeout, executing callback anyway`);
+        callback();
+      }
+    };
+    
+    requestAnimationFrame(checkChange);
   }
 
   /**
@@ -241,28 +290,45 @@ export class ThemeManager {
       iconBar.style.opacity = '1';
       iconBar.style.zIndex = '10';
       
-      // 背景色をCSS変数から動的に取得して適用
-      // 複数回試行してCSS変数の読み込みを確実にする
+      // 改善された背景色設定
       let attempts = 0;
-      const maxAttempts = 10;
+      const maxAttempts = 20; // 試行回数を増加
+      const retryInterval = 25; // 間隔を短縮
+      
       const trySetBackground = () => {
         attempts++;
-        const surfaceColor = getComputedStyle(document.documentElement)
-          .getPropertyValue('--color-surface').trim();
         
-        if (surfaceColor && surfaceColor !== '' && !surfaceColor.includes('var(')) {
-          iconBar.style.backgroundColor = surfaceColor;
-          iconBar.style.background = surfaceColor;
-          console.log('[ThemeManager] Icon bar background set to:', surfaceColor, `(attempt ${attempts})`);
-        } else if (attempts < maxAttempts) {
-          // CSS変数がまだ読み込まれていない場合、少し待って再試行
-          setTimeout(trySetBackground, 50);
-        } else {
-          // 最大試行回数に達した場合、フォールバック
-          iconBar.style.backgroundColor = '#FFFFFF';
-          iconBar.style.background = '#FFFFFF';
-          console.warn('[ThemeManager] CSS variable --color-surface not loaded after max attempts, using fallback white');
-        }
+        // CSS変数の計算を強制
+        getComputedStyle(document.documentElement).getPropertyValue('--color-surface');
+        
+        // 少し待ってから再度取得
+        setTimeout(() => {
+          const surfaceColor = getComputedStyle(document.documentElement)
+            .getPropertyValue('--color-surface').trim();
+          
+          if (surfaceColor && surfaceColor !== '' && !surfaceColor.includes('var(')) {
+            iconBar.style.backgroundColor = surfaceColor;
+            iconBar.style.background = surfaceColor;
+            console.log('[ThemeManager] Icon bar background set to:', surfaceColor, `(attempt ${attempts})`);
+          } else if (attempts < maxAttempts) {
+            setTimeout(trySetBackground, retryInterval);
+          } else {
+            // フォールバック：テーマごとの適切な色を使用
+            const currentTheme = this.getCurrentTheme();
+            const fallbackColors = {
+              'default': '#FFFFFF',
+              'dark': '#1E293B',
+              'sakura': '#FEFCFD',
+              'ocean': '#FFFFFF',
+              'forest': '#FFFFFF',
+              'wonderland': '#FFFFFF'
+            };
+            const fallbackColor = fallbackColors[currentTheme] || '#FFFFFF';
+            iconBar.style.backgroundColor = fallbackColor;
+            iconBar.style.background = fallbackColor;
+            console.warn('[ThemeManager] CSS variable --color-surface not loaded, using theme-specific fallback:', fallbackColor);
+          }
+        }, 10);
       };
       trySetBackground();
       

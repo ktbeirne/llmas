@@ -318,12 +318,30 @@
 
         // イベントリスナーの設定
         function setupEventListeners(chatManager) {
+            // IME変換状態を追跡
+            let isComposing = false;
+
             // 送信ボタンのクリック処理
             sendButton.addEventListener('click', () => chatManager.sendMessage());
+
+            // IME変換開始時
+            promptInput.addEventListener('compositionstart', function() {
+                isComposing = true;
+            });
+
+            // IME変換終了時
+            promptInput.addEventListener('compositionend', function() {
+                isComposing = false;
+            });
 
             // Enterキーでの送信処理
             promptInput.addEventListener('keydown', function(event) {
                 if (event.key === 'Enter') {
+                    // IME変換中の場合は送信しない
+                    if (isComposing || event.isComposing) {
+                        return; // IME変換を優先
+                    }
+                    
                     if (!event.shiftKey && !sendButton.disabled) {
                         event.preventDefault();
                         chatManager.sendMessage();

@@ -263,5 +263,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     resetToDefaultExpression: async (): Promise<{ success: boolean }> => {
         return await ipcRenderer.invoke('reset-expression-to-default');
+    },
+
+    // Mouse tracking APIs for mouse follow feature
+    getCursorScreenPoint: async (): Promise<{ x: number; y: number }> => {
+        return await ipcRenderer.invoke('get-cursor-screen-point');
+    },
+
+    getScreenBounds: async (): Promise<{ x: number; y: number; width: number; height: number }> => {
+        return await ipcRenderer.invoke('get-screen-bounds');
     }
 });

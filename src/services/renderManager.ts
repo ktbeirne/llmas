@@ -6,6 +6,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { updateVRMFeatures } from '../vrmController';
 import { CameraManager } from './cameraManager';
+import { MouseFollowIntegrationService } from './mouseFollowIntegrationService';
+import { VRMSetupManager } from './vrmSetupManager';
 
 export interface RenderManagerConfig {
     scene: THREE.Scene;
@@ -13,6 +15,8 @@ export interface RenderManagerConfig {
     renderer: THREE.WebGLRenderer;
     controls: OrbitControls;
     cameraManager: CameraManager;
+    mouseFollowService?: MouseFollowIntegrationService; // Optional mouse follow integration
+    vrmSetupManager?: VRMSetupManager; // Optional VRM setup manager
 }
 
 export class RenderManager {
@@ -43,6 +47,25 @@ export class RenderManager {
 
         this.config.controls.update();
         updateVRMFeatures(delta); // vrmControllerの更新処理を呼び出す
+        
+        // VRM setup manager update (頭部・首の追従)
+        if (this.config.vrmSetupManager) {
+            this.config.vrmSetupManager.update(delta);
+        }
+        
+        // Mouse follow integration (if enabled)
+        if (this.config.mouseFollowService) {
+            this.config.mouseFollowService.integrateWithVRMUpdate(delta);
+        }
+        
+        // Update FSD mascot integration (expression updates, etc.)
+        if (window.mascotIntegration) {
+            try {
+                window.mascotIntegration.update(delta);
+            } catch (error) {
+                console.error('[RenderManager] Error updating mascot integration:', error);
+            }
+        }
 
         if (!this.initialSizeHasBeenSet) {
             const canvasArea = document.getElementById('canvas-area');
@@ -97,8 +120,32 @@ export class RenderManager {
         }, false);
     }
 
+    /**
+     * Gets the mouse follow service if available
+     */
+    getMouseFollowService(): MouseFollowIntegrationService | undefined {
+        return this.config.mouseFollowService;
+    }
+    
+    /**
+     * Sets the VRM setup manager
+     */
+    setVRMSetupManager(vrmSetupManager: VRMSetupManager): void {
+        this.config.vrmSetupManager = vrmSetupManager;
+    }
+
     cleanup() {
         this.stopAnimationLoop();
+        
+        // Clean up mouse follow service if present
+        if (this.config.mouseFollowService) {
+            try {
+                // Disable mouse follow to clean up resources
+                this.config.mouseFollowService.disableMouseFollow();
+            } catch (error) {
+                console.error('Error cleaning up mouse follow service:', error);
+            }
+        }
     }
 }
 

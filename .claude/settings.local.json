@@ -52,7 +52,18 @@
       "mcp__server-sequential-thinking__sequentialthinking",
       "mcp__playwright-mcp__browser_navigate",
       "Bash(/usr/bin/afplay:*)",
-      "Bash(open:*)"
+      "Bash(open:*)",
+      "WebFetch(domain:www.electronjs.org)",
+      "WebFetch(domain:github.com)",
+      "Bash(touch:*)",
+      "Bash(git mv:*)",
+      "Bash(# アーキテクチャ関連ドキュメントの移動\nmv docs/fsd-migration/FSD_ARCHITECTURE_DESIGN.md docs/architecture/FSD_ARCHITECTURE.md\nmv docs/fsd-migration/FSD_DEVELOPMENT_GUIDE.md docs/architecture/\nmv docs/fsd-migration/BEST_PRACTICES.md docs/architecture/\nmv docs/fsd-migration/PATTERNS.md docs/architecture/)",
+      "Bash(# 開発関連ドキュメントの移動\nmv DEVELOPER_GUIDE.md docs/development/\nmv API_SPECIFICATION.md docs/development/)",
+      "Bash(# テスト関連ドキュメントの移動\nmv docs/CROSS_PLATFORM_TESTING.md docs/testing/\nmv docs/PERFORMANCE_TESTING.md docs/testing/)",
+      "Bash(# 機能設計書の移動\nmv docs/MOUSE_FOLLOW_DESIGN.md docs/features/designs/\n\n# 設定関連ドキュメントの移動\nmv docs/SYSTEM_PROMPT_TEMPLATE.md docs/configuration/)",
+      "Bash(# 保守・技術的負債関連ドキュメントの移動\nmv docs/TECHNICAL_DEBT.md docs/maintenance/\nmv docs/TECHNICAL_DEBT_RESOLUTION_PLAN.md docs/maintenance/\nmv docs/TECHNICAL_DEBT_TASKS.md docs/maintenance/)",
+      "Bash(# アーカイブへの移動\nmv ARCHITECTURE_V2.md docs/archive/\nmv docs/fsd-migration/MIGRATION_PLAN_V2.md docs/archive/fsd-migration/\nmv docs/fsd-migration/MIGRATION_CHECKLIST.md docs/archive/fsd-migration/\nmv docs/fsd-migration/MIGRATION_TICKETS.md docs/archive/fsd-migration/\nmv docs/fsd-migration/COMPARISON_TABLE.md docs/archive/fsd-migration/\nmv docs/fsd-migration/EXAMPLES.md docs/archive/fsd-migration/\n\n# 空のディレクトリを削除\nrmdir docs/fsd-migration)",
+      "Bash(tree:*)"
     ],
     "deny": []
   }

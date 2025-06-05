@@ -404,6 +404,24 @@ export class UnifiedLogger {
 // Export singleton instance
 export const logger = UnifiedLogger.getInstance();
 
+// Simple logger for FSD migration (P0-02 requirement)
+export const simpleLogger = {
+  debug: (msg: string, data?: any) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[DEBUG] ${msg}`, data);
+    }
+  },
+  info: (msg: string, data?: any) => {
+    console.info(`[INFO] ${msg}`, data);
+  },
+  warn: (msg: string, data?: any) => {
+    console.warn(`[WARN] ${msg}`, data);
+  },
+  error: (msg: string, error?: Error | any) => {
+    console.error(`[ERROR] ${msg}`, error);
+  }
+};
+
 // Helper decorators for automatic logging
 export function LogMethod(service: string) {
   return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {

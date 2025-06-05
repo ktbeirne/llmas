@@ -227,8 +227,8 @@ export class SpeechBubbleWindowController {
     
     this.window.setBounds(newBounds);
     
-    // 設定後の実際のBoundsを確認
-    setTimeout(() => {
+    // Electronのmove/resizeイベントを使用して、実際のBoundsを確認
+    const verifyBounds = () => {
       if (!this.window || this.window.isDestroyed()) return;
       
       const actualBounds = this.window.getBounds();
@@ -263,7 +263,11 @@ export class SpeechBubbleWindowController {
       `).catch((error: Error) => {
         console.error('[SpeechBubbleWindow] ウィンドウサイズ計算エラー:', error);
       });
-    }, 100);
+    };
+    
+    // 一度だけ実行されるリスナーを設定
+    this.window.once('resize', verifyBounds);
+    this.window.once('move', verifyBounds);
     
     // 位置更新では表示状態を変更しない
     // show() は明示的なテキスト表示時のみ実行
