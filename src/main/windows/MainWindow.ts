@@ -83,10 +83,10 @@ export class MainWindowController {
       console.log('[MainWindow] メインウィンドウの準備が完了しました');
       this.window.show();
       
-      // デバッグ用：開発者ツールを開く（無効化）
-      // if (process.env.NODE_ENV === 'development') {
-      //   this.window.webContents.openDevTools();
-      // }
+      // デバッグ用：開発者ツールを開く
+      if (process.env.NODE_ENV === 'development') {
+        this.window.webContents.openDevTools();
+      }
       
       // Windows環境での追加処理 + 継続的タイトルバー監視
       if (process.platform === 'win32') {

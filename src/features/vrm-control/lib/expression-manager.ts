@@ -14,10 +14,20 @@ export class ExpressionManager {
   private isAutoBlinking = false;
   private blinkIntervalMin = 2; // 秒
   private blinkIntervalMax = 7; // 秒
+  
+  // LipSyncManagerとの連携用
+  private lipSyncManager: any = null; // 循環参照を避けるためanyを使用
 
   constructor(vrm: VRM) {
     this.vrm = vrm;
     this.resetBlinkTimer();
+  }
+  
+  /**
+   * LipSyncManagerの参照を設定
+   */
+  setLipSyncManager(lipSyncManager: any): void {
+    this.lipSyncManager = lipSyncManager;
   }
 
   /**
@@ -37,10 +47,14 @@ export class ExpressionManager {
 
     // デフォルト強度は1.0
     const weight = intensity !== undefined ? Math.max(0, Math.min(1, intensity)) : 1.0;
+    
+    // 口の形の判定
+    const mouthShapes = ['aa', 'ih', 'ou', 'ee', 'oh', 'neutral'];
+    const isMouthShape = mouthShapes.includes(expressionName);
 
     try {
-      // 他の表情をリセット（blinkとlook系以外）
-      if (!expressionName.startsWith('blink') && !expressionName.startsWith('look')) {
+      // 他の表情をリセット（blinkとlook系、および口の形以外）
+      if (!expressionName.startsWith('blink') && !expressionName.startsWith('look') && !isMouthShape) {
         this.resetNonBasicExpressions();
       }
 

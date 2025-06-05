@@ -107,6 +107,8 @@ function cancelTypewriter() {
         clearInterval(typewriterInterval);
         typewriterInterval = null;
     }
+    // タイプライターキャンセル時にリップシンクも停止
+    window.electronAPI?.sendLipSyncEvent?.('stop');
 }
 
 // ✨ タイプライターエフェクトでテキストを表示（スクロール追従付き）
@@ -129,10 +131,15 @@ function displayTextWithTypewriter(text: string, enableMarkdown = true, onComple
     let currentIndex = 0;
     bubbleContent.innerHTML = '';
     
+    // リップシンク開始をメインプロセスに通知
+    window.electronAPI?.sendLipSyncEvent?.('start');
+    
     const typeNextCharacter = () => {
         if (currentIndex < finalText.length) {
+            const currentChar = finalText[currentIndex];
+            
             // HTMLタグを考慮した文字追加
-            if (enableMarkdown && finalText[currentIndex] === '<') {
+            if (enableMarkdown && currentChar === '<') {
                 // HTMLタグの場合は丸ごと追加
                 const tagEnd = finalText.indexOf('>', currentIndex);
                 if (tagEnd !== -1) {
@@ -154,6 +161,8 @@ function displayTextWithTypewriter(text: string, enableMarkdown = true, onComple
             typewriterTimeout = window.setTimeout(typeNextCharacter, TYPEWRITER_SPEED_MS);
         } else {
             // タイプライター完了
+            // リップシンク停止をメインプロセスに通知
+            window.electronAPI?.sendLipSyncEvent?.('stop');
             if (onComplete) onComplete();
         }
     };
@@ -498,6 +507,8 @@ function scheduleHideTimeout(text: string) {
         }
         if (bubbleContent) setSpeechBubbleContent('', false);
         if (window.electronAPI && window.electronAPI.hideSpeechBubble) {
+            // リップシンクを停止してからバブルを非表示
+            window.electronAPI.sendLipSyncEvent?.('stop');
             window.electronAPI.hideSpeechBubble();
         }
         hideTimeout = null;
@@ -560,6 +571,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     if (bubbleContent) setSpeechBubbleContent('', false);
                     if (window.electronAPI && window.electronAPI.hideSpeechBubble) {
+                        // リップシンクを停止してからバブルを非表示
+                        window.electronAPI.sendLipSyncEvent?.('stop');
                         window.electronAPI.hideSpeechBubble();
                     }
                 }
@@ -579,4 +592,18 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // テーマシステムの初期化
     initializeTheme();
+    
+    // ページがアンロードされる時にリップシンクを停止
+    window.addEventListener('beforeunload', () => {
+        console.log('[SpeechBubbleRenderer] Page unloading, stopping lip sync');
+        window.electronAPI?.sendLipSyncEvent?.('stop');
+    });
+    
+    // visibilitychangeイベントでページが非表示になった時もリップシンクを停止
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            console.log('[SpeechBubbleRenderer] Page hidden, stopping lip sync');
+            window.electronAPI?.sendLipSyncEvent?.('stop');
+        }
+    });
 });

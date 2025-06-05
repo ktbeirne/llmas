@@ -93,13 +93,13 @@ export class MascotStateManager {
                !this.state.isAnimationActive && 
                !this.state.isSpeechBubbleActive;
         
-        console.log('[MascotStateManager] isIdleForMouseFollow:', {
-            isIdle,
-            isExpressionActive: this.state.isExpressionActive,
-            activeExpression: this.state.activeExpression,
-            isAnimationActive: this.state.isAnimationActive,
-            isSpeechBubbleActive: this.state.isSpeechBubbleActive
-        });
+        // console.log('[MascotStateManager] isIdleForMouseFollow:', {
+        //     isIdle,
+        //     isExpressionActive: this.state.isExpressionActive,
+        //     activeExpression: this.state.activeExpression,
+        //     isAnimationActive: this.state.isAnimationActive,
+        //     isSpeechBubbleActive: this.state.isSpeechBubbleActive
+        // });
         
         return isIdle;
     }

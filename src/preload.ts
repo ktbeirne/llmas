@@ -7,6 +7,9 @@ import { VRMExpressionInfo, ExpressionSettings } from './types/tools';
 import { ThemeInfo } from './types/ipc';
 
 contextBridge.exposeInMainWorld('electronAPI', {
+    // Platform information
+    platform: process.platform,
+    
     sendPromptToGemini: async (prompt: string): Promise<string> => {
         const response = await ipcRenderer.invoke('send-prompt-to-gemini', prompt);
         return response;
@@ -20,6 +23,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     hideSpeechBubble: () => {
         ipcRenderer.send('hide-speech-bubble-window');
+    },
+    
+    sendLipSyncEvent: (event: 'start' | 'pause' | 'stop') => {
+        ipcRenderer.send('lip-sync-event', event);
+    },
+    
+    onLipSyncEvent: (callback: (event: 'start' | 'pause' | 'stop') => void) => {
+        ipcRenderer.on('lip-sync-event', (_event, eventType) => callback(eventType));
+    },
+    
+    getLipSyncEnabled: async (): Promise<boolean> => {
+        return await ipcRenderer.invoke('get-lip-sync-enabled');
     },
 
     notifyBubbleSize: (size: { width: number; height: number }) => {

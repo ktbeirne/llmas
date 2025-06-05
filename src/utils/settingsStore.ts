@@ -40,6 +40,7 @@ export interface SettingsData {
     theme?: string;
     expressionSettings?: ExpressionSettings;
     defaultExpression?: string;
+    lipSyncEnabled?: boolean;
 }
 
 export const WINDOW_PRESETS = {
@@ -74,6 +75,7 @@ export class SettingsStore {
                 systemPromptCore: 'あなたは親しみやすいデスクトップマスコットです。ユーザーとの会話を楽しみ、役立つ情報を提供してください。',
                 theme: 'default',
                 defaultExpression: 'neutral',
+                lipSyncEnabled: true,
                 expressionSettings: {
                     'happy': { enabled: true, defaultWeight: 1.0 },
                     'sad': { enabled: true, defaultWeight: 1.0 },
@@ -451,5 +453,15 @@ export class SettingsStore {
         }
         this.store.set('defaultExpression', expressionName);
         console.log(`[SettingsStore] デフォルト表情を '${expressionName}' に設定しました`);
+    }
+    
+    // リップシンク関連のメソッド
+    getLipSyncEnabled(): boolean {
+        return this.store.get('lipSyncEnabled', true) as boolean;
+    }
+    
+    setLipSyncEnabled(enabled: boolean): void {
+        this.store.set('lipSyncEnabled', enabled);
+        console.log(`[SettingsStore] リップシンクを ${enabled ? '有効' : '無効'} に設定しました`);
     }
 }

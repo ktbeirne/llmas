@@ -449,4 +449,118 @@ export const useAsyncFeatureStore = create<AsyncState>((set, get) => ({
 
 ---
 
+## 8. リップシンク統合パターン
+
+### IPCイベントフローによる非同期表情制御
+
+```typescript
+// Speech Bubble Window → Main Process → Main Window のイベントフロー
+
+// 1. Speech Bubble Windowからの発信
+// renderer/speech_bubble/renderer.ts
+window.electronAPI.sendLipSyncData({
+  phoneme: currentPhoneme,
+  duration: phonemeDuration
+});
+
+// 2. Main ProcessでのIPC処理
+// src/main/ipc/handlers/VRMHandler.ts
+ipcMain.handle('vrm:lip-sync', async (event, data) => {
+  // Main Windowに転送
+  const mainWindow = getMainWindow();
+  if (mainWindow) {
+    mainWindow.webContents.send('vrm:lip-sync-update', data);
+  }
+});
+
+// 3. Main WindowのMascotIntegrationでの受信
+// src/widgets/mascot-view/model/mascot-integration.ts
+export class MascotIntegration {
+  private setupLipSyncListener(): void {
+    if (!window.electronAPI?.onLipSyncUpdate) {
+      logger.warn('Lip sync API not available');
+      return;
+    }
+
+    this.lipSyncUnsubscribe = window.electronAPI.onLipSyncUpdate(
+      async (data) => {
+        try {
+          await this.lipSyncManager?.processLipSyncData(data);
+        } catch (error) {
+          logger.error('Failed to process lip sync data', error);
+        }
+      }
+    );
+  }
+}
+```
+
+### ExpressionComposerパターン
+
+```typescript
+// 複数の表情を同時に管理する合成システム
+// src/features/vrm-control/lib/lip-sync-manager.ts
+
+export class LipSyncManagerV2 {
+  private expressionComposer?: ExpressionComposer;
+
+  async processLipSyncData(data: LipSyncData): Promise<void> {
+    if (!this.expressionComposer) return;
+
+    // ExpressionComposerで口の形状のみを更新
+    // 他の表情（感情表現など）は維持される
+    this.expressionComposer.setMouth(data.phoneme, data.weight);
+    
+    // 合成された表情をVRMに適用
+    const composed = this.expressionComposer.compose();
+    this.expressionComposer.applyToVRM(this.vrm);
+  }
+}
+```
+
+### 重要な実装ポイント
+
+1. **イベントリスナーの設定タイミング**
+   - MascotIntegrationの初期化時に必ず設定
+   - VRMロード完了前でも設定しておく
+   - dispose時に必ずクリーンアップ
+
+2. **非同期処理の考慮**
+   - Speech BubbleとMain Windowは別プロセス
+   - IPCによる遅延を考慮した設計
+   - エラー時のフォールバック処理
+
+3. **表情の合成**
+   - ExpressionComposerで複数表情を管理
+   - リップシンクは口の形状のみを制御
+   - 感情表現との独立性を保つ
+
+4. **パフォーマンス最適化**
+   - 不要な更新をスキップ
+   - 差分更新による効率化
+   - フレームレート考慮
+
+```typescript
+// 実装チェックリスト
+export interface LipSyncIntegrationChecklist {
+  // IPC設定
+  ipcHandlerRegistered: boolean;      // Main ProcessにIPCハンドラー登録済み
+  electronAPIExposed: boolean;         // preloadでAPI公開済み
+  
+  // イベントリスナー
+  listenerSetupInMascot: boolean;      // MascotIntegrationでリスナー設定済み
+  cleanupImplemented: boolean;         // dispose時のクリーンアップ実装済み
+  
+  // 表情管理
+  expressionComposerIntegrated: boolean; // ExpressionComposer統合済み
+  mouthOnlyUpdate: boolean;            // 口のみの更新実装済み
+  
+  // エラーハンドリング
+  errorHandlingImplemented: boolean;   // エラー処理実装済み
+  loggingAdded: boolean;              // 適切なログ出力追加済み
+}
+```
+
+---
+
 これらのパターンを参考に、一貫性のあるFSD実装を行ってください。

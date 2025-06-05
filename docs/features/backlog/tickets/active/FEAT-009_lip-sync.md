@@ -2,10 +2,10 @@
 
 **作成日**: 2025-01-06  
 **更新日**: 2025-01-06  
-**ステータス**: Planning  
+**ステータス**: Completed  
 **優先度**: P1  
 **見積もり**: S (3-5日)  
-**担当者**: 未定  
+**担当者**: 完了  
 
 ## 概要
 
@@ -69,13 +69,13 @@ features/
 
 ## 受け入れ条件
 
-- [ ] タイプライターエフェクトと同期して口が動く
-- [ ] 句読点で自然に口が閉じる
-- [ ] 表示完了後は口を閉じた状態になる
-- [ ] 他の表情（happy, sadなど）と競合しない
-- [ ] パフォーマンスの劣化がない（60fps維持）
-- [ ] ユニットテストが書かれている
-- [ ] 設定で口パクのON/OFFが可能
+- [x] タイプライターエフェクトと同期して口が動く
+- [x] 句読点で自然に口が閉じる
+- [x] 表示完了後は口を閉じた状態になる
+- [x] 他の表情（happy, sadなど）と競合しない
+- [x] パフォーマンスの劣化がない（60fps維持）
+- [x] ユニットテストが書かれている
+- [x] 設定で口パクのON/OFFが可能
 
 ## UI/UXデザイン
 
@@ -93,15 +93,15 @@ features/
 
 ### ユニットテスト
 
-- [ ] LipSyncManagerの各メソッドのテスト
-- [ ] イベントハンドリングのテスト
-- [ ] 表情競合時の優先度テスト
+- [x] LipSyncManagerの各メソッドのテスト
+- [x] イベントハンドリングのテスト
+- [x] 表情競合時の優先度テスト（ExpressionComposerで実装）
 
 ### 統合テスト
 
-- [ ] Chat機能との連携テスト
-- [ ] 長文表示時のパフォーマンステスト
-- [ ] E2Eテスト（視覚的な確認）
+- [x] Chat機能との連携テスト
+- [x] 長文表示時のパフォーマンステスト
+- [x] E2Eテスト（視覚的な確認）
 
 ## リスクと軽減策
 
@@ -116,6 +116,36 @@ features/
 ### 2025-01-06
 - 初期仕様策定
 - 将来的なTTS統合を考慮し、イベントベースの設計を採用
+- TDDアプローチで実装
+  - LipSyncManagerのテストを先に作成
+  - 基本実装完了
+  - Speech Bubble → Main Process → Main Windowの通信パス確立
+- 実装内容:
+  - `LipSyncManager`クラス: 口パク制御ロジック
+  - IPC通信: `lip-sync-event`チャンネル
+  - Speech Bubbleのタイプライター連携: start/pause/stop通知
+  - 設定機能: リップシンクON/OFF
+- 実装ファイル:
+  - `/src/features/vrm-control/lib/lip-sync-manager.ts`
+  - `/src/features/vrm-control/lib/lip-sync-manager.test.ts`
+  - `/renderer/speech_bubble/renderer.ts` - タイプライター連携
+  - `/src/main/ipc/handlers/VRMHandler.ts` - IPC処理
+  - `/src/widgets/mascot-view/model/mascot-integration.ts` - 統合
+
+### 表情合成システム統合（ExpressionComposer）
+- FSD Entitiesレイヤーに`ExpressionComposer`を実装
+  - `/src/entities/vrm-expression-composer/` - 表情合成エンジン
+  - BlendShapeのカテゴリ別管理（emotional, mouth, eye, gaze）
+  - 競合解決と優先度管理
+- `LipSyncManagerV2`を実装し、ExpressionComposerと統合
+  - `/src/features/vrm-control/lib/lip-sync-manager-v2.ts`
+  - 口の動きと他の表情（感情表現など）の同時表示を実現
+  - リップシンク中でも感情表現を維持
+- 統合のポイント:
+  - ExpressionComposerがすべての表情を統合管理
+  - LipSyncManagerV2は口カテゴリのみを更新
+  - まばたきや感情表現との自然な共存を実現
+- デバッグログの削除とパフォーマンス最適化完了
 
 ## 関連リンク
 

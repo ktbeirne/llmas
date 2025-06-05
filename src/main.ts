@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, IpcMainInvokeEvent, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, IpcMainInvokeEvent, dialog, globalShortcut } from 'electron';
 import started from 'electron-squirrel-startup';
 import dotenv from 'dotenv';
 
@@ -301,6 +301,32 @@ app.whenReady().then(async () => {
     setupIPCHandlers();
     await windowManagerController.initializeWindows();
     
+    // 開発環境でF12キーでDevToolsを開く
+    if (process.env.NODE_ENV === 'development') {
+      globalShortcut.register('F12', () => {
+        const focusedWindow = BrowserWindow.getFocusedWindow();
+        if (focusedWindow) {
+          if (focusedWindow.webContents.isDevToolsOpened()) {
+            focusedWindow.webContents.closeDevTools();
+          } else {
+            focusedWindow.webContents.openDevTools();
+          }
+        }
+      });
+      
+      // Cmd/Ctrl+Shift+IでもDevToolsを開く
+      globalShortcut.register('CommandOrControl+Shift+I', () => {
+        const focusedWindow = BrowserWindow.getFocusedWindow();
+        if (focusedWindow) {
+          if (focusedWindow.webContents.isDevToolsOpened()) {
+            focusedWindow.webContents.closeDevTools();
+          } else {
+            focusedWindow.webContents.openDevTools();
+          }
+        }
+      });
+    }
+    
     app.on('activate', async () => {
       if (!windowManagerController.hasAnyWindow()) {
         await windowManagerController.initializeWindows();
@@ -339,4 +365,9 @@ app.on('window-all-closed', () => {
       app.quit();
     }, APP_CONFIG.QUIT_DELAY);
   }
+});
+
+app.on('will-quit', () => {
+  // グローバルショートカットを解除
+  globalShortcut.unregisterAll();
 });

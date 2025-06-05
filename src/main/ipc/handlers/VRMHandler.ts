@@ -30,6 +30,7 @@ export class VRMHandler {
     ipcMain.on('hide-speech-bubble-window', this.handleHideSpeechBubble.bind(this));
     ipcMain.on('notify-bubble-size', this.handleNotifyBubbleSize.bind(this));
     ipcMain.on('log-from-speech-bubble', this.handleLogFromSpeechBubble.bind(this));
+    ipcMain.on('lip-sync-event', this.handleLipSyncEvent.bind(this));
 
     console.log('[VRMHandler] すべてのVRM/ウィンドウ制御関連IPCハンドラーが登録されました');
   }
@@ -247,6 +248,28 @@ export class VRMHandler {
   private handleLogFromSpeechBubble(_event: unknown, message: string): void {
     // スピーチバブルからのログは独自のフォーマットで出力
     console.log(`[SpeechBubble]: ${message}`);
+  }
+
+  /**
+   * リップシンクイベントの処理
+   */
+  private handleLipSyncEvent(_event: unknown, eventType: 'start' | 'pause' | 'stop'): void {
+    this.log('info', 'handleLipSyncEvent', 'リップシンクイベントを受信', { eventType });
+    
+    try {
+      const windowManager = this.windowManagerController.getWindowManager();
+      const mainWindow = windowManager.getWindow('main');
+      
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        // メインウィンドウにリップシンクイベントを転送
+        mainWindow.webContents.send('lip-sync-event', eventType);
+        this.log('info', 'handleLipSyncEvent', 'メインウィンドウにリップシンクイベントを転送しました', { eventType });
+      } else {
+        this.log('warn', 'handleLipSyncEvent', 'メインウィンドウが存在しないか破棄されています');
+      }
+    } catch (error) {
+      this.log('error', 'handleLipSyncEvent', 'リップシンクイベント処理でエラー', error);
+    }
   }
 
   /**

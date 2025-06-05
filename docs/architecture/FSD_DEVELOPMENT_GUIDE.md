@@ -163,6 +163,42 @@ import { something } from '../vrm-control/lib/utils';
 
 ## 6. Feature間の通信パターン
 
+### 重要: イベントリスナーの設定タイミング
+
+**特にIPC通信を伴うイベントリスナーは、初期化時に必ず設定すること**
+
+```typescript
+// ✅ 正しい例: Widget/Integrationの初期化時にリスナー設定
+export class MascotIntegration {
+  constructor() {
+    // リスナーを先に設定（VRMロード前でもOK）
+    this.setupEventListeners();
+    this.setupLipSyncListener(); // リップシンクIPCリスナー
+  }
+  
+  private setupLipSyncListener(): void {
+    // IPCリスナーは初期化時に設定
+    if (window.electronAPI?.onLipSyncUpdate) {
+      this.lipSyncUnsubscribe = window.electronAPI.onLipSyncUpdate(
+        async (data) => {
+          // VRMが未ロードでもイベントを受信できる
+          if (this.lipSyncManager) {
+            await this.lipSyncManager.processLipSyncData(data);
+          }
+        }
+      );
+    }
+  }
+}
+
+// ❌ 間違った例: VRMロード後にリスナー設定
+async loadVRM(path: string) {
+  this.vrm = await loadVRMModel(path);
+  // このタイミングでは既にイベントを取り逃している可能性
+  this.setupLipSyncListener();
+}
+```
+
 ### 6.1 イベント駆動通信
 
 ```typescript

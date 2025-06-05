@@ -38,7 +38,9 @@ export {
  * Feature initialization helper
  * widgetやappレイヤーから使用される初期化ヘルパー
  */
-export async function initializeMouseFollow(): Promise<MouseFollowService> {
+export async function initializeMouseFollow(): Promise<import('./api/mouse-follow-service').MouseFollowService> {
+  // 動的インポートで循環参照を回避
+  const { MouseFollowService } = await import('./api/mouse-follow-service');
   const service = new MouseFollowService();
   await service.initialize();
   return service;

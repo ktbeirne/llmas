@@ -57,6 +57,9 @@ export class SettingsHandler {
     ipcMain.handle(IPC_CHANNELS.DISPLAY.SAVE_ALL_SETTINGS, this.handleSaveAllDisplaySettings.bind(this));
     ipcMain.handle(IPC_CHANNELS.DISPLAY.RESET_ALL_SETTINGS, this.handleResetAllDisplaySettings.bind(this));
 
+    // リップシンク設定
+    ipcMain.handle('get-lip-sync-enabled', this.handleGetLipSyncEnabled.bind(this));
+
     console.log('[SettingsHandler] すべての設定関連IPCハンドラーが登録されました');
   }
 
@@ -460,6 +463,24 @@ export class SettingsHandler {
       const errorMessage = `画面表示設定の一括リセット中にエラーが発生: ${error instanceof Error ? error.message : '不明なエラー'}`;
       this.log('error', 'handleResetAllDisplaySettings', errorMessage, error);
       return createErrorResponse(errorMessage);
+    }
+  }
+
+  /**
+   * リップシンク有効状態の取得
+   */
+  private async handleGetLipSyncEnabled(_event: IpcMainInvokeEvent): Promise<boolean> {
+    this.log('info', 'handleGetLipSyncEnabled', 'リップシンク有効状態取得リクエストを受信');
+    
+    try {
+      const enabled = this.settingsStore.getLipSyncEnabled();
+      this.log('info', 'handleGetLipSyncEnabled', 'リップシンク有効状態を正常に取得', { enabled });
+      
+      return enabled;
+    } catch (error) {
+      this.log('error', 'handleGetLipSyncEnabled', 'リップシンク有効状態の取得中にエラーが発生', error);
+      // エラーの場合はデフォルトでtrueを返す
+      return true;
     }
   }
 

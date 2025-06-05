@@ -70,7 +70,7 @@ export class ScreenAdapter {
   constructor(electronAPIs?: ElectronAPIs) {
     this.electronAPIs = electronAPIs || this.getElectronAPIs();
     this.validatePlatform();
-    this.platform = process.platform as 'win32' | 'darwin';
+    this.platform = ((window as any).electronAPI?.platform || 'unknown') as 'win32' | 'darwin';
   }
 
   private getElectronAPIs(): ElectronAPIs {
@@ -79,7 +79,9 @@ export class ScreenAdapter {
   }
 
   private validatePlatform(): void {
-    if (process.platform === 'linux') {
+    const platform = (window as any).electronAPI?.platform || 'unknown';
+    
+    if (platform === 'linux') {
       this.electronAPIs.dialog.showErrorBox(
         ScreenAdapter.UNSUPPORTED_OS_DIALOG.TITLE,
         ScreenAdapter.UNSUPPORTED_OS_DIALOG.MESSAGE
@@ -87,7 +89,7 @@ export class ScreenAdapter {
       throw new UnsupportedPlatformError(ScreenAdapter.ERROR_MESSAGES.LINUX_NOT_SUPPORTED);
     }
     
-    if (process.platform !== 'win32' && process.platform !== 'darwin') {
+    if (platform !== 'win32' && platform !== 'darwin') {
       throw new UnsupportedPlatformError(ScreenAdapter.ERROR_MESSAGES.UNSUPPORTED_PLATFORM);
     }
   }

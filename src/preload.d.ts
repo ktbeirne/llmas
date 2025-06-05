@@ -1,9 +1,13 @@
 import { IPCTypes } from './types/ipc';
 
 export interface ElectronAPI {
+    platform: NodeJS.Platform;
     sendPromptToGemini: IPCTypes.SendPromptToGemini;
     onSetSpeechBubbleText: IPCTypes.OnSetSpeechBubbleText; 
     hideSpeechBubble: IPCTypes.HideSpeechBubble; 
+    sendLipSyncEvent: IPCTypes.SendLipSyncEvent;
+    onLipSyncEvent: IPCTypes.OnLipSyncEvent;
+    getLipSyncEnabled: IPCTypes.GetLipSyncEnabled;
     notifyBubbleSize: IPCTypes.NotifyBubbleSize;
     logRendererMessage: IPCTypes.LogRendererMessage;
     toggleChatWindowVisibility: IPCTypes.ToggleChatWindowVisibility;

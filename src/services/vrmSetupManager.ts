@@ -8,6 +8,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { loadVRM, loadAnimation } from '../vrmController';
 import { CameraManager } from './cameraManager';
 import { MascotStateManager } from './MascotStateManager';
+import { useVRMStore } from '@features/vrm-control';
 
 export class VRMSetupManager {
     private scene: THREE.Scene;
@@ -54,18 +55,31 @@ export class VRMSetupManager {
     }
 
     async initializeVRM(): Promise<void> {
+        console.log('[VRMSetupManager] initializeVRM開始');
         
         return new Promise((resolve, reject) => {
             // まずVRMモデルをロード
-            loadVRM('/avatar.vrm', this.scene, (vrm) => {
+            const vrmPath = window.location.protocol === 'file:' 
+                ? './public/avatar.vrm'  // Electronのfile:プロトコルの場合
+                : '/avatar.vrm';         // Vite開発サーバーの場合
+            console.log('[VRMSetupManager] loadVRM呼び出し:', vrmPath, 'protocol:', window.location.protocol);
+            loadVRM(vrmPath, this.scene, (vrm) => {
+                console.log('[VRMSetupManager] loadVRMコールバック呼ばれた, vrm:', !!vrm);
                 if (vrm) {
                     // vrmControllerのインスタンスを使用する
                     const vrmControllerInstance = (window as any).vrmController?.getCurrentVRM();
                     this.loadedVRMInstance = vrmControllerInstance || vrm;
                     
+                    // VRMStoreに反映（FSD統合のため）
+                    useVRMStore.getState().setVRM(this.loadedVRMInstance, '/avatar.vrm');
+                    
                     // 次にアニメーションをロード
                     try {
-                        loadAnimation('/idle.vrma', () => {
+                        const animationPath = window.location.protocol === 'file:' 
+                            ? './public/idle.vrma'  // Electronのfile:プロトコルの場合
+                            : '/idle.vrma';         // Vite開発サーバーの場合
+                        console.log('[VRMSetupManager] loadAnimation呼び出し:', animationPath);
+                        loadAnimation(animationPath, () => {
                             this.onAllAssetsReady();
                             
                             // VRMモデルロード完了後にカメラ設定を復元
@@ -162,13 +176,13 @@ export class VRMSetupManager {
                 // マスコットがアイドル状態でない場合はスキップ
                 const isIdle = this.mascotStateManager.isIdleForMouseFollow();
                 const state = this.mascotStateManager.getState();
-                console.log('[VRMSetupManager] マウス追従状態チェック:', {
-                    isIdle,
-                    isExpressionActive: state.isExpressionActive,
-                    activeExpression: state.activeExpression,
-                    isSpeechBubbleActive: state.isSpeechBubbleActive,
-                    isAnimationActive: state.isAnimationActive
-                });
+                // console.log('[VRMSetupManager] マウス追従状態チェック:', {
+                //     isIdle,
+                //     isExpressionActive: state.isExpressionActive,
+                //     activeExpression: state.activeExpression,
+                //     isSpeechBubbleActive: state.isSpeechBubbleActive,
+                //     isAnimationActive: state.isAnimationActive
+                // });
                 
                 if (!isIdle) {
                     return;

@@ -106,10 +106,13 @@ export class VRMController {
     modelURL: string,
     scene: THREE.Scene
   ): Promise<VRM | null> {
+    console.log('[VRMController] loadVRM開始:', modelURL);
     return new Promise((resolve, reject) => {
+      console.log('[VRMController] loader.load呼び出し:', modelURL);
       this.loader.load(
         modelURL,
         (gltf) => {
+          console.log('[VRMController] GLTFローダーコールバック呼ばれた');
           const vrm = gltf.userData.vrm as VRM | undefined;
           if (!vrm) {
             const error = new Error('gltf.userData.vrm が見つかりません');
@@ -646,14 +649,20 @@ export function loadVRM(
   scene: THREE.Scene,
   onModelLoaded?: (vrm: VRM) => void
 ): void {
+  console.log('[vrmController] loadVRM wrapper called:', modelURL);
   vrmController.loadVRM(modelURL, scene)
     .then((vrm) => {
+      console.log('[vrmController] loadVRM promise resolved, vrm:', !!vrm);
       if (onModelLoaded && vrm) {
         onModelLoaded(vrm);
       }
     })
     .catch((error) => {
-      console.error('VRM loading failed:', error);
+      console.error('[vrmController] VRM loading failed:', error);
+      // エラーの場合もコールバックを呼ぶ（nullで）
+      if (onModelLoaded) {
+        onModelLoaded(null as any);
+      }
     });
 }
 

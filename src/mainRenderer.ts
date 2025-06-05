@@ -272,8 +272,17 @@ class MainRenderer {
             // FSD統合でマウス追従を開始
             if (this.mascotIntegration && loadedVRM) {
                 console.log('[MainRenderer] Starting mouse follow with FSD integration');
+                console.log('[MainRenderer] mascotIntegration exists:', !!this.mascotIntegration);
                 await this.mascotIntegration.initialize();
+                
+                // VRMSetupManagerでロードされたVRMを直接設定
+                this.mascotIntegration.setLoadedVRM(loadedVRM);
+                
                 await this.mascotIntegration.startMouseTracking();
+                
+                // LipSyncManagerが作成されているか確認
+                const lipSyncManager = this.mascotIntegration.getLipSyncManager();
+                console.log('[MainRenderer] LipSyncManager after initialization:', !!lipSyncManager);
                 
                 // ExpressionManagerをグローバルに公開（レガシー互換性のため）
                 const expressionManager = this.mascotIntegration.getExpressionManager();
@@ -360,6 +369,30 @@ class MainRenderer {
                 (window.electronAPI as any).onAppBeforeQuit(() => {
                     console.log('[MainRenderer] App before quit event received, saving camera settings...');
                     this.cameraManager.saveCameraSettings();
+                });
+            }
+            
+            // Lip sync event listener
+            if (window.electronAPI.onLipSyncEvent) {
+                window.electronAPI.onLipSyncEvent((eventType) => {
+                    console.log('[MainRenderer] Lip sync event received:', eventType);
+                    const lipSyncManager = this.mascotIntegration.getLipSyncManager();
+                    console.log('[MainRenderer] LipSyncManager:', !!lipSyncManager);
+                    if (lipSyncManager) {
+                        switch (eventType) {
+                            case 'start':
+                                lipSyncManager.handleLipSyncStart();
+                                break;
+                            case 'pause':
+                                lipSyncManager.handleLipSyncPause();
+                                break;
+                            case 'stop':
+                                lipSyncManager.handleLipSyncStop();
+                                break;
+                        }
+                    } else {
+                        console.log('[MainRenderer] LipSyncManager is null');
+                    }
                 });
             }
         }

@@ -30,7 +30,10 @@ export { useVRMStore } from './model/vrm-store';
 // Classes
 export { VRMLoader } from './api/vrm-loader';
 export { ExpressionManager } from './lib/expression-manager';
+export { ExpressionManagerV2 } from './lib/expression-manager-v2';
 export { AnimationManager } from './lib/animation-manager';
+export { LipSyncManager } from './lib/lip-sync-manager';
+export { LipSyncManagerV2 } from './lib/lip-sync-manager-v2';
 
 // Utility functions
 export {

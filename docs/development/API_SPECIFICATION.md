@@ -361,6 +361,41 @@ const result = await window.electronAPI.loadVRMModel({
 });
 ```
 
+##### `vrm-lip-sync` (IPC Channel)
+```typescript
+// Request (from Speech Bubble Window)
+interface LipSyncData {
+  phoneme: string;    // 音素 (aa, ih, ou, ee, oh, etc.)
+  duration: number;   // 持続時間（ミリ秒）
+  weight?: number;    // 表情の強度 (0.0-1.0)
+  timestamp?: number; // タイムスタンプ
+}
+
+// Response
+{ success: boolean }
+
+// Usage (Speech Bubble Window)
+window.electronAPI.sendLipSyncData({
+  phoneme: 'aa',
+  duration: 100,
+  weight: 0.8
+});
+
+// Event (Main Window)
+interface LipSyncUpdateEvent {
+  phoneme: string;
+  duration: number;
+  weight: number;
+  timestamp: number;
+}
+
+// Usage (Main Window - MascotIntegration)
+const unsubscribe = window.electronAPI.onLipSyncUpdate((data) => {
+  // LipSyncManagerに処理を委譲
+  lipSyncManager.processLipSyncData(data);
+});
+```
+
 ## ⚛️ React Component API
 
 ### Common Components

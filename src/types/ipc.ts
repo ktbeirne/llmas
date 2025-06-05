@@ -77,6 +77,9 @@ export namespace IPCTypes {
   // スピーチバブル関連
   export type OnSetSpeechBubbleText = (callback: (text: string) => void) => void;
   export type HideSpeechBubble = () => void;
+  export type SendLipSyncEvent = (event: 'start' | 'pause' | 'stop') => void;
+  export type OnLipSyncEvent = (callback: (event: 'start' | 'pause' | 'stop') => void) => void;
+  export type GetLipSyncEnabled = () => Promise<boolean>;
   export type NotifyBubbleSize = (size: WindowSize) => void;
   
   // ログ関連

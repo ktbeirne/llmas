@@ -262,7 +262,84 @@ echo "export { NewSettingsTab } from './NewSettingsTab';" >> src/renderer/compon
 npm test -- --testPathPattern=NewSettingsTab.test.tsx
 ```
 
-### 3. Three.js VRM機能の追加
+### 3. リップシンク機能の実装
+
+#### 重要: IPCイベントフローの理解
+
+リップシンク機能は、Speech Bubble Window → Main Process → Main Window のイベントフローを使用します。
+
+```typescript
+// 1. IPCハンドラーの設定 (src/main/ipc/handlers/VRMHandler.ts)
+ipcMain.handle('vrm:lip-sync', async (event, data: LipSyncData) => {
+  const mainWindow = getMainWindow();
+  if (mainWindow) {
+    mainWindow.webContents.send('vrm:lip-sync-update', data);
+  }
+});
+
+// 2. PreloadでAPI公開 (src/preload.ts)
+contextBridge.exposeInMainWorld('electronAPI', {
+  sendLipSyncData: (data: LipSyncData) => ipcRenderer.invoke('vrm:lip-sync', data),
+  onLipSyncUpdate: (callback: (data: LipSyncData) => void) => {
+    const handler = (_: IpcRendererEvent, data: LipSyncData) => callback(data);
+    ipcRenderer.on('vrm:lip-sync-update', handler);
+    return () => ipcRenderer.removeListener('vrm:lip-sync-update', handler);
+  }
+});
+
+// 3. MascotIntegrationでリスナー設定 (重要!)
+// src/widgets/mascot-view/model/mascot-integration.ts
+export class MascotIntegration {
+  constructor() {
+    // リスナーを先に設定（VRMロード前でも必須）
+    this.setupLipSyncListener();
+  }
+  
+  private setupLipSyncListener(): void {
+    if (!window.electronAPI?.onLipSyncUpdate) {
+      logger.warn('Lip sync API not available');
+      return;
+    }
+
+    this.lipSyncUnsubscribe = window.electronAPI.onLipSyncUpdate(
+      async (data) => {
+        try {
+          await this.lipSyncManager?.processLipSyncData(data);
+        } catch (error) {
+          logger.error('Failed to process lip sync data', error);
+        }
+      }
+    );
+  }
+}
+
+// 4. LipSyncManagerでExpressionComposerを使用
+// src/features/vrm-control/lib/lip-sync-manager.ts
+export class LipSyncManagerV2 {
+  private expressionComposer?: ExpressionComposer;
+
+  async processLipSyncData(data: LipSyncData): Promise<void> {
+    if (!this.expressionComposer) return;
+
+    // ExpressionComposerで口の形状のみを更新
+    // 他の表情（感情表現など）は維持される
+    this.expressionComposer.setMouth(data.phoneme, data.weight);
+    
+    // 合成された表情をVRMに適用
+    const composed = this.expressionComposer.compose();
+    this.expressionComposer.applyToVRM(this.vrm);
+  }
+}
+```
+
+#### 実装のポイント
+
+1. **イベントリスナーの設定タイミング**: MascotIntegrationのコンストラクタで必ず設定
+2. **ExpressionComposerパターン**: 複数の表情を同時に管理できる合成システムを使用
+3. **IPCイベントフロー**: Speech BubbleとMain Windowは別プロセスなのでIPC経由で通信
+4. **エラーハンドリング**: IPC通信の失敗を考慮した堆稳なエラー処理
+
+### 4. Three.js VRM機能の追加
 
 #### 新しいVRM機能サービスの実装
 ```typescript
