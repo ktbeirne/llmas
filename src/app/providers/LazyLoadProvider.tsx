@@ -40,7 +40,7 @@ class LazyLoadErrorBoundary extends React.Component<
 
   render() {
     if (this.state.hasError) {
-      const FallbackComponent = this.props.fallback || DefaultErrorFallback;
+      const FallbackComponent = this.props.fallback ?? DefaultErrorFallback;
       return <FallbackComponent error={this.state.error} />;
     }
 
@@ -74,7 +74,7 @@ export const createLazyComponent = <T extends ComponentType<any>>(
   }
 
   const WrappedComponent: React.FC<React.ComponentProps<T>> = (props) => {
-    const LoadingComponent = options?.fallback || LoadingFallback;
+    const LoadingComponent = options?.fallback ?? LoadingFallback;
 
     return (
       <LazyLoadErrorBoundary fallback={options?.errorFallback}>
@@ -85,7 +85,7 @@ export const createLazyComponent = <T extends ComponentType<any>>(
     );
   };
 
-  WrappedComponent.displayName = `LazyLoaded(${options?.name || 'Component'})`;
+  WrappedComponent.displayName = `LazyLoaded(${options?.name ?? 'Component'})`;
 
   return WrappedComponent;
 };
@@ -102,7 +102,7 @@ export const useLazyLoad = (
 ) => {
   React.useEffect(() => {
     if (condition) {
-      preloadComponent(importFunc);
+      void preloadComponent(importFunc);
     }
   }, [condition, importFunc]);
 };
@@ -116,7 +116,7 @@ interface LazyLoadProviderProps {
 
 export const LazyLoadProvider: React.FC<LazyLoadProviderProps> = ({
   children,
-  globalLoadingFallback,
+  globalLoadingFallback: _globalLoadingFallback,
   globalErrorFallback,
 }) => {
   return (

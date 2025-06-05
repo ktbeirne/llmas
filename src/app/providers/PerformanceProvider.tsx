@@ -132,7 +132,7 @@ export const usePerformanceOptimizedCallback = <T extends any[], R>(
   return useCallback(callback, deps);
 };
 
-export const usePerformanceOptimizedMemo = <T>(
+export const usePerformanceOptimizedMemo = <T,>(
   factory: () => T,
   deps: React.DependencyList
 ): T => {
@@ -255,7 +255,7 @@ export const PerformanceProvider: React.FC<PerformanceProviderProps> = ({
     return usePerformanceOptimizedCallback(callback, deps);
   }, []);
 
-  const createMemoizedValue = useCallback(<T>(
+  const createMemoizedValue = useCallback(<T,>(
     factory: () => T,
     deps: React.DependencyList
   ) => {

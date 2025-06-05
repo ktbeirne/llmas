@@ -5,12 +5,13 @@
  * 全設定コンポーネントで使用する共通エラー処理機能
  */
 
+import { showErrorMessage } from '../utils/SettingsHelpers';
+
 import type { 
   ErrorEntry, 
   ErrorStrategy,
   ErrorSeverity 
 } from './BaseTypes';
-import { showErrorMessage } from '../utils/SettingsHelpers';
 
 /**
  * エラーハンドリングクラス

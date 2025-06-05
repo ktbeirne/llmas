@@ -6,6 +6,7 @@
  */
 
 import type { ValidationError } from '../../settings/interfaces/SettingsInterfaces';
+
 import type {
   WindowSettingsData,
   ChatSettingsData,

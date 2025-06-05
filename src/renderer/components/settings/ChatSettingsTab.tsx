@@ -6,13 +6,14 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
+
+import { useChatSettings } from '../../hooks/useSettingsSection';
 import { cn } from '../../utils/cn';
 
 // UI Components
 import { Button, Card, FormField } from '../common';
 
 // Custom Hooks
-import { useChatSettings } from '../../hooks/useSettingsSection';
 
 // Types
 export interface ChatSettingsTabProps {

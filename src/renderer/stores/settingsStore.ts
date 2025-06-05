@@ -22,6 +22,7 @@ import type {
 } from '../../utils/settingsStore';
 import type { ExpressionSettings, VRMExpressionInfo } from '../../types/tools';
 import type { ValidationError } from '../../settings/interfaces/SettingsInterfaces';
+
 import {
   validateWindowSettings,
   validateChatSettings,

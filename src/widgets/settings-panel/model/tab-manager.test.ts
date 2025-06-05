@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+
 import { TabManager } from './tab-manager';
 
 type SettingsTab = 'display' | 'chat' | 'expression' | 'camera' | 'debug';

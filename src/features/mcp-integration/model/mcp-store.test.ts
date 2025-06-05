@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
+
 import { useMCPStore } from './mcp-store';
 
 describe('MCP Store (FSD Pattern)', () => {

@@ -1,7 +1,8 @@
 import { BrowserWindow } from 'electron';
 
-import { SettingsStore } from './settingsStore';
 import { MascotStateManager } from '../services/MascotStateManager';
+
+import { SettingsStore } from './settingsStore';
 
 /**
  * SpeechBubbleの表示と管理を担当するユーティリティクラス

@@ -6,9 +6,10 @@
  */
 
 import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // テスト対象
 import Card, { 
@@ -380,7 +381,7 @@ describe('Card Component', () => {
         <Card 
           header="制御コンポーネント"
           collapsible
-          collapsed={true}
+          collapsed
           onCollapsedChange={handleCollapsedChange}
           data-testid="controlled-card"
         >

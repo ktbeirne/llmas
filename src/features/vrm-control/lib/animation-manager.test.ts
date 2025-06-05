@@ -4,10 +4,11 @@
  */
 
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
-import { AnimationManager } from './animation-manager';
 import * as THREE from 'three';
 import type { VRM } from '@pixiv/three-vrm';
 import type { VRMAnimation } from '@pixiv/three-vrm-animation';
+
+import { AnimationManager } from './animation-manager';
 
 // モック
 vi.mock('@pixiv/three-vrm-animation', () => ({

@@ -4,9 +4,10 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { useVRMStore } from './vrm-store';
 import type { VRM } from '@pixiv/three-vrm';
 import type { VRMAnimation } from '@pixiv/three-vrm-animation';
+
+import { useVRMStore } from './vrm-store';
 
 // モック
 vi.mock('@shared/lib/app-event-bus', () => ({

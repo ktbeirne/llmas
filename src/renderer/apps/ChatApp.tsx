@@ -103,7 +103,7 @@ const ChatApp: React.FC<ChatAppProps> = ({ className = '' }) => {
     return (
       <div className={`react-app loading ${className}`}>
         <div className="loading-container">
-          <div className="loading-spinner"></div>
+          <div className="loading-spinner" />
           <p>チャット画面を初期化中...</p>
         </div>
       </div>

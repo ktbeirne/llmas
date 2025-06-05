@@ -3,10 +3,12 @@
  * マウス追従機能の統合サービス
  */
 
-import { ScreenAdapter } from './screen-adapter';
-import { useMouseFollowStore } from '../model/mouse-follow-store';
 import { eventBus } from '@shared/lib/app-event-bus';
+
+import { useMouseFollowStore } from '../model/mouse-follow-store';
 import { MouseFollowSettings } from '../types';
+
+import { ScreenAdapter } from './screen-adapter';
 
 export class MouseFollowService {
   private screenAdapter: ScreenAdapter;

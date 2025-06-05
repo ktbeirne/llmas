@@ -2,8 +2,9 @@
  * Card Component Tests - FSD Phase 1.2
  */
 
-import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+
 import { Card, CardHeader, CardBody, CardFooter } from './Card';
 
 describe('Card Component', () => {

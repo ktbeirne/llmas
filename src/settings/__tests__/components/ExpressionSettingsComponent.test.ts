@@ -6,6 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import type { VRMExpressionInfo, ExpressionSettings } from '../../../types/tools';
 
 // Mock Electron API for expression settings

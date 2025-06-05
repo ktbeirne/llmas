@@ -6,6 +6,7 @@
  */
 
 import { useCallback, useEffect, useMemo } from 'react';
+
 import { useSettingsStore } from '../stores/settingsStore';
 import type { SettingsSection, SettingsDataMap, SettingsStoreState } from '../stores/settingsStore';
 

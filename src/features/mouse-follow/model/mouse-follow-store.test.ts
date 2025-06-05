@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 import { useMouseFollowStore } from './mouse-follow-store';
 
 // モック

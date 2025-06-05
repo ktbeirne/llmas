@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { HeadTracker } from './headTracker';
 import * as THREE from 'three';
 import type { VRM } from '@pixiv/three-vrm';
+
+import { HeadTracker } from './headTracker';
 
 // Mock VRM and related interfaces
 interface MockVRMLookAt {

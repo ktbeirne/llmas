@@ -4,9 +4,11 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach, Mock } from 'vitest';
-import { MouseFollowService } from './mouse-follow-service';
-import { useMouseFollowStore } from '../model/mouse-follow-store';
 import { eventBus } from '@shared/lib/app-event-bus';
+
+import { useMouseFollowStore } from '../model/mouse-follow-store';
+
+import { MouseFollowService } from './mouse-follow-service';
 
 // モック
 vi.mock('../model/mouse-follow-store');

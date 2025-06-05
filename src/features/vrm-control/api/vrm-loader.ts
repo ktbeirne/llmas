@@ -11,6 +11,7 @@ import {
   VRMAnimationLoaderPlugin, 
   VRMAnimation 
 } from '@pixiv/three-vrm-animation';
+
 import { VRMLoadError, VRMAnimationError } from '../types';
 
 export class VRMLoader {

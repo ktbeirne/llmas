@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+
 import type { VRMSetupManager } from './vrmSetupManager';
 import type { MouseHandler } from './mouseHandler';
 import type { MouseFollowRendererIntegrationService } from './MouseFollowRendererIntegrationService';

@@ -8,6 +8,7 @@
 import PerformanceManager from '../../settings/core/PerformanceManager';
 import ErrorHandler from '../../settings/core/ErrorHandler';
 import type { ErrorStrategy } from '../../settings/core/BaseTypes';
+
 import type { SettingsSection } from './settingsStore';
 
 /**

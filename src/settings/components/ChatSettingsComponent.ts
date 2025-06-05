@@ -11,7 +11,6 @@ import type {
   ChatSettingsBindings
 } from '../core/BaseTypes';
 import type { ChatSettingsElements } from '../types/DOMTypes';
-
 import { BaseSettingsComponent } from '../core/BaseSettingsComponent';
 import { SYSTEM_PROMPT_LIMITS } from '../interfaces/SettingsInterfaces';
 import { validateChatSettings } from '../utils/SettingsValidation';

@@ -66,11 +66,13 @@ export type { ValidationError } from '../stores/settingsValidation';
  */
 
 import { useCallback } from 'react';
+
+import type { SettingsSection } from '../stores/settingsStore';
+
 import { useSettingsSection } from './useSettingsSection';
 import { useSettingsLifecycle } from './useSettingsLifecycle';
 import { useSettingsForm } from './useSettingsForm';
 import { useSettingsPerformance, useAdvancedPerformanceMonitoring } from './useSettingsPerformance';
-import type { SettingsSection } from '../stores/settingsStore';
 
 /**
  * 完全統合設定管理Hook

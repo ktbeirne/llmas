@@ -13,7 +13,6 @@ import type {
   ValidationError,
   SettingsResult
 } from '../interfaces/SettingsInterfaces';
-
 import { SYSTEM_PROMPT_LIMITS } from '../interfaces/SettingsInterfaces';
 import { validateChatSettings } from '../utils/SettingsValidation';
 import {

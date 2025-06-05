@@ -15,6 +15,7 @@ docs/
 ├── testing/            # テスト戦略・ガイド
 ├── configuration/      # 設定・カスタマイズ
 ├── maintenance/        # 保守・技術的負債
+│   └── lint/           # Lintエラー解消プロジェクト
 └── archive/            # 過去のドキュメント
 ```
 
@@ -63,6 +64,7 @@ docs/
 - **[TECHNICAL_DEBT.md](./maintenance/TECHNICAL_DEBT.md)** - 技術的負債の記録
 - **[TECHNICAL_DEBT_RESOLUTION_PLAN.md](./maintenance/TECHNICAL_DEBT_RESOLUTION_PLAN.md)** - 負債解消計画
 - **[TECHNICAL_DEBT_TASKS.md](./maintenance/TECHNICAL_DEBT_TASKS.md)** - 具体的なタスク
+- **[lint/](./maintenance/lint/)** - Lintエラー解消プロジェクト（コード品質向上）
 
 ### 📦 アーカイブ (`archive/`)
 過去のドキュメントや完了した移行作業の記録

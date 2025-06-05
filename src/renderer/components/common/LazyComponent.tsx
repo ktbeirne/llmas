@@ -142,7 +142,7 @@ export const LazyComponent: React.FC<LazyComponentProps> = ({
         if (module && typeof module === 'object' && 'default' in module) {
           return module as { default: ComponentType<any> };
         } else if (typeof module === 'function') {
-          return { default: module as ComponentType<any> };
+          return { default: module };
         } else {
           throw new Error('Invalid component module format');
         }

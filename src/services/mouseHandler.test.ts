@@ -5,6 +5,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as THREE from 'three';
 import { VRM } from '@pixiv/three-vrm';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
 import { MouseHandler, createMouseHandler, MouseHandlerConfig } from './mouseHandler';
 
 // Mock THREE.js objects

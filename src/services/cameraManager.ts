@@ -4,6 +4,7 @@
  */
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
 import { safeElectronAPICall, safeDOMOperation } from './serviceErrorEnhancer';
 import { logger } from './logger';
 import { errorHandler, ErrorCategory } from './errorHandler';

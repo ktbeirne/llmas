@@ -4,13 +4,15 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { AnimationClassifier } from './animation-classifier';
+
 import type {
   AnimationCategory,
   AnimationPriority,
   AnimationClassificationConfig,
   AnimationClassificationRule
 } from '../types';
+
+import { AnimationClassifier } from './animation-classifier';
 
 describe('AnimationClassifier', () => {
   let classifier: AnimationClassifier;

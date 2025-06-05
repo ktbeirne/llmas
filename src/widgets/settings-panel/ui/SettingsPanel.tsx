@@ -4,8 +4,9 @@
  */
 
 import React, { useEffect, useState, useCallback, useRef, memo } from 'react';
-import { TabManager } from '../model/tab-manager';
+
 import { SettingsCoordinator } from '../lib/settings-coordinator';
+import { TabManager } from '../model/tab-manager';
 
 type SettingsTab = 'display' | 'chat' | 'expression' | 'camera' | 'debug';
 

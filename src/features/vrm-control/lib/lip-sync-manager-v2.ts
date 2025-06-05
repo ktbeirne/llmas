@@ -5,6 +5,7 @@
  */
 
 import type { VRM } from '@pixiv/three-vrm';
+
 import { ExpressionComposer } from '../../../entities/vrm-expression-composer/model/expression-composer';
 import { BlendShapeCategory } from '../../../entities/vrm-expression-composer/types';
 

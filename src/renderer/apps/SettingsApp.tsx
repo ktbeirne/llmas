@@ -6,9 +6,10 @@
  */
 
 import { useState, useEffect } from 'react';
+
 import '../App.css';
-import { ElectronProvider } from '../contexts';
 import { ElectronAPITestComponent, HMRTestComponent } from '../components/common';
+import { ElectronProvider } from '../contexts';
 
 interface SettingsAppProps {
   className?: string;
@@ -91,7 +92,7 @@ const SettingsApp: React.FC<SettingsAppProps> = ({ className = '' }) => {
     return (
       <div className={`react-app loading ${className}`}>
         <div className="loading-container">
-          <div className="loading-spinner"></div>
+          <div className="loading-spinner" />
           <p>設定画面を初期化中...</p>
         </div>
       </div>

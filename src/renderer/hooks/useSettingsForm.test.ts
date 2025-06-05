@@ -9,6 +9,9 @@ import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vite
 import { renderHook, act } from '@testing-library/react';
 
 // テスト対象
+import type { WindowSettingsData, ChatSettingsData } from '../stores/settingsStore';
+import { DEFAULT_SETTINGS } from '../stores/settingsStore';
+
 import {
   useSettingsForm,
   useWindowSettingsForm,
@@ -17,8 +20,6 @@ import {
   useExpressionSettingsForm,
   type UseSettingsFormOptions,
 } from './useSettingsForm';
-import type { WindowSettingsData, ChatSettingsData } from '../stores/settingsStore';
-import { DEFAULT_SETTINGS } from '../stores/settingsStore';
 
 // 依存関係のモック
 vi.mock('./useSettingsSection', () => ({

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { MouseTracker } from './mouseTracker';
 import * as THREE from 'three';
+
+import { MouseTracker } from './mouseTracker';
 
 // Mock Electron modules
 const mockElectron = {

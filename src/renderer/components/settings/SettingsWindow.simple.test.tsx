@@ -6,9 +6,10 @@
  */
 
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi } from 'vitest';
 
 // テスト対象（Select.tsxの問題を回避するため直接インポート）
 import Button from '../common/Button';

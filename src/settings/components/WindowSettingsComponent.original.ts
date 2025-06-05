@@ -13,7 +13,6 @@ import type {
   ValidationError,
   SettingsResult
 } from '../interfaces/SettingsInterfaces';
-
 import { WINDOW_SIZE_PRESETS, WINDOW_SIZE_LIMITS } from '../interfaces/SettingsInterfaces';
 import { validateWindowSettings } from '../utils/SettingsValidation';
 import {

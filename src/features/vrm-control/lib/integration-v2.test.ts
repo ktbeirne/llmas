@@ -7,6 +7,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 import { ExpressionComposer } from '../../../entities/vrm-expression-composer/model/expression-composer';
 import { BlendShapeCategory } from '../../../entities/vrm-expression-composer/types';
+
 import { ExpressionManagerV2 } from './expression-manager-v2';
 import { LipSyncManagerV2 } from './lip-sync-manager-v2';
 

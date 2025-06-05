@@ -24,6 +24,7 @@ export {
 
 // Combined provider for easy setup
 import React from 'react';
+
 import { LazyLoadProvider } from './LazyLoadProvider';
 import { PerformanceProvider } from './PerformanceProvider';
 

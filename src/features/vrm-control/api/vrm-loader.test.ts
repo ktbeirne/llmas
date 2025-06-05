@@ -4,11 +4,12 @@
  */
 
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
-import { VRMLoader } from './vrm-loader';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { VRMLoaderPlugin } from '@pixiv/three-vrm';
 import { VRMAnimationLoaderPlugin } from '@pixiv/three-vrm-animation';
 import * as THREE from 'three';
+
+import { VRMLoader } from './vrm-loader';
 
 // モック
 vi.mock('three/examples/jsm/loaders/GLTFLoader.js', () => ({

@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
 import { LipSyncManager } from './lip-sync-manager';
 import { ExpressionManager } from './expression-manager';
 

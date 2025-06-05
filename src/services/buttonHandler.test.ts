@@ -2,6 +2,7 @@
  * ButtonHandler Service Unit Tests
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import { ButtonHandler, createButtonHandler } from './buttonHandler';
 
 // Mock ElectronAPI

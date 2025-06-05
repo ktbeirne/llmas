@@ -9,13 +9,14 @@ import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vite
 import { renderHook, act } from '@testing-library/react';
 
 // テスト対象
+import type { SettingsSection } from '../stores/settingsStore';
+
 import {
   useSettingsLifecycle,
   useIntegratedSettingsLifecycle,
   type LifecycleState,
   type ErrorContext,
 } from './useSettingsLifecycle';
-import type { SettingsSection } from '../stores/settingsStore';
 
 // ストアモック
 vi.mock('../stores/settingsStore', async () => {

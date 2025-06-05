@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
 import { createEventBus } from '../event-bus';
 
 interface TestEventMap {

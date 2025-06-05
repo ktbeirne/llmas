@@ -4,6 +4,7 @@
  */
 
 import type { VRM } from '@pixiv/three-vrm';
+
 import { VRMExpressionInfo } from '../types';
 
 export class ExpressionManager {

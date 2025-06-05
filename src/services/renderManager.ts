@@ -4,7 +4,9 @@
  */
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
 import { updateVRMFeatures } from '../vrmController';
+
 import { CameraManager } from './cameraManager';
 import { MouseFollowIntegrationService } from './mouseFollowIntegrationService';
 import { VRMSetupManager } from './vrmSetupManager';

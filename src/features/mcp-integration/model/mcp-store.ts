@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { eventBus } from '@shared/lib/app-event-bus';
+
 import { MCPServer, MCPServerConfig, MCPTool } from '../types';
 
 interface MCPStoreState {

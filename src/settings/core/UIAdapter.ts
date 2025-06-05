@@ -5,12 +5,6 @@
  * DOM操作とReact Hooksを統一的に扱うための抽象化
  */
 
-import type { 
-  UIAdapter, 
-  UIControl, 
-  UIControlConfig,
-  EventListenerEntry 
-} from './BaseTypes';
 import type { ValidationError } from '../interfaces/SettingsInterfaces';
 import { 
   safeGetElementById,
@@ -19,6 +13,13 @@ import {
   safeAddEventListener,
   debounce
 } from '../utils/SettingsHelpers';
+
+import type { 
+  UIAdapter, 
+  UIControl, 
+  UIControlConfig,
+  EventListenerEntry 
+} from './BaseTypes';
 import ResourceManager from './ResourceManager';
 
 /**
@@ -310,7 +311,7 @@ export class VanillaUIAdapter<TBindings = any> implements UIAdapter<TBindings> {
    */
   validateAll(): { isValid: boolean; errors: Record<string, ValidationError[]> } {
     const errors: Record<string, ValidationError[]> = {};
-    let isValid = true;
+    const isValid = true;
 
     this.controls.forEach((control, controlId) => {
       // コントロールの現在のバリデーション状態を取得

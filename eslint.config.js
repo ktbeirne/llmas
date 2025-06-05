@@ -4,6 +4,7 @@ import tsparser from '@typescript-eslint/parser';
 import importPlugin from 'eslint-plugin-import';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
+import vitestPlugin from 'eslint-plugin-vitest';
 import fsdRules from './eslint.config.fsd.js';
 
 export default [
@@ -19,6 +20,9 @@ export default [
       '**/*.d.ts',
       'tests-e2e/**',
       'tests-examples/**',
+      'tests/e2e/**',
+      'tests/e2e-old/**',
+      'playwright*.config.ts',
       '*.config.ts',
       '*.config.js'
     ]
@@ -121,9 +125,39 @@ export default [
   
   // Specific overrides for test files
   {
-    files: ['**/*.test.ts', '**/*.spec.ts'],
+    files: ['**/*.test.ts', '**/*.spec.ts', '**/*.test.tsx', '**/*.spec.tsx'],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        project: './tsconfig.json'
+      },
+      globals: {
+        // Vitest globals
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        test: 'readonly',
+        vi: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly'
+      }
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+      'vitest': vitestPlugin
+    },
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off'
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': ['error', { 'argsIgnorePattern': '^_' }],
+      'vitest/expect-expect': 'off',
+      'vitest/no-test-return-statement': 'off',
+      'vitest/no-disabled-tests': 'warn',
+      'vitest/no-focused-tests': 'error',
+      'vitest/no-identical-title': 'error'
     }
   },
   
@@ -236,7 +270,7 @@ export default [
     },
     settings: {
       react: {
-        version: 'detect'
+        version: '19.1.0'
       },
       'import/resolver': {
         typescript: {

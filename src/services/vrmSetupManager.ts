@@ -5,10 +5,12 @@
 import * as THREE from 'three';
 import { VRM, VRMHumanBoneName } from '@pixiv/three-vrm';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { useVRMStore } from '@features/vrm-control';
+
 import { loadVRM, loadAnimation } from '../vrmController';
+
 import { CameraManager } from './cameraManager';
 import { MascotStateManager } from './MascotStateManager';
-import { useVRMStore } from '@features/vrm-control';
 
 export class VRMSetupManager {
     private scene: THREE.Scene;
@@ -67,8 +69,8 @@ export class VRMSetupManager {
                 console.log('[VRMSetupManager] loadVRMコールバック呼ばれた, vrm:', !!vrm);
                 if (vrm) {
                     // vrmControllerのインスタンスを使用する
-                    const vrmControllerInstance = (window as any).vrmController?.getCurrentVRM();
-                    this.loadedVRMInstance = vrmControllerInstance || vrm;
+                    const vrmControllerInstance = window.vrmController?.getCurrentVRM();
+                    this.loadedVRMInstance = vrmControllerInstance ?? vrm;
                     
                     // VRMStoreに反映（FSD統合のため）
                     useVRMStore.getState().setVRM(this.loadedVRMInstance, '/avatar.vrm');
@@ -188,8 +190,8 @@ export class VRMSetupManager {
                     return;
                 }
                 // Electron APIでスクリーン上のマウス位置を取得
-                const cursorPos = await (window as any).electronAPI.getCursorScreenPoint();
-                const screenBounds = await (window as any).electronAPI.getScreenBounds();
+                const cursorPos = await window.electronAPI.getCursorScreenPoint();
+                const screenBounds = await window.electronAPI.getScreenBounds();
                 
                 const headPosition = new THREE.Vector3();
                 if (this.loadedVRMInstance && this.loadedVRMInstance.humanoid) {

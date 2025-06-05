@@ -4,11 +4,12 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { useMouseFollow } from '@features/mouse-follow';
-import { useVRMControl } from '@features/vrm-control';
+
 import { useAnimation } from '@features/animation';
 import { useChat } from '@features/chat';
+import { useMouseFollow } from '@features/mouse-follow';
+import { useVRMControl } from '@features/vrm-control';
+import { Canvas } from '@react-three/fiber';
 
 interface MascotViewProps {
   className?: string;

@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { chatStore } from './chat-store';
+
 import type {
   ChatMessage,
   ChatConversation,
@@ -12,6 +12,8 @@ import type {
   ChatError,
   SendMessageOptions
 } from '../types';
+
+import { chatStore } from './chat-store';
 
 describe('Chat Store', () => {
   beforeEach(() => {

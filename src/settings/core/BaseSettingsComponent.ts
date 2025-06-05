@@ -10,6 +10,13 @@ import type {
   ValidationError,
   SettingsStateManager
 } from '../interfaces/SettingsInterfaces';
+import { 
+  safeGetElementById,
+  checkElectronAPI,
+  showErrorMessage,
+  showSuccessMessage 
+} from '../utils/SettingsHelpers';
+
 import type { 
   UIAdapter,
   EventListenerEntry,
@@ -20,12 +27,6 @@ import PerformanceManager from './PerformanceManager';
 import ResourceManager from './ResourceManager';
 import ErrorHandler from './ErrorHandler';
 import { UIAdapterFactory } from './UIAdapter';
-import { 
-  safeGetElementById,
-  checkElectronAPI,
-  showErrorMessage,
-  showSuccessMessage 
-} from '../utils/SettingsHelpers';
 
 /**
  * 基底設定コンポーネントクラス

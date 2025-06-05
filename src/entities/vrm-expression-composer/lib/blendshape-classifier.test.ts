@@ -6,6 +6,7 @@
 import { describe, it, expect } from 'vitest';
 
 import { BlendShapeCategory } from '../types';
+
 import { 
   BlendShapeClassifier,
   classifyByName,

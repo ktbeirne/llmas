@@ -14,7 +14,6 @@ import type {
   ValidationError,
   SettingsResult
 } from '../interfaces/SettingsInterfaces';
-
 import { validateThemeSettings } from '../utils/SettingsValidation';
 import {
   safeGetElementById,

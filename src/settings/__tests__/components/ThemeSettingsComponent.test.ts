@@ -6,6 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import type { ThemeInfo } from '../../../types/ipc';
 
 // Mock Electron API for theme settings

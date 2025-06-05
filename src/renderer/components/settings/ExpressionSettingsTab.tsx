@@ -6,13 +6,14 @@
  */
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
+
+import { useExpressionSettings } from '../../hooks/useSettingsSection';
 import { cn } from '../../utils/cn';
 
 // UI Components
 import { Button, Card, FormField } from '../common';
 
 // Custom Hooks
-import { useExpressionSettings } from '../../hooks/useSettingsSection';
 
 // Types
 export interface ExpressionSettingsTabProps {
@@ -247,7 +248,7 @@ export const ExpressionSettingsTab: React.FC<ExpressionSettingsTabProps> = ({
         {loadingState === 'loading' && (
           <div className="flex items-center justify-center py-8" data-testid="expression-loading">
             <div className="flex items-center space-x-3">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
               <span className="text-gray-600">VRMモデルから表情情報を読み込み中...</span>
             </div>
           </div>

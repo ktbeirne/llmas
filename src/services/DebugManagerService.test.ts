@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi, MockedFunction } from 'vitest';
-import { DebugManagerService } from './DebugManagerService';
 import * as THREE from 'three';
+
+import { DebugManagerService } from './DebugManagerService';
 
 // Mock dependencies
 const mockVRMSetupManager = {

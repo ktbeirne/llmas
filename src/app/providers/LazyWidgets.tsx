@@ -25,7 +25,7 @@ export const LazySettingsPanel = createLazyComponent(
 // Feature lazy imports for advanced use cases
 export const LazyChatFeature = createLazyComponent(
   () => import('@features/chat').then(module => ({ 
-    default: () => {
+    default: function ChatFeature() {
       const { useChat } = module;
       return useChat();
     }
@@ -38,7 +38,7 @@ export const LazyChatFeature = createLazyComponent(
 
 export const LazyVrmControlFeature = createLazyComponent(
   () => import('@features/vrm-control').then(module => ({ 
-    default: () => {
+    default: function VrmControlFeature() {
       const { useVrmControl } = module;
       return useVrmControl();
     }
@@ -51,7 +51,7 @@ export const LazyVrmControlFeature = createLazyComponent(
 
 export const LazyMouseFollowFeature = createLazyComponent(
   () => import('@features/mouse-follow').then(module => ({ 
-    default: () => {
+    default: function MouseFollowFeature() {
       const { useMouseFollow } = module;
       return useMouseFollow();
     }
@@ -64,7 +64,7 @@ export const LazyMouseFollowFeature = createLazyComponent(
 
 export const LazySettingsFeature = createLazyComponent(
   () => import('@features/settings').then(module => ({ 
-    default: () => {
+    default: function SettingsFeature() {
       const { useSettings } = module;
       return useSettings();
     }
@@ -77,7 +77,7 @@ export const LazySettingsFeature = createLazyComponent(
 
 export const LazyAnimationFeature = createLazyComponent(
   () => import('@features/animation').then(module => ({ 
-    default: () => {
+    default: function AnimationFeature() {
       const { useAnimation } = module;
       return useAnimation();
     }
@@ -90,7 +90,7 @@ export const LazyAnimationFeature = createLazyComponent(
 
 export const LazyMcpIntegrationFeature = createLazyComponent(
   () => import('@features/mcp-integration').then(module => ({ 
-    default: () => {
+    default: function McpIntegrationFeature() {
       const { useMcpIntegration } = module;
       return useMcpIntegration();
     }

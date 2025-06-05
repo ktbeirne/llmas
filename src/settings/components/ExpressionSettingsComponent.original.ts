@@ -14,7 +14,6 @@ import type {
   SettingsResult,
   VRMExpressionInfo
 } from '../interfaces/SettingsInterfaces';
-
 import { validateExpressionSettings } from '../utils/SettingsValidation';
 import {
   safeGetElementById,

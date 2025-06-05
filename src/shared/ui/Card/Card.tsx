@@ -4,6 +4,7 @@
  */
 
 import { forwardRef, HTMLAttributes, ReactNode } from 'react';
+
 import { cn } from '@shared/lib/cn';
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {

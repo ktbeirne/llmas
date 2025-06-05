@@ -3,8 +3,9 @@
  * アプリケーション全体で使用するグローバルイベントバスインスタンス
  */
 
-import { createEventBus } from './event-bus';
 import { AppEventMap } from '@shared/types/events';
+
+import { createEventBus } from './event-bus';
 
 // グローバルイベントバスインスタンス（拡張オプション付き）
 export const eventBus = createEventBus<AppEventMap>({

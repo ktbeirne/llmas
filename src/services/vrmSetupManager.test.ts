@@ -5,6 +5,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as THREE from 'three';
 import { VRM, VRMHumanBoneName } from '@pixiv/three-vrm';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
 import { VRMSetupManager, createVRMSetupManager } from './vrmSetupManager';
 import { CameraManager } from './cameraManager';
 

@@ -77,6 +77,10 @@ export interface ElectronAPI {
     getDefaultExpression: IPCTypes.GetDefaultExpression;
     setDefaultExpression: IPCTypes.SetDefaultExpression;
     resetToDefaultExpression: IPCTypes.ResetToDefaultExpression;
+    
+    // マウス追従関連のAPI
+    getCursorScreenPoint: () => Promise<{ x: number; y: number }>;
+    getScreenBounds: () => Promise<{ width: number; height: number }>;
 }
 
 declare global {

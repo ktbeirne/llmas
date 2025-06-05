@@ -6,14 +6,15 @@
  */
 
 import React, { useState, useCallback, memo, useMemo } from 'react';
+
 import { cn } from '../../utils/cn';
 
 // UI Components
 import { Button, Card } from '../common';
 
 // Settings Components
-import DisplaySettingsTab from './DisplaySettingsTab';
 import ChatSettingsTab from './ChatSettingsTab';
+import DisplaySettingsTab from './DisplaySettingsTab';
 import ExpressionSettingsTab from './ExpressionSettingsTab';
 
 // Types

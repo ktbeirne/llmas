@@ -12,7 +12,6 @@ import type {
   WindowSettingsBindings
 } from '../core/BaseTypes';
 import type { WindowSettingsElements } from '../types/DOMTypes';
-
 import { BaseSettingsComponent } from '../core/BaseSettingsComponent';
 import { WINDOW_SIZE_PRESETS, WINDOW_SIZE_LIMITS } from '../interfaces/SettingsInterfaces';
 import { validateWindowSettings } from '../utils/SettingsValidation';

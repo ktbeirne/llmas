@@ -3,8 +3,9 @@
  * MascotView Widgetのテスト（TDD: RED Phase）
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+
 import { MascotView } from './MascotView';
 
 // Feature stores をモック

@@ -4,8 +4,10 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach, Mock } from 'vitest';
-import { ScreenAdapter } from './screen-adapter';
+
 import { UnsupportedPlatformError, AccessibilityPermissionError } from '../types';
+
+import { ScreenAdapter } from './screen-adapter';
 
 // モック
 const mockElectronAPI = {

@@ -4,12 +4,14 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { GeminiClient } from './gemini-client';
+
 import type {
   ChatMessage,
   ChatSettings,
   SendMessageOptions
 } from '../types';
+
+import { GeminiClient } from './gemini-client';
 
 // Google AI SDK をモック
 vi.mock('@google/generative-ai', () => {

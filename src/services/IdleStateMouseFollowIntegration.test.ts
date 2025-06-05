@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach, vi, MockedFunction } from 'vitest';
-import { IdleStateManager } from './idleStateManager';
-import { HeadTrackerAdapter } from '../infrastructure/adapters/HeadTrackerAdapter';
 import * as THREE from 'three';
+
+import { HeadTrackerAdapter } from '../infrastructure/adapters/HeadTrackerAdapter';
+
+import { IdleStateManager } from './idleStateManager';
 
 // Mock VRMController
 const mockVRMController = {

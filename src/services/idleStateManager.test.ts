@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { IdleStateManager } from './idleStateManager';
 import type { VRM } from '@pixiv/three-vrm';
+
+import { IdleStateManager } from './idleStateManager';
 
 // Mock interfaces based on existing architecture
 interface MockVRMController {

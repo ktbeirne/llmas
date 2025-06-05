@@ -6,6 +6,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 import { BlendShapeCategory } from '../types';
+
 import { ExpressionComposer } from './expression-composer';
 
 // Mock VRM types

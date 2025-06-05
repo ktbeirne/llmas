@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi, MockedFunction } from 'vitest';
-import { IdleMouseFollowIntegrationService } from './IdleMouseFollowIntegrationService';
 import * as THREE from 'three';
+
+import { IdleMouseFollowIntegrationService } from './IdleMouseFollowIntegrationService';
 
 // Mock VRMController
 const mockVRMController = {

@@ -13,7 +13,6 @@ import type {
   ThemeSettingsBindings
 } from '../core/BaseTypes';
 import type { ThemeSettingsElements } from '../types/DOMTypes';
-
 import { BaseSettingsComponent } from '../core/BaseSettingsComponent';
 import { validateThemeSettings } from '../utils/SettingsValidation';
 import {

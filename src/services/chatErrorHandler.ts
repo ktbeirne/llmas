@@ -185,7 +185,7 @@ export class ChatErrorHandler {
       }
     }
 
-    throw lastError || new Error('予期しないエラー');
+    throw lastError ?? new Error('予期しないエラー');
   }
 
   /**
@@ -231,7 +231,7 @@ export class ChatErrorHandler {
   private updateStatistics(error: ChatError): void {
     this.errorStats.totalErrors++;
     this.errorStats.errorsByType[error.type] = 
-      (this.errorStats.errorsByType[error.type] || 0) + 1;
+      (this.errorStats.errorsByType[error.type] ?? 0) + 1;
     this.errorStats.lastError = error;
   }
 

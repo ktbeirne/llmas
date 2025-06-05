@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+
 import { MascotOrchestrator } from './mascot-orchestrator';
 
 // 各機能をモック

@@ -6,6 +6,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+
 import { useSettingsStore } from '../stores/settingsStore';
 import {
   ReactPerformanceManager,

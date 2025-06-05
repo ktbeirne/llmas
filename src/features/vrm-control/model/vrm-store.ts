@@ -9,6 +9,7 @@ import { eventBus } from '@shared/lib/app-event-bus';
 import type { VRM } from '@pixiv/three-vrm';
 import type { VRMAnimation } from '@pixiv/three-vrm-animation';
 import * as THREE from 'three';
+
 import { 
   VRMModelState, 
   VRMExpressionInfo,

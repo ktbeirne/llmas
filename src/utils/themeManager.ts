@@ -227,7 +227,7 @@ export class ThemeManager {
    */
   private waitForCSSVariableChange(variableName: string, callback: () => void, timeout = 500): void {
     const startTime = Date.now();
-    let lastValue = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+    const lastValue = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
     
     const checkChange = () => {
       const currentValue = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();

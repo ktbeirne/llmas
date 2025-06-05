@@ -13,7 +13,6 @@ import type {
 } from '../core/BaseTypes';
 import type { ExpressionSettingsElements } from '../types/DOMTypes';
 import type { VRMExpressionInfo } from '../interfaces/SettingsInterfaces';
-
 import { BaseSettingsComponent } from '../core/BaseSettingsComponent';
 import { validateExpressionSettings } from '../utils/SettingsValidation';
 import {

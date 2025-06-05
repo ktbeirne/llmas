@@ -4,8 +4,10 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MessageHistoryManager } from './message-history';
+
 import type { ChatMessage, ChatConversation } from '../types';
+
+import { MessageHistoryManager } from './message-history';
 
 describe('Message History Manager', () => {
   let historyManager: MessageHistoryManager;

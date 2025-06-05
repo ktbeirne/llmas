@@ -229,7 +229,7 @@ export class PerformanceManager {
     immediate = false
   ): (...args: Parameters<T>) => void {
     let timeoutId: NodeJS.Timeout | null = null;
-    let callImmediate = immediate;
+    const callImmediate = immediate;
 
     return (...args: Parameters<T>) => {
       const callNow = callImmediate && !timeoutId;

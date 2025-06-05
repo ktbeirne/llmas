@@ -4,8 +4,9 @@
  */
 
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
-import { MascotIntegration } from './mascot-integration';
 import { eventBus } from '@shared/lib/app-event-bus';
+
+import { MascotIntegration } from './mascot-integration';
 
 // モック
 vi.mock('@features/mouse-follow', () => ({

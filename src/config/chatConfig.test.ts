@@ -5,6 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
+
 import { ChatConfig, ChatConfigOptions, DEFAULT_CHAT_CONFIG } from './chatConfig';
 
 describe('ChatConfig', () => {

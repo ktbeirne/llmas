@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { IdleMouseFollowIntegrationService, createIdleMouseFollowIntegrationService } from './IdleMouseFollowIntegrationService';
-import { VRMController } from '../vrmController';
 import * as THREE from 'three';
+
+import { VRMController } from '../vrmController';
+
+import { IdleMouseFollowIntegrationService, createIdleMouseFollowIntegrationService } from './IdleMouseFollowIntegrationService';
 
 /**
  * End-to-End Integration Tests for Mouse Follow System

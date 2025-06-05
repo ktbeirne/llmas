@@ -18,9 +18,15 @@ declare global {
         webkitAppRegion?: string;
     }
     
+    // VRM types
+    interface VRMController {
+        getCurrentVRM(): import('@pixiv/three-vrm').VRM | null;
+    }
+    
     // Window interface extensions
     interface Window {
         themeManager?: any;
+        vrmController?: VRMController;
     }
 }
 

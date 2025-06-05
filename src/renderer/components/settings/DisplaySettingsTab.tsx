@@ -6,13 +6,14 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
+
+import { useWindowSettings, useThemeSettings } from '../../hooks/useSettingsSection';
 import { cn } from '../../utils/cn';
 
 // UI Components
 import { Button, Card, FormField, Select, Input } from '../common';
 
 // Custom Hooks
-import { useWindowSettings, useThemeSettings } from '../../hooks/useSettingsSection';
 
 // Types
 export interface DisplaySettingsTabProps {
@@ -207,12 +208,12 @@ export const DisplaySettingsTab: React.FC<DisplaySettingsTabProps> = ({
   
   // Derived state from Zustand store
   const selectedTheme = useMemo(() => {
-    return themeSettings.data?.currentTheme || 'default';
+    return themeSettings.data?.currentTheme ?? 'default';
   }, [themeSettings.data?.currentTheme]);
   
   // Available themes from ElectronAPI (not hardcoded)
   const availableThemes = useMemo(() => {
-    return themeSettings.data?.availableThemes || [];
+    return themeSettings.data?.availableThemes ?? [];
   }, [themeSettings.data?.availableThemes]);
   
   // Convert ElectronAPI themes to component format
@@ -220,8 +221,8 @@ export const DisplaySettingsTab: React.FC<DisplaySettingsTabProps> = ({
     return availableThemes.map(theme => ({
       id: theme.id,
       title: theme.name,
-      description: theme.description || '',
-      colors: theme.preview || {
+      description: theme.description ?? '',
+      colors: theme.preview ?? {
         primary: '#5082C4',
         secondary: '#8E7CC3', 
         accent: '#E91E63',
@@ -239,19 +240,19 @@ export const DisplaySettingsTab: React.FC<DisplaySettingsTabProps> = ({
     const preset = WINDOW_SIZE_PRESETS.find(p => 
       p.width === size.width && p.height === size.height
     );
-    return preset?.value || 'custom';
+    return preset?.value ?? 'custom';
   }, [windowSettings.data?.windowSize]);
   
-  const customWidth = windowSettings.data?.windowSize?.width || 400;
-  const customHeight = windowSettings.data?.windowSize?.height || 800;
-  const vrmModelPath = windowSettings.data?.vrmModelPath || '/avatar.vrm';
+  const customWidth = windowSettings.data?.windowSize?.width ?? 400;
+  const customHeight = windowSettings.data?.windowSize?.height ?? 800;
+  const vrmModelPath = windowSettings.data?.vrmModelPath ?? '/avatar.vrm';
   
   // Event handlers with Zustand integration
   const handleThemeSelect = useCallback(async (themeId: string) => {
     try {
       await themeSettings.updateSettings({
         currentTheme: themeId,
-        availableThemes: themeSettings.data?.availableThemes || []
+        availableThemes: themeSettings.data?.availableThemes ?? []
       });
       
       // ElectronAPIでテーマを保存し、メインウィンドウに通知
@@ -277,7 +278,7 @@ export const DisplaySettingsTab: React.FC<DisplaySettingsTabProps> = ({
     try {
       // プリセット選択時にカスタム値も更新
       const preset = WINDOW_SIZE_PRESETS.find(p => p.value === value);
-      if (preset && preset.width && preset.height) {
+      if (preset?.width && preset.height) {
         await windowSettings.updateSettings({
           ...windowSettings.data!,
           windowSize: {

@@ -4,8 +4,9 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { ExpressionManager } from './expression-manager';
 import type { VRM } from '@pixiv/three-vrm';
+
+import { ExpressionManager } from './expression-manager';
 
 // VRMモック
 const mockVRM = {

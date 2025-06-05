@@ -4,13 +4,15 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { animationStore } from './animation-store';
+
 import type {
   AnimationInfo,
   AnimationCategory,
   AnimationPriority,
   AnimationPlayOptions
 } from '../types';
+
+import { animationStore } from './animation-store';
 
 describe('Animation Store', () => {
   beforeEach(() => {

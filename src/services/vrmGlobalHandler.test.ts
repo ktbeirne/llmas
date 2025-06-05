@@ -2,6 +2,7 @@
  * VRMGlobalHandler Service Unit Tests
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import { VRMGlobalHandler, createVRMGlobalHandler } from './vrmGlobalHandler';
 
 // Mock vrmController module

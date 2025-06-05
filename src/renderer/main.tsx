@@ -6,7 +6,9 @@
  */
 
 import { StrictMode } from 'react';
+
 import { createRoot } from 'react-dom/client';
+
 import { getAppComponent, type WindowType } from './apps';
 
 // グローバル型定義の拡張（TypeScript）

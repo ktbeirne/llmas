@@ -2,6 +2,7 @@
  * TitleBarMonitor Service Unit Tests
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import { TitleBarMonitor, createTitleBarMonitor } from './titleBarMonitor';
 
 // DOM manipulation test helpers

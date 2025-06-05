@@ -4,6 +4,7 @@
  */
 
 import { performance } from 'perf_hooks';
+
 import { app } from 'electron';
 
 export interface ComponentConfig {

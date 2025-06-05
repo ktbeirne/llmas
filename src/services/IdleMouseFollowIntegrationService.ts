@@ -1,6 +1,7 @@
+import { HeadTrackerAdapter } from '../infrastructure/adapters/HeadTrackerAdapter';
+
 import { IdleStateManager } from './idleStateManager';
 import { MouseFollowIntegrationService, createMouseFollowIntegrationService } from './mouseFollowIntegrationService';
-import { HeadTrackerAdapter } from '../infrastructure/adapters/HeadTrackerAdapter';
 
 /**
  * IdleMouseFollowIntegrationService
